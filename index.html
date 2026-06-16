@@ -8035,26 +8035,6 @@ function showClient(strategyIdx, clientIdx) {
       <tbody>${holdingsRows}</tbody>
     </table>` : '<div style="text-align:center;color:var(--muted);padding:24px">No holdings data available.</div>';
 
-  // Monthly performance with cumulative
-  const monthlyRows = c.monthly.map((m, idx) => {
-    const partial = idx === 0 ? ' <span class="small" style="display:inline">(partial)</span>' : '';
-    return `
-      <tr>
-        <td>${m.label}${partial}</td>
-        <td class="num">${fmtPct(m.p)}</td>
-        <td class="num">${fmtPct(m.b)}</td>
-        <td class="num">${fmtPct(m.pc)}</td>
-        <td class="num">${fmtPct(m.bc)}</td>
-      </tr>`;
-  }).join('');
-  const monthlyTable = `
-    <table>
-      <thead><tr>
-        <th>Period</th><th>Portfolio Monthly %</th><th>Benchmark Monthly %</th>
-        <th>Portfolio Cumulative %</th><th>Benchmark Cumulative %</th>
-      </tr></thead>
-      <tbody>${monthlyRows}</tbody>
-    </table>`;
 
   // Asset class allocation chart + monthly chart canvases
   const allocCard = c.allocation ? `
@@ -8168,8 +8148,6 @@ function showClient(strategyIdx, clientIdx) {
     ${ipsCard}
     <div class="section-title">Holdings (${c.holdings.length} securities)</div>
     ${holdingsTable}
-    <div class="section-title">Monthly Performance vs Benchmark</div>
-    ${monthlyTable}
   `;
 
   // Build client-specific charts
