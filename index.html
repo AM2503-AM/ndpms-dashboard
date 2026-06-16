@@ -24,7 +24,7 @@
   .strategy-tab.active{color:var(--primary);border-bottom-color:var(--primary)}
   .strategy-section{display:none}
   .strategy-section.active{display:block}
-  .benchmark-line{text-align:center;color:var(--muted);font-style:italic;margin-bottom:18px;font-size:13px}
+  .benchmark-line{text-align:center;margin-bottom:18px;font-size:13px;background:linear-gradient(90deg,#EAF1F8,#f0f5fb);border:1px solid #c5d8ec;border-radius:8px;padding:10px 18px;color:var(--primary);font-weight:600;letter-spacing:.1px}
   .kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin-bottom:24px}
   .kpi{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:16px 18px;text-align:center;box-shadow:0 1px 2px rgba(0,0,0,.03)}
   .kpi-label{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
@@ -7816,7 +7816,7 @@ function renderStrategy(s, i) {
 
   return `
     <div class="strategy-section ${i === 0 ? 'active' : ''}" data-idx="${i}">
-      <div class="benchmark-line">Benchmark: <strong>${s.benchmark}</strong></div>
+      <div class="benchmark-line">&#9642; Benchmark &nbsp;|&nbsp; ${s.benchmark}</div>
       <div class="kpi-grid">${kpis}</div>
       <div class="charts-grid">
         ${s.scheme_alloc ? `
@@ -8534,13 +8534,13 @@ function augmentClientView() {
     const mx = Math.max(...items.map(i => Math.abs(i.val)), 1);
     items.forEach(i => {
       const w = Math.max(Math.abs(i.val)/mx*100, 3);
-      const a = (i.val/1e5).toFixed(2);
+      const a = fmtINR(i.val);
       bars += '<div style="display:flex;align-items:center;gap:8px;margin:5px 0">' +
         '<div style="width:130px;font-size:12px;font-weight:600;text-align:right">' + i.label + '</div>' +
         '<div style="flex:1;background:#f0f0f0;border-radius:4px;height:26px">' +
           '<div style="width:' + w + '%;background:' + i.color + ';border-radius:4px;height:100%"></div>' +
         '</div>' +
-        '<div style="width:150px;font-size:12px;font-weight:700;padding-left:8px">₹' + a + ' Cr (' + i.pct.toFixed(1) + '%)</div></div>';
+        '<div style="width:150px;font-size:12px;font-weight:700;padding-left:8px">₹' + a + ' (' + i.pct.toFixed(1) + '%)</div></div>';
     });
   }
   const tp = pk.cash + pk.liquid + pk.overnight + pk.arbitrage;
