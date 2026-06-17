@@ -1,0 +1,22 @@
+{
+  "BHARAT HIGHWAYS INVIT": {
+    "price": null,
+    "as_of": null,
+    "note": "NSE: BHINVIT — update price here when reviewing"
+  },
+  "SageOne - Flagship Growth OE Fund -": {
+    "price": null,
+    "as_of": null,
+    "note": "AIF Cat 3 — get NAV from SageOne monthly report"
+  },
+  "Altiva Hybrid Long Short Fund Direct Plan Growth": {
+    "price": null,
+    "as_of": null,
+    "note": "AIF — get NAV from Altiva monthly report"
+  },
+  "Magnum Hybrid Long Short Fund Direct Plan Growth": {
+    "price": null,
+    "as_of": null,
+    "note": "AIF — get NAV from Magnum monthly report"
+  }
+}
