@@ -237,9 +237,15 @@ def main():
     print("\n── Step 2: Updating holdings & AUM ──")
     updated = 0
 
+    AUTO_TYPES   = {"mf", "etf", "equity", "reit", "invit"}
+    MANUAL_TYPES = {"manual"}
+
     for strategy in strategy_data:
         for client in strategy.get("clients", []):
-            total_mv = 0.0
+            total_mv  = 0.0
+            auto_mv   = 0.0
+            manual_mv = 0.0
+            cash_mv   = 0.0
 
             for h in client.get("holdings", []):
                 new_price = price_cache.get(h["security"])
@@ -250,7 +256,15 @@ def main():
                     if h["cost"] != 0:
                         h["gl_pct"]   = round(h["gain_loss"] / h["cost"] * 100, 2)
                     updated += 1
-                total_mv += h["market_value"]
+                mv = h.get("market_value", 0) or 0
+                total_mv += mv
+                sec_type = sec_map.get(h["security"], {}).get("type", "unknown")
+                if h.get("asset_class") == "Cash and Equivalent" or sec_type == "skip":
+                    cash_mv += mv
+                elif sec_type in MANUAL_TYPES:
+                    manual_mv += mv
+                else:
+                    auto_mv += mv
 
             if total_mv > 0:
                 for h in client.get("holdings", []):
@@ -260,12 +274,18 @@ def main():
                 h["cost"] for h in client.get("holdings", [])
                 if h["cost"] > 0 and h["asset_class"] != "Cash and Equivalent"
             )
-            client["aum"] = round(total_mv, 2)
+            client["aum"]        = round(total_mv, 2)
+            client["auto_aum"]   = round(auto_mv, 2)
+            client["manual_aum"] = round(manual_mv, 2)
+            client["cash_aum"]   = round(cash_mv, 2)
             if invested > 0:
                 client["gl_pct"] = round((total_mv - invested) / invested * 100, 2)
 
         strategy["total_aum"] = round(
             sum(c["aum"] for c in strategy.get("clients", [])), 2
+        )
+        strategy["total_auto_aum"] = round(
+            sum(c.get("auto_aum", 0) for c in strategy.get("clients", [])), 2
         )
 
     print(f"  Updated {updated} holdings.")
