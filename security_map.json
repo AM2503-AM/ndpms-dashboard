@@ -1,7 +1,7 @@
 {
   "Aditya Birla SL Flexi Cap Direct-G": {
     "type": "mf",
-    "mfapi_code": null,
+    "mfapi_code": "120564",
     "search": "Aditya Birla Sun Life Flexi Cap Direct Growth"
   },
   "Altiva Hybrid Long Short Fund Direct Plan Growth": {
@@ -12,7 +12,7 @@
   },
   "Axis Liquid Direct-G": {
     "type": "mf",
-    "mfapi_code": null,
+    "mfapi_code": "120389",
     "search": "Axis Liquid Direct Growth"
   },
   "Axis Overnight Direct-G": {
@@ -57,7 +57,7 @@
   },
   "Edelweiss Arbitrage Direct-G": {
     "type": "mf",
-    "mfapi_code": null,
+    "mfapi_code": "153712",
     "search": "Edelweiss Arbitrage Direct Growth"
   },
   "Edelweiss Equity Savings Direct-G": {
@@ -87,7 +87,7 @@
   },
   "HDFC Flexi Cap Direct-G": {
     "type": "mf",
-    "mfapi_code": null,
+    "mfapi_code": "118955",
     "search": "HDFC Flexi Cap Direct Growth"
   },
   "HDFC Focused Direct-G": {
@@ -205,12 +205,12 @@
   },
   "Parag Parikh Flexi Cap Direct-G": {
     "type": "mf",
-    "mfapi_code": null,
+    "mfapi_code": "122639",
     "search": "Parag Parikh Flexi Cap Direct Growth"
   },
   "Quant Small Cap Direct-G": {
     "type": "mf",
-    "mfapi_code": null,
+    "mfapi_code": "120828",
     "search": "Quant Small Cap Direct Growth"
   },
   "SBI Arbitrage Opportunities Direct-G": {
@@ -245,7 +245,7 @@
   },
   "ICICI PRUDENTIAL NIFTY METAL ETF": {
     "type": "etf",
-    "mfapi_code": null,
+    "mfapi_code": "152769",
     "search": "ICICI Prudential Nifty Metal ETF"
   },
   "ICICI PRUDENTIAL SILVER ETF": {
@@ -265,7 +265,7 @@
   },
   "MIRAE ASSET GOLD ETF": {
     "type": "etf",
-    "mfapi_code": null,
+    "mfapi_code": "151416",
     "search": "Mirae Asset Gold ETF"
   },
   "MIRAE ASSET SILVER ETF": {
