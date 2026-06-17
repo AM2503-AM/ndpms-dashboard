@@ -124,7 +124,7 @@
   "TITAN COMPANY LTD":                               {"type":"equity", "ticker":"TITAN.NS"},
   "TORRENT PHARMACEUTICALS LTD":                     {"type":"equity", "ticker":"TORNTPHARM.NS"},
   "TRENT LTD":                                       {"type":"equity", "ticker":"TRENT.NS"},
-  "Tata Motors Passenger Vehicles Limited":          {"type":"manual"},
+  "Tata Motors Passenger Vehicles Limited":          {"type":"equity", "ticker":"TMPV.NS"},
   "UJJIVAN SMALL FINANCE BANK LTD":                  {"type":"equity", "ticker":"UJJIVANSFB.NS"},
   "ULTRATECH CEMENT LTD":                            {"type":"equity", "ticker":"ULTRACEMCO.NS"},
   "VA TECH WABAG LTD":                               {"type":"equity", "ticker":"WABAG.NS"},
