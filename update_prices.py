@@ -340,6 +340,14 @@ def main():
     new_data = json.dumps(strategy_data, indent=2, ensure_ascii=False)
     new_html = html[:s_start] + new_data + html[s_end:]
 
+    # Update PRICE_DATE
+    date_str = today.strftime("%-d %b %Y") if hasattr(today, 'strftime') else str(today)
+    new_html = re.sub(
+        r'const PRICE_DATE = "[^"]*"',
+        f'const PRICE_DATE = "{date_str}"',
+        new_html
+    )
+
     with open(HTML_FILE, "w", encoding="utf-8") as f:
         f.write(new_html)
 
