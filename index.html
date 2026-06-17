@@ -7951,7 +7951,8 @@ function showClient(strategyIdx, clientIdx) {
     <div class="info-card"><div class="label">Account</div><div class="value">${c.account}</div></div>
     <div class="info-card"><div class="label">NDAS Code</div><div class="value">${c.ndas}</div></div>
     <div class="info-card"><div class="label">Inception</div><div class="value">${c.inception}</div></div>
-    <div class="info-card"><div class="label">Last Review</div><div class="value" style="color:${c.last_review?'var(--primary)':'var(--muted)'}">${c.last_review || '\u2014'}</div></div>
+    <div class="info-card"><div class="label">Last Review</div><div class="value" style="color:${(MIS_DATA[c.ndas]||{}).last_review?'var(--primary)':'var(--muted)'}">${(MIS_DATA[c.ndas]||{}).last_review || '\u2014'}</div></div>
+    <div class="info-card"><div class="label">Advisor</div><div class="value" style="color:${(MIS_DATA[c.ndas]||{}).advisor?'var(--primary)':'var(--muted)'}">${(MIS_DATA[c.ndas]||{}).advisor || '\u2014'}</div></div>
     <div class="info-card"><div class="label">RM</div><div class="value">${(PARKING_DATA[c.ndas]||{}).rm || 'N/A'}</div></div>
     <div class="info-card"><div class="label">SRM</div><div class="value">${(PARKING_DATA[c.ndas]||{}).srm || '\u2014'}</div></div>
     <div class="info-card"><div class="label">AUM</div><div class="value">${fmtINR(c.aum)}</div></div>
