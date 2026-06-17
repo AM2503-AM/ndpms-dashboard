@@ -24,9 +24,7 @@
   .strategy-tab.active{color:var(--primary);border-bottom-color:var(--primary)}
   .strategy-section{display:none}
   .strategy-section.active{display:block}
-  .price-notice{background:#FFF9E6;border-bottom:1px solid #F0C040;padding:8px 28px;font-size:12px;color:#6B5500;display:flex;flex-wrap:wrap;align-items:center;gap:6px}
-  .price-notice strong{color:#4A3200}
-  .price-notice .manual-tag{background:#FEF0C7;border:1px solid #F0C040;border-radius:4px;padding:2px 7px;font-size:11px;font-weight:600}
+
   .benchmark-line{text-align:center;margin-bottom:18px;font-size:13px;background:linear-gradient(90deg,#EAF1F8,#f0f5fb);border:1px solid #c5d8ec;border-radius:8px;padding:10px 18px;color:var(--primary);font-weight:600;letter-spacing:.1px}
   .kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin-bottom:24px}
   .kpi{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:16px 18px;text-align:center;box-shadow:0 1px 2px rgba(0,0,0,.03)}
@@ -77,7 +75,6 @@
     <a class="refresh-btn" id="checklist-btn" href="#" onclick="toggleChecklistView();return false;">&#9776; Client Checklist</a>
   </div>
 </div>
-<div class="price-notice" id="price-notice-bar"></div>
 
 <div class="container">
   <!-- Main strategy view -->
@@ -118,7 +115,7 @@ const STRATEGY_DATA = [
     "name": "Allocate Select",
     "benchmark": "Per-client standardised: Nifty 500 TRI (Equity) + Nifty Arbitrage (Debt + Others) — buckets: 100% N500, 80:20, 70:30, 100% Arb",
     "total_clients": 10,
-    "total_aum": 1031163398.44,
+    "total_aum": 935394347.2,
     "outperformers": 10,
     "underperformers": 0,
     "aum_outperform": 935394347.1999999,
@@ -181,18 +178,18 @@ const STRATEGY_DATA = [
         "ndas": "NDAS0001",
         "name": "Rajnish Kumar",
         "inception": "22/04/2025",
-        "aum": 452595365.52,
-        "gl_pct": 34.83,
-        "p1m": -0.360145,
-        "b1m": 1.90078,
-        "p3m": 3.750902,
-        "b3m": 4.879653,
-        "p6m": 4.234227,
-        "b6m": -0.32347,
-        "p12m": 12.812572,
-        "b12m": 2.538281,
-        "psi": 16.643307,
-        "bsi": 5.863046,
+        "aum": 385103677.08,
+        "gl_pct": 13.51,
+        "p1m": 2.770000000000006,
+        "b1m": 0.032222,
+        "p3m": 3.962774312500006,
+        "b3m": -1.104349,
+        "p6m": 8.417007374491803,
+        "b6m": -2.611644,
+        "p12m": 33.33940887573017,
+        "b12m": 2.186295,
+        "psi": 32.074965928696564,
+        "bsi": 4.789498,
         "outperform": true,
         "si_ann": null,
         "si_ann_bm": 4.339251,
@@ -207,7 +204,7 @@ const STRATEGY_DATA = [
             "market_value": 52242931.94,
             "gain_loss": 12244932.0,
             "gl_pct": 30.61,
-            "assets_pct": 11.54
+            "assets_pct": 13.57
           },
           {
             "asset_class": "Equity",
@@ -219,7 +216,7 @@ const STRATEGY_DATA = [
             "market_value": 18642390.97,
             "gain_loss": 3042391.0,
             "gl_pct": 19.5,
-            "assets_pct": 4.12
+            "assets_pct": 4.84
           },
           {
             "asset_class": "Equity",
@@ -227,11 +224,11 @@ const STRATEGY_DATA = [
             "quantity": 631670.0,
             "unit_cost": 28.02,
             "cost": 17701920.08,
-            "price": 29.655,
-            "market_value": 18732173.85,
-            "gain_loss": 1030254.0,
-            "gl_pct": 5.82,
-            "assets_pct": 4.14
+            "price": 29.23,
+            "market_value": 18463714.1,
+            "gain_loss": 761794.0,
+            "gl_pct": 4.3,
+            "assets_pct": 4.79
           },
           {
             "asset_class": "Equity",
@@ -239,11 +236,11 @@ const STRATEGY_DATA = [
             "quantity": 941343.762,
             "unit_cost": 19.76,
             "cost": 18600000.0,
-            "price": 18.0324,
-            "market_value": 16974687.25,
-            "gain_loss": -1625313.0,
-            "gl_pct": -8.74,
-            "assets_pct": 3.75
+            "price": 17.8532,
+            "market_value": 16805998.45,
+            "gain_loss": -1794002.0,
+            "gl_pct": -9.65,
+            "assets_pct": 4.36
           },
           {
             "asset_class": "Equity",
@@ -251,11 +248,11 @@ const STRATEGY_DATA = [
             "quantity": 1234567.0,
             "unit_cost": 12.27,
             "cost": 15150729.68,
-            "price": 12.9888,
-            "market_value": 16035543.85,
-            "gain_loss": 884814.0,
-            "gl_pct": 5.84,
-            "assets_pct": 3.54
+            "price": 13.48,
+            "market_value": 16641963.16,
+            "gain_loss": 1491233.0,
+            "gl_pct": 9.84,
+            "assets_pct": 4.32
           },
           {
             "asset_class": "Equity",
@@ -263,11 +260,11 @@ const STRATEGY_DATA = [
             "quantity": 177463.385,
             "unit_cost": 88.54,
             "cost": 15713329.89,
-            "price": 90.5605,
-            "market_value": 16071172.88,
-            "gain_loss": 357843.0,
-            "gl_pct": 2.28,
-            "assets_pct": 3.55
+            "price": 90.0589,
+            "market_value": 15982157.24,
+            "gain_loss": 268827.0,
+            "gl_pct": 1.71,
+            "assets_pct": 4.15
           },
           {
             "asset_class": "Equity",
@@ -275,11 +272,11 @@ const STRATEGY_DATA = [
             "quantity": 822099.324,
             "unit_cost": 19.44,
             "cost": 15979330.06,
-            "price": 19.82,
-            "market_value": 16294008.6,
-            "gain_loss": 314679.0,
-            "gl_pct": 1.97,
-            "assets_pct": 3.6
+            "price": 19.18,
+            "market_value": 15767865.03,
+            "gain_loss": -211465.0,
+            "gl_pct": -1.32,
+            "assets_pct": 4.09
           },
           {
             "asset_class": "Equity",
@@ -287,11 +284,11 @@ const STRATEGY_DATA = [
             "quantity": 7336.375,
             "unit_cost": 2081.73,
             "cost": 15272330.03,
-            "price": 2182.942,
-            "market_value": 16014881.12,
-            "gain_loss": 742551.0,
-            "gl_pct": 4.86,
-            "assets_pct": 3.54
+            "price": 2132.088,
+            "market_value": 15641797.1,
+            "gain_loss": 369467.0,
+            "gl_pct": 2.42,
+            "assets_pct": 4.06
           },
           {
             "asset_class": "Equity",
@@ -299,11 +296,11 @@ const STRATEGY_DATA = [
             "quantity": 281563.167,
             "unit_cost": 39.07,
             "cost": 11000000.0,
-            "price": 173.314,
-            "market_value": 48798838.73,
-            "gain_loss": 37798839.0,
-            "gl_pct": 343.63,
-            "assets_pct": 10.78
+            "price": 41.522,
+            "market_value": 11691065.82,
+            "gain_loss": 691066.0,
+            "gl_pct": 6.28,
+            "assets_pct": 3.04
           },
           {
             "asset_class": "Equity",
@@ -311,11 +308,11 @@ const STRATEGY_DATA = [
             "quantity": 49481.0,
             "unit_cost": 219.83,
             "cost": 10877525.64,
-            "price": 234.0479,
-            "market_value": 11580924.14,
-            "gain_loss": 703398.0,
-            "gl_pct": 6.47,
-            "assets_pct": 2.56
+            "price": 233.1,
+            "market_value": 11534021.1,
+            "gain_loss": 656495.0,
+            "gl_pct": 6.04,
+            "assets_pct": 3.0
           },
           {
             "asset_class": "Equity",
@@ -323,11 +320,11 @@ const STRATEGY_DATA = [
             "quantity": 793021.481,
             "unit_cost": 11.98,
             "cost": 9499525.02,
-            "price": 13.3494,
-            "market_value": 10586360.96,
-            "gain_loss": 1086836.0,
-            "gl_pct": 11.44,
-            "assets_pct": 2.34
+            "price": 13.1323,
+            "market_value": 10414195.99,
+            "gain_loss": 914671.0,
+            "gl_pct": 9.63,
+            "assets_pct": 2.7
           },
           {
             "asset_class": "Equity",
@@ -335,11 +332,11 @@ const STRATEGY_DATA = [
             "quantity": 440781.189,
             "unit_cost": 23.95,
             "cost": 10556950.18,
-            "price": 21.5004,
-            "market_value": 9476971.88,
-            "gain_loss": -1079978.0,
-            "gl_pct": -10.23,
-            "assets_pct": 2.09
+            "price": 21.0966,
+            "market_value": 9298984.43,
+            "gain_loss": -1257966.0,
+            "gl_pct": -11.92,
+            "assets_pct": 2.41
           },
           {
             "asset_class": "Equity",
@@ -347,11 +344,11 @@ const STRATEGY_DATA = [
             "quantity": 570813.73,
             "unit_cost": 15.76,
             "cost": 8994574.53,
-            "price": 15.5228,
-            "market_value": 8860627.37,
-            "gain_loss": -133947.0,
-            "gl_pct": -1.49,
-            "assets_pct": 1.96
+            "price": 15.3396,
+            "market_value": 8756054.29,
+            "gain_loss": -238520.0,
+            "gl_pct": -2.65,
+            "assets_pct": 2.27
           },
           {
             "asset_class": "Equity",
@@ -359,11 +356,11 @@ const STRATEGY_DATA = [
             "quantity": 73839.445,
             "unit_cost": 66.67,
             "cost": 4922931.47,
-            "price": 64.2837,
-            "market_value": 4746672.73,
-            "gain_loss": -176259.0,
-            "gl_pct": -3.58,
-            "assets_pct": 1.05
+            "price": 63.6173,
+            "market_value": 4697466.12,
+            "gain_loss": -225465.0,
+            "gl_pct": -4.58,
+            "assets_pct": 1.22
           },
           {
             "asset_class": "Equity",
@@ -371,11 +368,11 @@ const STRATEGY_DATA = [
             "quantity": 148742.131,
             "unit_cost": 18.02,
             "cost": 2679999.99,
-            "price": 284.42,
-            "market_value": 42305236.9,
-            "gain_loss": 39625237.0,
-            "gl_pct": 1478.55,
-            "assets_pct": 9.35
+            "price": 18.41,
+            "market_value": 2738342.63,
+            "gain_loss": 58343.0,
+            "gl_pct": 2.18,
+            "assets_pct": 0.71
           },
           {
             "asset_class": "Equity",
@@ -383,11 +380,11 @@ const STRATEGY_DATA = [
             "quantity": 23475.129,
             "unit_cost": 115.87,
             "cost": 2720000.06,
-            "price": 108.2352,
-            "market_value": 2540835.28,
-            "gain_loss": -179165.0,
-            "gl_pct": -6.59,
-            "assets_pct": 0.56
+            "price": 106.2856,
+            "market_value": 2495068.17,
+            "gain_loss": -224932.0,
+            "gl_pct": -8.27,
+            "assets_pct": 0.65
           },
           {
             "asset_class": "Fixed Income",
@@ -395,11 +392,11 @@ const STRATEGY_DATA = [
             "quantity": 242465.023,
             "unit_cost": 41.24,
             "cost": 9999500.01,
-            "price": 74.677,
-            "market_value": 18106560.52,
-            "gain_loss": 8107061.0,
-            "gl_pct": 81.07,
-            "assets_pct": 4.0
+            "price": 75.867,
+            "market_value": 18395093.9,
+            "gain_loss": 8395594.0,
+            "gl_pct": 83.96,
+            "assets_pct": 4.78
           },
           {
             "asset_class": "Fixed Income",
@@ -407,11 +404,11 @@ const STRATEGY_DATA = [
             "quantity": 56646.303,
             "unit_cost": 44.13,
             "cost": 2499874.99,
-            "price": 69.6694,
-            "market_value": 3946513.94,
-            "gain_loss": 1446639.0,
-            "gl_pct": 57.87,
-            "assets_pct": 0.87
+            "price": 70.9495,
+            "market_value": 4019026.87,
+            "gain_loss": 1519152.0,
+            "gl_pct": 60.77,
+            "assets_pct": 1.04
           },
           {
             "asset_class": "Fixed Income",
@@ -419,10 +416,10 @@ const STRATEGY_DATA = [
             "quantity": 0.144,
             "unit_cost": 104.78,
             "cost": 15.09,
-            "price": 112.5406,
-            "market_value": 16.21,
+            "price": 108.4533,
+            "market_value": 15.62,
             "gain_loss": 1.0,
-            "gl_pct": 6.63,
+            "gl_pct": 3.51,
             "assets_pct": 0.0
           },
           {
@@ -431,10 +428,10 @@ const STRATEGY_DATA = [
             "quantity": 0.33,
             "unit_cost": 33.38,
             "cost": 11.02,
-            "price": 20.6247,
-            "market_value": 6.81,
-            "gain_loss": -4.0,
-            "gl_pct": -36.3,
+            "price": 37.9024,
+            "market_value": 12.51,
+            "gain_loss": 1.0,
+            "gl_pct": 13.55,
             "assets_pct": 0.0
           },
           {
@@ -443,10 +440,10 @@ const STRATEGY_DATA = [
             "quantity": 0.293,
             "unit_cost": 34.14,
             "cost": 10.0,
-            "price": 71.0124,
-            "market_value": 20.81,
-            "gain_loss": 11.0,
-            "gl_pct": 110.0,
+            "price": 38.7715,
+            "market_value": 11.36,
+            "gain_loss": 1.0,
+            "gl_pct": 13.56,
             "assets_pct": 0.0
           },
           {
@@ -455,11 +452,11 @@ const STRATEGY_DATA = [
             "quantity": 370892.0,
             "unit_cost": 132.22,
             "cost": 49040082.02,
-            "price": 128.1297,
-            "market_value": 47522280.69,
-            "gain_loss": -1517801.0,
-            "gl_pct": -3.1,
-            "assets_pct": 10.5
+            "price": 133.12,
+            "market_value": 49373143.04,
+            "gain_loss": 333061.0,
+            "gl_pct": 0.68,
+            "assets_pct": 12.82
           },
           {
             "asset_class": "Alternative Assets",
@@ -467,11 +464,11 @@ const STRATEGY_DATA = [
             "quantity": 181479.0,
             "unit_cost": 132.09,
             "cost": 23971240.59,
-            "price": 145.4304,
-            "market_value": 26392563.56,
-            "gain_loss": 2421323.0,
-            "gl_pct": 10.1,
-            "assets_pct": 5.83
+            "price": 151.04,
+            "market_value": 27410588.16,
+            "gain_loss": 3439348.0,
+            "gl_pct": 14.35,
+            "assets_pct": 7.12
           },
           {
             "asset_class": "Alternative Assets",
@@ -483,7 +480,7 @@ const STRATEGY_DATA = [
             "market_value": 24503502.96,
             "gain_loss": 2504603.0,
             "gl_pct": 11.39,
-            "assets_pct": 5.41
+            "assets_pct": 6.36
           },
           {
             "asset_class": "Alternative Assets",
@@ -491,11 +488,11 @@ const STRATEGY_DATA = [
             "quantity": 90805.0,
             "unit_cost": 129.72,
             "cost": 11779632.47,
-            "price": 240.4421,
-            "market_value": 21833344.89,
-            "gain_loss": 10053712.0,
-            "gl_pct": 85.35,
-            "assets_pct": 4.82
+            "price": 253.99,
+            "market_value": 23063561.95,
+            "gain_loss": 11283929.0,
+            "gl_pct": 95.79,
+            "assets_pct": 5.99
           },
           {
             "asset_class": "Alternative Assets",
@@ -503,11 +500,11 @@ const STRATEGY_DATA = [
             "quantity": 11634.0,
             "unit_cost": 95.69,
             "cost": 1113257.46,
-            "price": 31.5944,
-            "market_value": 367569.25,
-            "gain_loss": -745688.0,
-            "gl_pct": -66.98,
-            "assets_pct": 0.08
+            "price": 252.08,
+            "market_value": 2932698.72,
+            "gain_loss": 1819441.0,
+            "gl_pct": 163.43,
+            "assets_pct": 0.76
           },
           {
             "asset_class": "Cash and Equivalent",
@@ -757,28 +754,25 @@ const STRATEGY_DATA = [
             }
           ],
           "note": ""
-        },
-        "auto_aum": 381691315.18,
-        "manual_aum": 0.0,
-        "cash_aum": 70904050.34
+        }
       },
       {
         "account": "100083",
         "ndas": "NDAS0002",
         "name": "Sharad Prem Jagtiani",
         "inception": "28/04/2025",
-        "aum": 23663161.86,
-        "gl_pct": 6.0,
-        "p1m": 0.853454,
-        "b1m": 2.102635,
-        "p3m": 5.86267,
-        "b3m": 5.360807,
-        "p6m": 7.737033,
-        "b6m": -0.82877,
-        "p12m": 4.538017,
-        "b12m": 1.9923,
-        "psi": 16.169734,
-        "bsi": 5.55686,
+        "aum": 23594450.55,
+        "gl_pct": 3.06,
+        "p1m": 0.39000000000000146,
+        "b1m": 0.01706,
+        "p3m": 0.9267411583999907,
+        "b3m": -1.419262,
+        "p6m": 1.703173040744077,
+        "b6m": -3.431831,
+        "p12m": 6.2517388094245785,
+        "b12m": 1.551132,
+        "psi": 17.794322078769277,
+        "bsi": 4.340942,
         "outperform": true,
         "si_ann": null,
         "si_ann_bm": 3.994426,
@@ -789,11 +783,11 @@ const STRATEGY_DATA = [
             "quantity": 753332.378,
             "unit_cost": 10.52,
             "cost": 7925000.01,
-            "price": 11.9672,
-            "market_value": 9015279.23,
-            "gain_loss": 1090279.0,
-            "gl_pct": 13.76,
-            "assets_pct": 38.1
+            "price": 11.9376,
+            "market_value": 8992980.6,
+            "gain_loss": 1067981.0,
+            "gl_pct": 13.48,
+            "assets_pct": 38.11
           },
           {
             "asset_class": "Equity",
@@ -801,11 +795,11 @@ const STRATEGY_DATA = [
             "quantity": 113681.743,
             "unit_cost": 39.41,
             "cost": 4479999.93,
-            "price": 39.63,
-            "market_value": 4505207.48,
-            "gain_loss": 25208.0,
-            "gl_pct": 0.56,
-            "assets_pct": 19.04
+            "price": 39.02,
+            "market_value": 4435861.61,
+            "gain_loss": -44138.0,
+            "gl_pct": -0.99,
+            "assets_pct": 18.8
           },
           {
             "asset_class": "Equity",
@@ -817,7 +811,7 @@ const STRATEGY_DATA = [
             "market_value": 4290161.43,
             "gain_loss": -189838.0,
             "gl_pct": -4.24,
-            "assets_pct": 18.13
+            "assets_pct": 18.18
           },
           {
             "asset_class": "Equity",
@@ -825,11 +819,11 @@ const STRATEGY_DATA = [
             "quantity": 33742.195,
             "unit_cost": 102.25,
             "cost": 3449999.91,
-            "price": 100.0048,
-            "market_value": 3374381.46,
-            "gain_loss": -75618.0,
-            "gl_pct": -2.19,
-            "assets_pct": 14.26
+            "price": 98.4656,
+            "market_value": 3322445.48,
+            "gain_loss": -127554.0,
+            "gl_pct": -3.7,
+            "assets_pct": 14.08
           },
           {
             "asset_class": "Alternative Assets",
@@ -837,11 +831,11 @@ const STRATEGY_DATA = [
             "quantity": 14945.0,
             "unit_cost": 133.13,
             "cost": 1989674.53,
-            "price": 127.6055,
-            "market_value": 1907064.2,
-            "gain_loss": -82610.0,
-            "gl_pct": -4.15,
-            "assets_pct": 8.06
+            "price": 132.69,
+            "market_value": 1983052.05,
+            "gain_loss": -6622.0,
+            "gl_pct": -0.33,
+            "assets_pct": 8.4
           },
           {
             "asset_class": "Cash and Equivalent",
@@ -849,10 +843,10 @@ const STRATEGY_DATA = [
             "quantity": 4399.0,
             "unit_cost": 114.08,
             "cost": 501842.76,
-            "price": 114.5543,
-            "market_value": 503924.37,
-            "gain_loss": 2082.0,
-            "gl_pct": 0.41,
+            "price": 114.3,
+            "market_value": 502805.7,
+            "gain_loss": 963.0,
+            "gl_pct": 0.19,
             "assets_pct": 2.13
           },
           {
@@ -1085,28 +1079,25 @@ const STRATEGY_DATA = [
             }
           ],
           "note": ""
-        },
-        "auto_aum": 23092093.8,
-        "manual_aum": 0.0,
-        "cash_aum": 571068.06
+        }
       },
       {
         "account": "100208",
         "ndas": "NDAS0008",
         "name": "Chander Prakash Gurnani",
         "inception": "07/08/2025",
-        "aum": 338242410.22,
-        "gl_pct": -0.82,
-        "p1m": 0.284929,
-        "b1m": 2.102635,
-        "p3m": 3.458438,
-        "b3m": 5.360807,
-        "p6m": 0.682033,
-        "b6m": -0.82877,
+        "aum": 337812985.75,
+        "gl_pct": -0.93,
+        "p1m": 0.8499999999999952,
+        "b1m": 0.01706,
+        "p3m": -2.715127171499998,
+        "b3m": -1.419262,
+        "p6m": -4.490490301588512,
+        "b6m": -3.431831,
         "p12m": null,
         "b12m": 1.551132,
-        "psi": 8.875743,
-        "bsi": 2.604092,
+        "psi": 2.0837516349932805,
+        "bsi": 1.372963,
         "outperform": true,
         "si_ann": null,
         "si_ann_bm": null,
@@ -1117,11 +1108,11 @@ const STRATEGY_DATA = [
             "quantity": 3825223.943,
             "unit_cost": 20.89,
             "cost": 79920000.08,
-            "price": 21.5004,
-            "market_value": 82243844.86,
-            "gain_loss": 2323845.0,
-            "gl_pct": 2.91,
-            "assets_pct": 24.32
+            "price": 21.0966,
+            "market_value": 80699219.44,
+            "gain_loss": 779219.0,
+            "gl_pct": 0.97,
+            "assets_pct": 23.89
           },
           {
             "asset_class": "Equity",
@@ -1129,11 +1120,11 @@ const STRATEGY_DATA = [
             "quantity": 5053984.035,
             "unit_cost": 15.81,
             "cost": 79920000.07,
-            "price": 15.5228,
-            "market_value": 78451983.38,
-            "gain_loss": -1468017.0,
-            "gl_pct": -1.84,
-            "assets_pct": 23.19
+            "price": 15.3396,
+            "market_value": 77526093.5,
+            "gain_loss": -2393907.0,
+            "gl_pct": -3.0,
+            "assets_pct": 22.95
           },
           {
             "asset_class": "Equity",
@@ -1141,11 +1132,11 @@ const STRATEGY_DATA = [
             "quantity": 4275090.916,
             "unit_cost": 19.61,
             "cost": 83843000.01,
-            "price": 18.0324,
-            "market_value": 77090149.43,
-            "gain_loss": -6752851.0,
-            "gl_pct": -8.05,
-            "assets_pct": 22.79
+            "price": 17.8532,
+            "market_value": 76324053.14,
+            "gain_loss": -7518947.0,
+            "gl_pct": -8.97,
+            "assets_pct": 22.59
           },
           {
             "asset_class": "Equity",
@@ -1153,11 +1144,11 @@ const STRATEGY_DATA = [
             "quantity": 2536455.0,
             "unit_cost": 12.06,
             "cost": 30585842.62,
-            "price": 12.9888,
-            "market_value": 32945506.7,
-            "gain_loss": 2359664.0,
-            "gl_pct": 7.71,
-            "assets_pct": 9.74
+            "price": 13.48,
+            "market_value": 34191413.4,
+            "gain_loss": 3605571.0,
+            "gl_pct": 11.79,
+            "assets_pct": 10.12
           },
           {
             "asset_class": "Fixed Income",
@@ -1165,11 +1156,11 @@ const STRATEGY_DATA = [
             "quantity": 636165.361,
             "unit_cost": 41.74,
             "cost": 26550543.69,
-            "price": 42.5656,
-            "market_value": 27078760.29,
-            "gain_loss": 528217.0,
-            "gl_pct": 1.99,
-            "assets_pct": 8.01
+            "price": 42.2442,
+            "market_value": 26874296.74,
+            "gain_loss": 323753.0,
+            "gl_pct": 1.22,
+            "assets_pct": 7.96
           },
           {
             "asset_class": "Alternative Assets",
@@ -1177,11 +1168,11 @@ const STRATEGY_DATA = [
             "quantity": 223437.0,
             "unit_cost": 129.41,
             "cost": 28915965.29,
-            "price": 128.1297,
-            "market_value": 28628915.78,
-            "gain_loss": -287050.0,
-            "gl_pct": -0.99,
-            "assets_pct": 8.46
+            "price": 133.12,
+            "market_value": 29743933.44,
+            "gain_loss": 827968.0,
+            "gl_pct": 2.86,
+            "assets_pct": 8.8
           },
           {
             "asset_class": "Alternative Assets",
@@ -1189,11 +1180,11 @@ const STRATEGY_DATA = [
             "quantity": 50191.0,
             "unit_cost": 225.07,
             "cost": 11296448.22,
-            "price": 236.405,
-            "market_value": 11865403.36,
-            "gain_loss": 568955.0,
-            "gl_pct": 5.04,
-            "assets_pct": 3.51
+            "price": 249.37,
+            "market_value": 12516129.67,
+            "gain_loss": 1219681.0,
+            "gl_pct": 10.8,
+            "assets_pct": 3.71
           },
           {
             "asset_class": "Cash and Equivalent",
@@ -1409,28 +1400,25 @@ const STRATEGY_DATA = [
             }
           ],
           "note": ""
-        },
-        "auto_aum": 338304563.8,
-        "manual_aum": 0.0,
-        "cash_aum": -62153.58
+        }
       },
       {
         "account": "100360",
         "ndas": "NDAS0010",
         "name": "Alka Lifestyles Private Limited",
         "inception": "08/01/2026",
-        "aum": 72499354.91,
-        "gl_pct": 3.57,
+        "aum": 72499243.53,
+        "gl_pct": 3.55,
         "p1m": 1.1400000000000077,
-        "b1m": 0.4878,
+        "b1m": 0.138353,
         "p3m": 2.647698025599987,
-        "b3m": 1.511576,
+        "b3m": 1.100041,
         "p6m": null,
         "b6m": 3.12967,
         "p12m": null,
         "b12m": 6.632437,
         "psi": 3.356104689891981,
-        "bsi": 2.738249,
+        "bsi": 2.276226,
         "outperform": true,
         "si_ann": null,
         "si_ann_bm": null,
@@ -1453,10 +1441,10 @@ const STRATEGY_DATA = [
             "quantity": 438.0,
             "unit_cost": 114.02,
             "cost": 49940.02,
-            "price": 114.5543,
-            "market_value": 50174.78,
-            "gain_loss": 235.0,
-            "gl_pct": 0.47,
+            "price": 114.3,
+            "market_value": 50063.4,
+            "gain_loss": 123.0,
+            "gl_pct": 0.25,
             "assets_pct": 0.07
           },
           {
@@ -1626,28 +1614,25 @@ const STRATEGY_DATA = [
             }
           ],
           "note": ""
-        },
-        "auto_aum": 0.0,
-        "manual_aum": 72483243.87,
-        "cash_aum": 16111.04
+        }
       },
       {
         "account": "100397",
         "ndas": "NDAS0011",
         "name": "Jay Ashkaran Shah",
         "inception": "11/02/2026",
-        "aum": 13507604.45,
-        "gl_pct": 35.46,
-        "p1m": 1.185275,
-        "b1m": 1.90078,
-        "p3m": 5.074263,
-        "b3m": 4.879653,
+        "aum": 9989870.65,
+        "gl_pct": -0.22,
+        "p1m": 1.6299999999999981,
+        "b1m": 0.032222,
+        "p3m": 1.2604407983999755,
+        "b3m": -1.104349,
         "p6m": null,
         "b6m": -2.611644,
         "p12m": null,
         "b12m": 2.186295,
-        "psi": -2.030029,
-        "bsi": -1.529243,
+        "psi": -0.2483397694961753,
+        "bsi": -2.795784,
         "outperform": true,
         "si_ann": null,
         "si_ann_bm": null,
@@ -1658,11 +1643,11 @@ const STRATEGY_DATA = [
             "quantity": 63262.349,
             "unit_cost": 19.76,
             "cost": 1249999.99,
-            "price": 18.0324,
-            "market_value": 1140771.98,
-            "gain_loss": -109228.0,
-            "gl_pct": -8.74,
-            "assets_pct": 8.45
+            "price": 17.8532,
+            "market_value": 1129435.37,
+            "gain_loss": -120565.0,
+            "gl_pct": -9.65,
+            "assets_pct": 11.31
           },
           {
             "asset_class": "Equity",
@@ -1670,11 +1655,11 @@ const STRATEGY_DATA = [
             "quantity": 26357.504,
             "unit_cost": 40.98,
             "cost": 1080000.01,
-            "price": 173.314,
-            "market_value": 4568124.45,
-            "gain_loss": 3488124.0,
-            "gl_pct": 322.97,
-            "assets_pct": 33.82
+            "price": 41.522,
+            "market_value": 1094416.28,
+            "gain_loss": 14416.0,
+            "gl_pct": 1.33,
+            "assets_pct": 10.96
           },
           {
             "asset_class": "Equity",
@@ -1682,11 +1667,11 @@ const STRATEGY_DATA = [
             "quantity": 16077.047,
             "unit_cost": 47.27,
             "cost": 760000.01,
-            "price": 50.38,
-            "market_value": 809961.63,
-            "gain_loss": 49962.0,
-            "gl_pct": 6.57,
-            "assets_pct": 6.0
+            "price": 48.09,
+            "market_value": 773145.19,
+            "gain_loss": 13145.0,
+            "gl_pct": 1.73,
+            "assets_pct": 7.74
           },
           {
             "asset_class": "Equity",
@@ -1694,11 +1679,11 @@ const STRATEGY_DATA = [
             "quantity": 35831.94,
             "unit_cost": 20.93,
             "cost": 750000.0,
-            "price": 20.46,
-            "market_value": 733121.49,
-            "gain_loss": -16879.0,
-            "gl_pct": -2.25,
-            "assets_pct": 5.43
+            "price": 19.85,
+            "market_value": 711264.01,
+            "gain_loss": -38736.0,
+            "gl_pct": -5.16,
+            "assets_pct": 7.12
           },
           {
             "asset_class": "Equity",
@@ -1706,11 +1691,11 @@ const STRATEGY_DATA = [
             "quantity": 30353.522,
             "unit_cost": 21.91,
             "cost": 665000.0,
-            "price": 21.5004,
-            "market_value": 652612.86,
-            "gain_loss": -12387.0,
-            "gl_pct": -1.86,
-            "assets_pct": 4.83
+            "price": 21.0966,
+            "market_value": 640356.11,
+            "gain_loss": -24644.0,
+            "gl_pct": -3.71,
+            "assets_pct": 6.41
           },
           {
             "asset_class": "Equity",
@@ -1718,11 +1703,11 @@ const STRATEGY_DATA = [
             "quantity": 40584.863,
             "unit_cost": 16.39,
             "cost": 665000.0,
-            "price": 15.5228,
-            "market_value": 629990.71,
-            "gain_loss": -35009.0,
-            "gl_pct": -5.26,
-            "assets_pct": 4.66
+            "price": 15.3396,
+            "market_value": 622555.56,
+            "gain_loss": -42444.0,
+            "gl_pct": -6.38,
+            "assets_pct": 6.23
           },
           {
             "asset_class": "Equity",
@@ -1730,11 +1715,11 @@ const STRATEGY_DATA = [
             "quantity": 40716.0,
             "unit_cost": 12.31,
             "cost": 501158.85,
-            "price": 12.9888,
-            "market_value": 528851.98,
-            "gain_loss": 27693.0,
-            "gl_pct": 5.53,
-            "assets_pct": 3.92
+            "price": 13.48,
+            "market_value": 548851.68,
+            "gain_loss": 47693.0,
+            "gl_pct": 9.52,
+            "assets_pct": 5.49
           },
           {
             "asset_class": "Equity",
@@ -1742,11 +1727,11 @@ const STRATEGY_DATA = [
             "quantity": 17259.0,
             "unit_cost": 29.1,
             "cost": 502312.84,
-            "price": 29.655,
-            "market_value": 511815.65,
-            "gain_loss": 9503.0,
-            "gl_pct": 1.89,
-            "assets_pct": 3.79
+            "price": 29.23,
+            "market_value": 504480.57,
+            "gain_loss": 2168.0,
+            "gl_pct": 0.43,
+            "assets_pct": 5.05
           },
           {
             "asset_class": "Equity",
@@ -1758,7 +1743,7 @@ const STRATEGY_DATA = [
             "market_value": 469282.06,
             "gain_loss": 69282.0,
             "gl_pct": 17.32,
-            "assets_pct": 3.47
+            "assets_pct": 4.7
           },
           {
             "asset_class": "Equity",
@@ -1770,7 +1755,7 @@ const STRATEGY_DATA = [
             "market_value": 445189.13,
             "gain_loss": 45189.0,
             "gl_pct": 11.3,
-            "assets_pct": 3.3
+            "assets_pct": 4.46
           },
           {
             "asset_class": "Hybrid",
@@ -1782,7 +1767,7 @@ const STRATEGY_DATA = [
             "market_value": 1029557.05,
             "gain_loss": 29557.0,
             "gl_pct": 2.96,
-            "assets_pct": 7.62
+            "assets_pct": 10.31
           },
           {
             "asset_class": "Hybrid",
@@ -1790,11 +1775,11 @@ const STRATEGY_DATA = [
             "quantity": 21025.685,
             "unit_cost": 47.56,
             "cost": 999999.99,
-            "price": 45.8476,
-            "market_value": 963977.2,
-            "gain_loss": -36023.0,
-            "gl_pct": -3.6,
-            "assets_pct": 7.14
+            "price": 47.5329,
+            "market_value": 999411.78,
+            "gain_loss": -588.0,
+            "gl_pct": -0.06,
+            "assets_pct": 10.0
           },
           {
             "asset_class": "Hybrid",
@@ -1802,11 +1787,11 @@ const STRATEGY_DATA = [
             "quantity": 4161.0,
             "unit_cost": 120.26,
             "cost": 500388.54,
-            "price": 125.49,
-            "market_value": 522163.88,
-            "gain_loss": 21775.0,
-            "gl_pct": 4.35,
-            "assets_pct": 3.87
+            "price": 124.47,
+            "market_value": 517919.67,
+            "gain_loss": 17531.0,
+            "gl_pct": 3.5,
+            "assets_pct": 5.18
           },
           {
             "asset_class": "Hybrid",
@@ -1814,11 +1799,11 @@ const STRATEGY_DATA = [
             "quantity": 1001.0,
             "unit_cost": 496.96,
             "cost": 497461.76,
-            "price": 464.04,
-            "market_value": 464504.05,
-            "gain_loss": -32958.0,
-            "gl_pct": -6.63,
-            "assets_pct": 3.44
+            "price": 462.49,
+            "market_value": 462952.49,
+            "gain_loss": -34509.0,
+            "gl_pct": -6.94,
+            "assets_pct": 4.67
           },
           {
             "asset_class": "Cash and Equivalent",
@@ -1830,7 +1815,7 @@ const STRATEGY_DATA = [
             "market_value": 24056.18,
             "gain_loss": 0.0,
             "gl_pct": 0.0,
-            "assets_pct": 0.18
+            "assets_pct": 0.24
           },
           {
             "asset_class": "Cash and Equivalent",
@@ -1842,7 +1827,7 @@ const STRATEGY_DATA = [
             "market_value": 13624.15,
             "gain_loss": 0.0,
             "gl_pct": 0.0,
-            "assets_pct": 0.1
+            "assets_pct": 0.14
           }
         ],
         "allocation": {
@@ -2016,28 +2001,25 @@ const STRATEGY_DATA = [
             }
           ],
           "note": "Shah Family — combined IPS (same investment mandate as siblings)"
-        },
-        "auto_aum": 11525895.88,
-        "manual_aum": 1029557.05,
-        "cash_aum": 952151.52
+        }
       },
       {
         "account": "100398",
         "ndas": "NDAS0012",
         "name": "Ruchita Jay Shah",
         "inception": "11/02/2026",
-        "aum": 13507604.4,
-        "gl_pct": 35.46,
-        "p1m": 1.185275,
-        "b1m": 1.90078,
-        "p3m": 5.074263,
-        "b3m": 4.879653,
+        "aum": 9989870.61,
+        "gl_pct": -0.22,
+        "p1m": 1.6299999999999981,
+        "b1m": 0.032222,
+        "p3m": 1.2604407983999755,
+        "b3m": -1.104349,
         "p6m": null,
         "b6m": -2.611644,
         "p12m": null,
         "b12m": 2.186295,
-        "psi": -2.030029,
-        "bsi": -1.529243,
+        "psi": -0.2483397694961753,
+        "bsi": -2.795784,
         "outperform": true,
         "si_ann": null,
         "si_ann_bm": null,
@@ -2048,11 +2030,11 @@ const STRATEGY_DATA = [
             "quantity": 63262.349,
             "unit_cost": 19.76,
             "cost": 1249999.99,
-            "price": 18.0324,
-            "market_value": 1140771.98,
-            "gain_loss": -109228.0,
-            "gl_pct": -8.74,
-            "assets_pct": 8.45
+            "price": 17.8532,
+            "market_value": 1129435.37,
+            "gain_loss": -120565.0,
+            "gl_pct": -9.65,
+            "assets_pct": 11.31
           },
           {
             "asset_class": "Equity",
@@ -2060,11 +2042,11 @@ const STRATEGY_DATA = [
             "quantity": 26357.504,
             "unit_cost": 40.98,
             "cost": 1080000.01,
-            "price": 173.314,
-            "market_value": 4568124.45,
-            "gain_loss": 3488124.0,
-            "gl_pct": 322.97,
-            "assets_pct": 33.82
+            "price": 41.522,
+            "market_value": 1094416.28,
+            "gain_loss": 14416.0,
+            "gl_pct": 1.33,
+            "assets_pct": 10.96
           },
           {
             "asset_class": "Equity",
@@ -2072,11 +2054,11 @@ const STRATEGY_DATA = [
             "quantity": 16077.047,
             "unit_cost": 47.27,
             "cost": 760000.01,
-            "price": 50.38,
-            "market_value": 809961.63,
-            "gain_loss": 49962.0,
-            "gl_pct": 6.57,
-            "assets_pct": 6.0
+            "price": 48.09,
+            "market_value": 773145.19,
+            "gain_loss": 13145.0,
+            "gl_pct": 1.73,
+            "assets_pct": 7.74
           },
           {
             "asset_class": "Equity",
@@ -2084,11 +2066,11 @@ const STRATEGY_DATA = [
             "quantity": 35831.94,
             "unit_cost": 20.93,
             "cost": 750000.0,
-            "price": 20.46,
-            "market_value": 733121.49,
-            "gain_loss": -16879.0,
-            "gl_pct": -2.25,
-            "assets_pct": 5.43
+            "price": 19.85,
+            "market_value": 711264.01,
+            "gain_loss": -38736.0,
+            "gl_pct": -5.16,
+            "assets_pct": 7.12
           },
           {
             "asset_class": "Equity",
@@ -2096,11 +2078,11 @@ const STRATEGY_DATA = [
             "quantity": 30353.522,
             "unit_cost": 21.91,
             "cost": 665000.0,
-            "price": 21.5004,
-            "market_value": 652612.86,
-            "gain_loss": -12387.0,
-            "gl_pct": -1.86,
-            "assets_pct": 4.83
+            "price": 21.0966,
+            "market_value": 640356.11,
+            "gain_loss": -24644.0,
+            "gl_pct": -3.71,
+            "assets_pct": 6.41
           },
           {
             "asset_class": "Equity",
@@ -2108,11 +2090,11 @@ const STRATEGY_DATA = [
             "quantity": 40584.863,
             "unit_cost": 16.39,
             "cost": 665000.0,
-            "price": 15.5228,
-            "market_value": 629990.71,
-            "gain_loss": -35009.0,
-            "gl_pct": -5.26,
-            "assets_pct": 4.66
+            "price": 15.3396,
+            "market_value": 622555.56,
+            "gain_loss": -42444.0,
+            "gl_pct": -6.38,
+            "assets_pct": 6.23
           },
           {
             "asset_class": "Equity",
@@ -2120,11 +2102,11 @@ const STRATEGY_DATA = [
             "quantity": 40716.0,
             "unit_cost": 12.31,
             "cost": 501158.85,
-            "price": 12.9888,
-            "market_value": 528851.98,
-            "gain_loss": 27693.0,
-            "gl_pct": 5.53,
-            "assets_pct": 3.92
+            "price": 13.48,
+            "market_value": 548851.68,
+            "gain_loss": 47693.0,
+            "gl_pct": 9.52,
+            "assets_pct": 5.49
           },
           {
             "asset_class": "Equity",
@@ -2132,11 +2114,11 @@ const STRATEGY_DATA = [
             "quantity": 17259.0,
             "unit_cost": 29.1,
             "cost": 502312.84,
-            "price": 29.655,
-            "market_value": 511815.65,
-            "gain_loss": 9503.0,
-            "gl_pct": 1.89,
-            "assets_pct": 3.79
+            "price": 29.23,
+            "market_value": 504480.57,
+            "gain_loss": 2168.0,
+            "gl_pct": 0.43,
+            "assets_pct": 5.05
           },
           {
             "asset_class": "Equity",
@@ -2148,7 +2130,7 @@ const STRATEGY_DATA = [
             "market_value": 469282.06,
             "gain_loss": 69282.0,
             "gl_pct": 17.32,
-            "assets_pct": 3.47
+            "assets_pct": 4.7
           },
           {
             "asset_class": "Equity",
@@ -2160,7 +2142,7 @@ const STRATEGY_DATA = [
             "market_value": 445189.13,
             "gain_loss": 45189.0,
             "gl_pct": 11.3,
-            "assets_pct": 3.3
+            "assets_pct": 4.46
           },
           {
             "asset_class": "Hybrid",
@@ -2172,7 +2154,7 @@ const STRATEGY_DATA = [
             "market_value": 1029557.05,
             "gain_loss": 29557.0,
             "gl_pct": 2.96,
-            "assets_pct": 7.62
+            "assets_pct": 10.31
           },
           {
             "asset_class": "Hybrid",
@@ -2180,11 +2162,11 @@ const STRATEGY_DATA = [
             "quantity": 21025.684,
             "unit_cost": 47.56,
             "cost": 999999.99,
-            "price": 45.8476,
-            "market_value": 963977.15,
-            "gain_loss": -36023.0,
-            "gl_pct": -3.6,
-            "assets_pct": 7.14
+            "price": 47.5329,
+            "market_value": 999411.74,
+            "gain_loss": -588.0,
+            "gl_pct": -0.06,
+            "assets_pct": 10.0
           },
           {
             "asset_class": "Hybrid",
@@ -2192,11 +2174,11 @@ const STRATEGY_DATA = [
             "quantity": 4161.0,
             "unit_cost": 120.26,
             "cost": 500388.54,
-            "price": 125.49,
-            "market_value": 522163.88,
-            "gain_loss": 21775.0,
-            "gl_pct": 4.35,
-            "assets_pct": 3.87
+            "price": 124.47,
+            "market_value": 517919.67,
+            "gain_loss": 17531.0,
+            "gl_pct": 3.5,
+            "assets_pct": 5.18
           },
           {
             "asset_class": "Hybrid",
@@ -2204,11 +2186,11 @@ const STRATEGY_DATA = [
             "quantity": 1001.0,
             "unit_cost": 496.96,
             "cost": 497461.76,
-            "price": 464.04,
-            "market_value": 464504.05,
-            "gain_loss": -32958.0,
-            "gl_pct": -6.63,
-            "assets_pct": 3.44
+            "price": 462.49,
+            "market_value": 462952.49,
+            "gain_loss": -34509.0,
+            "gl_pct": -6.94,
+            "assets_pct": 4.67
           },
           {
             "asset_class": "Cash and Equivalent",
@@ -2220,7 +2202,7 @@ const STRATEGY_DATA = [
             "market_value": 24056.18,
             "gain_loss": 0.0,
             "gl_pct": 0.0,
-            "assets_pct": 0.18
+            "assets_pct": 0.24
           },
           {
             "asset_class": "Cash and Equivalent",
@@ -2232,7 +2214,7 @@ const STRATEGY_DATA = [
             "market_value": 13624.15,
             "gain_loss": 0.0,
             "gl_pct": 0.0,
-            "assets_pct": 0.1
+            "assets_pct": 0.14
           }
         ],
         "allocation": {
@@ -2406,28 +2388,25 @@ const STRATEGY_DATA = [
             }
           ],
           "note": "Shah Family — combined IPS (same investment mandate as siblings)"
-        },
-        "auto_aum": 11525895.83,
-        "manual_aum": 1029557.05,
-        "cash_aum": 952151.52
+        }
       },
       {
         "account": "100416",
         "ndas": "NDAS0013",
         "name": "Nitin Pramod Shah",
         "inception": "17/02/2026",
-        "aum": 13610911.89,
-        "gl_pct": 36.44,
-        "p1m": 1.169321,
-        "b1m": 1.90078,
-        "p3m": 5.064895,
-        "b3m": 4.879653,
+        "aum": 10086113.11,
+        "gl_pct": 0.73,
+        "p1m": 1.649999999999996,
+        "b1m": 0.032222,
+        "p3m": 1.2693329479999793,
+        "b3m": -1.104349,
         "p6m": null,
         "b6m": -2.611644,
         "p12m": null,
         "b12m": 2.186295,
-        "psi": -0.908871,
-        "bsi": -0.86241,
+        "psi": 0.7123516167859778,
+        "bsi": -2.138093,
         "outperform": true,
         "si_ann": null,
         "si_ann_bm": null,
@@ -2438,11 +2417,11 @@ const STRATEGY_DATA = [
             "quantity": 64018.597,
             "unit_cost": 19.53,
             "cost": 1250000.0,
-            "price": 18.0324,
-            "market_value": 1154408.95,
-            "gain_loss": -95591.0,
-            "gl_pct": -7.65,
-            "assets_pct": 8.48
+            "price": 17.8532,
+            "market_value": 1142936.82,
+            "gain_loss": -107063.0,
+            "gl_pct": -8.57,
+            "assets_pct": 11.33
           },
           {
             "asset_class": "Equity",
@@ -2450,11 +2429,11 @@ const STRATEGY_DATA = [
             "quantity": 26421.99,
             "unit_cost": 40.88,
             "cost": 1080000.0,
-            "price": 173.314,
-            "market_value": 4579300.77,
-            "gain_loss": 3499301.0,
-            "gl_pct": 324.01,
-            "assets_pct": 33.64
+            "price": 41.522,
+            "market_value": 1097093.87,
+            "gain_loss": 17094.0,
+            "gl_pct": 1.58,
+            "assets_pct": 10.88
           },
           {
             "asset_class": "Equity",
@@ -2462,11 +2441,11 @@ const STRATEGY_DATA = [
             "quantity": 16207.337,
             "unit_cost": 46.89,
             "cost": 759999.99,
-            "price": 50.38,
-            "market_value": 816525.64,
-            "gain_loss": 56526.0,
-            "gl_pct": 7.44,
-            "assets_pct": 6.0
+            "price": 48.09,
+            "market_value": 779410.84,
+            "gain_loss": 19411.0,
+            "gl_pct": 2.55,
+            "assets_pct": 7.73
           },
           {
             "asset_class": "Equity",
@@ -2474,11 +2453,11 @@ const STRATEGY_DATA = [
             "quantity": 35969.424,
             "unit_cost": 20.85,
             "cost": 749999.99,
-            "price": 20.46,
-            "market_value": 735934.42,
-            "gain_loss": -14066.0,
-            "gl_pct": -1.88,
-            "assets_pct": 5.41
+            "price": 19.85,
+            "market_value": 713993.07,
+            "gain_loss": -36007.0,
+            "gl_pct": -4.8,
+            "assets_pct": 7.08
           },
           {
             "asset_class": "Equity",
@@ -2486,11 +2465,11 @@ const STRATEGY_DATA = [
             "quantity": 30259.047,
             "unit_cost": 21.98,
             "cost": 664999.99,
-            "price": 21.5004,
-            "market_value": 650581.61,
-            "gain_loss": -14418.0,
-            "gl_pct": -2.17,
-            "assets_pct": 4.78
+            "price": 21.0966,
+            "market_value": 638363.01,
+            "gain_loss": -26637.0,
+            "gl_pct": -4.01,
+            "assets_pct": 6.33
           },
           {
             "asset_class": "Equity",
@@ -2498,11 +2477,11 @@ const STRATEGY_DATA = [
             "quantity": 40655.084,
             "unit_cost": 16.36,
             "cost": 665000.0,
-            "price": 15.5228,
-            "market_value": 631080.74,
-            "gain_loss": -33919.0,
-            "gl_pct": -5.1,
-            "assets_pct": 4.64
+            "price": 15.3396,
+            "market_value": 623632.73,
+            "gain_loss": -41367.0,
+            "gl_pct": -6.22,
+            "assets_pct": 6.18
           },
           {
             "asset_class": "Equity",
@@ -2510,11 +2489,11 @@ const STRATEGY_DATA = [
             "quantity": 42194.0,
             "unit_cost": 12.06,
             "cost": 508796.35,
-            "price": 12.9888,
-            "market_value": 548049.43,
-            "gain_loss": 39253.0,
-            "gl_pct": 7.71,
-            "assets_pct": 4.03
+            "price": 13.48,
+            "market_value": 568775.12,
+            "gain_loss": 59979.0,
+            "gl_pct": 11.79,
+            "assets_pct": 5.64
           },
           {
             "asset_class": "Equity",
@@ -2522,11 +2501,11 @@ const STRATEGY_DATA = [
             "quantity": 17470.0,
             "unit_cost": 28.68,
             "cost": 501114.72,
-            "price": 29.655,
-            "market_value": 518072.85,
-            "gain_loss": 16958.0,
-            "gl_pct": 3.38,
-            "assets_pct": 3.81
+            "price": 29.23,
+            "market_value": 510648.1,
+            "gain_loss": 9533.0,
+            "gl_pct": 1.9,
+            "assets_pct": 5.06
           },
           {
             "asset_class": "Equity",
@@ -2538,7 +2517,7 @@ const STRATEGY_DATA = [
             "market_value": 474734.88,
             "gain_loss": 74735.0,
             "gl_pct": 18.68,
-            "assets_pct": 3.49
+            "assets_pct": 4.71
           },
           {
             "asset_class": "Equity",
@@ -2550,7 +2529,7 @@ const STRATEGY_DATA = [
             "market_value": 451026.42,
             "gain_loss": 51026.0,
             "gl_pct": 12.76,
-            "assets_pct": 3.31
+            "assets_pct": 4.47
           },
           {
             "asset_class": "Alternative Assets",
@@ -2558,11 +2537,11 @@ const STRATEGY_DATA = [
             "quantity": 21747.594,
             "unit_cost": 45.98,
             "cost": 1000000.02,
-            "price": 45.8476,
-            "market_value": 997074.99,
-            "gain_loss": -2925.0,
-            "gl_pct": -0.29,
-            "assets_pct": 7.33
+            "price": 47.5329,
+            "market_value": 1033726.21,
+            "gain_loss": 33726.0,
+            "gl_pct": 3.37,
+            "assets_pct": 10.25
           },
           {
             "asset_class": "Alternative Assets",
@@ -2574,7 +2553,7 @@ const STRATEGY_DATA = [
             "market_value": 1025941.96,
             "gain_loss": 25942.0,
             "gl_pct": 2.59,
-            "assets_pct": 7.54
+            "assets_pct": 10.17
           },
           {
             "asset_class": "Alternative Assets",
@@ -2582,11 +2561,11 @@ const STRATEGY_DATA = [
             "quantity": 4132.0,
             "unit_cost": 119.14,
             "cost": 492303.83,
-            "price": 125.49,
-            "market_value": 518524.67,
-            "gain_loss": 26221.0,
-            "gl_pct": 5.33,
-            "assets_pct": 3.81
+            "price": 124.47,
+            "market_value": 514310.04,
+            "gain_loss": 22006.0,
+            "gl_pct": 4.47,
+            "assets_pct": 5.1
           },
           {
             "asset_class": "Alternative Assets",
@@ -2594,11 +2573,11 @@ const STRATEGY_DATA = [
             "quantity": 1025.0,
             "unit_cost": 490.99,
             "cost": 503261.37,
-            "price": 464.04,
-            "market_value": 475641.01,
-            "gain_loss": -27620.0,
-            "gl_pct": -5.49,
-            "assets_pct": 3.49
+            "price": 462.49,
+            "market_value": 474052.25,
+            "gain_loss": -29209.0,
+            "gl_pct": -5.8,
+            "assets_pct": 4.73
           },
           {
             "asset_class": "Cash and Equivalent",
@@ -2610,7 +2589,7 @@ const STRATEGY_DATA = [
             "market_value": 20383.37,
             "gain_loss": 0.0,
             "gl_pct": 0.0,
-            "assets_pct": 0.15
+            "assets_pct": 0.2
           },
           {
             "asset_class": "Cash and Equivalent",
@@ -2622,7 +2601,7 @@ const STRATEGY_DATA = [
             "market_value": 13630.18,
             "gain_loss": 0.0,
             "gl_pct": 0.0,
-            "assets_pct": 0.1
+            "assets_pct": 0.14
           }
         ],
         "allocation": {
@@ -2796,28 +2775,25 @@ const STRATEGY_DATA = [
             }
           ],
           "note": "Shah Family — combined IPS (same investment mandate as siblings)"
-        },
-        "auto_aum": 11625195.08,
-        "manual_aum": 1025941.96,
-        "cash_aum": 959774.85
+        }
       },
       {
         "account": "100564",
         "ndas": "NDAS0014",
         "name": "Rajni Bachani",
         "inception": "21/04/2026",
-        "aum": 16331936.27,
-        "gl_pct": 29.34,
-        "p1m": 2.928998,
-        "b1m": 2.506343,
+        "aum": 16111540.82,
+        "gl_pct": 24.01,
+        "p1m": 0.32000000000000917,
+        "b1m": -0.013263,
         "p3m": null,
         "b3m": -2.049088,
         "p6m": null,
         "b6m": -5.072207,
         "p12m": null,
         "b12m": 0.280806,
-        "psi": 1.42059,
-        "bsi": -0.015305,
+        "psi": 0.5407040000000141,
+        "bsi": -1.551852,
         "outperform": true,
         "si_ann": null,
         "si_ann_bm": null,
@@ -2828,11 +2804,11 @@ const STRATEGY_DATA = [
             "quantity": 349.0,
             "unit_cost": 5052.04,
             "cost": 1763161.96,
-            "price": 4460.5,
-            "market_value": 1556714.5,
-            "gain_loss": -206447.0,
-            "gl_pct": -11.71,
-            "assets_pct": 9.53
+            "price": 4303.8,
+            "market_value": 1502026.2,
+            "gain_loss": -261136.0,
+            "gl_pct": -14.81,
+            "assets_pct": 9.32
           },
           {
             "asset_class": "Equity",
@@ -2840,11 +2816,11 @@ const STRATEGY_DATA = [
             "quantity": 367.0,
             "unit_cost": 568.71,
             "cost": 208716.9,
-            "price": 1875.7,
-            "market_value": 688381.88,
-            "gain_loss": 479665.0,
-            "gl_pct": 229.82,
-            "assets_pct": 4.21
+            "price": 1829.0,
+            "market_value": 671243.0,
+            "gain_loss": 462526.0,
+            "gl_pct": 221.6,
+            "assets_pct": 4.17
           },
           {
             "asset_class": "Equity",
@@ -2852,11 +2828,11 @@ const STRATEGY_DATA = [
             "quantity": 508.0,
             "unit_cost": 664.29,
             "cost": 337460.17,
-            "price": 1336.8,
-            "market_value": 679094.42,
-            "gain_loss": 341634.0,
-            "gl_pct": 101.24,
-            "assets_pct": 4.16
+            "price": 1256.4,
+            "market_value": 638251.2,
+            "gain_loss": 300791.0,
+            "gl_pct": 89.13,
+            "assets_pct": 3.96
           },
           {
             "asset_class": "Equity",
@@ -2864,11 +2840,11 @@ const STRATEGY_DATA = [
             "quantity": 11054.0,
             "unit_cost": 57.79,
             "cost": 638776.39,
-            "price": 56.75,
-            "market_value": 627314.5,
-            "gain_loss": -11462.0,
-            "gl_pct": -1.79,
-            "assets_pct": 3.84
+            "price": 54.39,
+            "market_value": 601227.06,
+            "gain_loss": -37549.0,
+            "gl_pct": -5.88,
+            "assets_pct": 3.73
           },
           {
             "asset_class": "Equity",
@@ -2876,11 +2852,11 @@ const STRATEGY_DATA = [
             "quantity": 195.0,
             "unit_cost": 543.89,
             "cost": 106059.3,
-            "price": 3132.8999,
-            "market_value": 610915.48,
-            "gain_loss": 504856.0,
-            "gl_pct": 476.01,
-            "assets_pct": 3.74
+            "price": 3045.6,
+            "market_value": 593892.0,
+            "gain_loss": 487833.0,
+            "gl_pct": 459.96,
+            "assets_pct": 3.69
           },
           {
             "asset_class": "Equity",
@@ -2888,11 +2864,11 @@ const STRATEGY_DATA = [
             "quantity": 138.0,
             "unit_cost": 2245.89,
             "cost": 309932.18,
-            "price": 4207.7002,
-            "market_value": 580662.63,
-            "gain_loss": 270730.0,
-            "gl_pct": 87.35,
-            "assets_pct": 3.56
+            "price": 4076.5,
+            "market_value": 562557.0,
+            "gain_loss": 252625.0,
+            "gl_pct": 81.51,
+            "assets_pct": 3.52
           },
           {
             "asset_class": "Equity",
@@ -2900,11 +2876,11 @@ const STRATEGY_DATA = [
             "quantity": 1312.0,
             "unit_cost": 396.47,
             "cost": 520175.02,
-            "price": 411.85,
-            "market_value": 540347.21,
-            "gain_loss": 20172.0,
-            "gl_pct": 3.88,
-            "assets_pct": 3.31
+            "price": 428.65,
+            "market_value": 562388.8,
+            "gain_loss": 42214.0,
+            "gl_pct": 8.12,
+            "assets_pct": 3.49
           },
           {
             "asset_class": "Equity",
@@ -2912,10 +2888,10 @@ const STRATEGY_DATA = [
             "quantity": 303.0,
             "unit_cost": 414.74,
             "cost": 125666.22,
-            "price": 1820.4,
-            "market_value": 551581.21,
-            "gain_loss": 425915.0,
-            "gl_pct": 338.93,
+            "price": 1799.2,
+            "market_value": 545157.6,
+            "gain_loss": 419491.0,
+            "gl_pct": 333.81,
             "assets_pct": 3.38
           },
           {
@@ -2924,11 +2900,11 @@ const STRATEGY_DATA = [
             "quantity": 676.0,
             "unit_cost": 716.44,
             "cost": 484310.6,
-            "price": 752.0,
-            "market_value": 508352.0,
-            "gain_loss": 24041.0,
-            "gl_pct": 4.96,
-            "assets_pct": 3.11
+            "price": 771.95,
+            "market_value": 521838.2,
+            "gain_loss": 37528.0,
+            "gl_pct": 7.75,
+            "assets_pct": 3.24
           },
           {
             "asset_class": "Equity",
@@ -2936,11 +2912,11 @@ const STRATEGY_DATA = [
             "quantity": 571.0,
             "unit_cost": 907.07,
             "cost": 517936.97,
-            "price": 958.4,
-            "market_value": 547246.41,
-            "gain_loss": 29309.0,
-            "gl_pct": 5.66,
-            "assets_pct": 3.35
+            "price": 908.25,
+            "market_value": 518610.75,
+            "gain_loss": 674.0,
+            "gl_pct": 0.13,
+            "assets_pct": 3.22
           },
           {
             "asset_class": "Equity",
@@ -2948,11 +2924,11 @@ const STRATEGY_DATA = [
             "quantity": 193.0,
             "unit_cost": 2791.36,
             "cost": 538732.48,
-            "price": 2818.3999,
-            "market_value": 543951.18,
-            "gain_loss": 5219.0,
-            "gl_pct": 0.97,
-            "assets_pct": 3.33
+            "price": 2654.8,
+            "market_value": 512376.4,
+            "gain_loss": -26356.0,
+            "gl_pct": -4.89,
+            "assets_pct": 3.18
           },
           {
             "asset_class": "Equity",
@@ -2960,11 +2936,11 @@ const STRATEGY_DATA = [
             "quantity": 7051.0,
             "unit_cost": 67.93,
             "cost": 478961.74,
-            "price": 77.38,
-            "market_value": 545606.36,
-            "gain_loss": 66645.0,
-            "gl_pct": 13.91,
-            "assets_pct": 3.34
+            "price": 71.32,
+            "market_value": 502877.32,
+            "gain_loss": 23916.0,
+            "gl_pct": 4.99,
+            "assets_pct": 3.12
           },
           {
             "asset_class": "Equity",
@@ -2972,11 +2948,11 @@ const STRATEGY_DATA = [
             "quantity": 362.0,
             "unit_cost": 966.32,
             "cost": 349806.28,
-            "price": 1332.7,
-            "market_value": 482437.38,
-            "gain_loss": 132631.0,
-            "gl_pct": 37.92,
-            "assets_pct": 2.95
+            "price": 1321.2,
+            "market_value": 478274.4,
+            "gain_loss": 128468.0,
+            "gl_pct": 36.73,
+            "assets_pct": 2.97
           },
           {
             "asset_class": "Equity",
@@ -2984,11 +2960,11 @@ const STRATEGY_DATA = [
             "quantity": 658.0,
             "unit_cost": 732.74,
             "cost": 482139.96,
-            "price": 764.9,
-            "market_value": 503304.22,
-            "gain_loss": 21164.0,
-            "gl_pct": 4.39,
-            "assets_pct": 3.08
+            "price": 716.85,
+            "market_value": 471687.3,
+            "gain_loss": -10453.0,
+            "gl_pct": -2.17,
+            "assets_pct": 2.93
           },
           {
             "asset_class": "Equity",
@@ -3000,7 +2976,7 @@ const STRATEGY_DATA = [
             "market_value": 458962.2,
             "gain_loss": -25753.0,
             "gl_pct": -5.31,
-            "assets_pct": 2.81
+            "assets_pct": 2.85
           },
           {
             "asset_class": "Equity",
@@ -3008,11 +2984,11 @@ const STRATEGY_DATA = [
             "quantity": 614.0,
             "unit_cost": 694.65,
             "cost": 426512.58,
-            "price": 787.1,
-            "market_value": 483279.39,
-            "gain_loss": 56767.0,
-            "gl_pct": 13.31,
-            "assets_pct": 2.96
+            "price": 744.55,
+            "market_value": 457153.7,
+            "gain_loss": 30641.0,
+            "gl_pct": 7.18,
+            "assets_pct": 2.84
           },
           {
             "asset_class": "Equity",
@@ -3020,11 +2996,11 @@ const STRATEGY_DATA = [
             "quantity": 1560.0,
             "unit_cost": 263.62,
             "cost": 411253.7,
-            "price": 322.7,
-            "market_value": 503412.02,
-            "gain_loss": 92158.0,
-            "gl_pct": 22.41,
-            "assets_pct": 3.08
+            "price": 288.95,
+            "market_value": 450762.0,
+            "gain_loss": 39508.0,
+            "gl_pct": 9.61,
+            "assets_pct": 2.8
           },
           {
             "asset_class": "Equity",
@@ -3032,11 +3008,11 @@ const STRATEGY_DATA = [
             "quantity": 723.0,
             "unit_cost": 523.13,
             "cost": 378222.66,
-            "price": 572.0,
-            "market_value": 413556.0,
-            "gain_loss": 35333.0,
-            "gl_pct": 9.34,
-            "assets_pct": 2.53
+            "price": 595.05,
+            "market_value": 430221.15,
+            "gain_loss": 51998.0,
+            "gl_pct": 13.75,
+            "assets_pct": 2.67
           },
           {
             "asset_class": "Equity",
@@ -3044,11 +3020,11 @@ const STRATEGY_DATA = [
             "quantity": 324.0,
             "unit_cost": 1247.68,
             "cost": 404247.37,
-            "price": 1350.9,
-            "market_value": 437691.61,
-            "gain_loss": 33444.0,
-            "gl_pct": 8.27,
-            "assets_pct": 2.68
+            "price": 1286.6,
+            "market_value": 416858.4,
+            "gain_loss": 12611.0,
+            "gl_pct": 3.12,
+            "assets_pct": 2.59
           },
           {
             "asset_class": "Equity",
@@ -3056,11 +3032,11 @@ const STRATEGY_DATA = [
             "quantity": 184.0,
             "unit_cost": 1785.81,
             "cost": 328588.47,
-            "price": 1843.1,
-            "market_value": 339130.4,
-            "gain_loss": 10542.0,
-            "gl_pct": 3.21,
-            "assets_pct": 2.08
+            "price": 1894.0,
+            "market_value": 348496.0,
+            "gain_loss": 19908.0,
+            "gl_pct": 6.06,
+            "assets_pct": 2.16
           },
           {
             "asset_class": "Equity",
@@ -3068,11 +3044,11 @@ const STRATEGY_DATA = [
             "quantity": 1645.0,
             "unit_cost": 211.51,
             "cost": 347931.68,
-            "price": 213.76,
-            "market_value": 351635.19,
-            "gain_loss": 3704.0,
-            "gl_pct": 1.06,
-            "assets_pct": 2.15
+            "price": 208.3,
+            "market_value": 342653.5,
+            "gain_loss": -5278.0,
+            "gl_pct": -1.52,
+            "assets_pct": 2.13
           },
           {
             "asset_class": "Equity",
@@ -3080,11 +3056,11 @@ const STRATEGY_DATA = [
             "quantity": 185.0,
             "unit_cost": 1759.11,
             "cost": 325435.03,
-            "price": 1790.5,
-            "market_value": 331242.5,
-            "gain_loss": 5807.0,
-            "gl_pct": 1.78,
-            "assets_pct": 2.03
+            "price": 1792.2,
+            "market_value": 331557.0,
+            "gain_loss": 6122.0,
+            "gl_pct": 1.88,
+            "assets_pct": 2.07
           },
           {
             "asset_class": "Equity",
@@ -3092,11 +3068,11 @@ const STRATEGY_DATA = [
             "quantity": 104.0,
             "unit_cost": 3010.87,
             "cost": 313130.49,
-            "price": 3078.6001,
-            "market_value": 320174.41,
-            "gain_loss": 7044.0,
-            "gl_pct": 2.25,
-            "assets_pct": 1.96
+            "price": 3140.8,
+            "market_value": 326643.2,
+            "gain_loss": 13513.0,
+            "gl_pct": 4.32,
+            "assets_pct": 2.03
           },
           {
             "asset_class": "Equity",
@@ -3104,11 +3080,11 @@ const STRATEGY_DATA = [
             "quantity": 1186.0,
             "unit_cost": 275.41,
             "cost": 326639.51,
-            "price": 292.0,
-            "market_value": 346312.0,
-            "gain_loss": 19672.0,
-            "gl_pct": 6.02,
-            "assets_pct": 2.12
+            "price": 271.05,
+            "market_value": 321465.3,
+            "gain_loss": -5174.0,
+            "gl_pct": -1.58,
+            "assets_pct": 2.0
           },
           {
             "asset_class": "Equity",
@@ -3116,11 +3092,11 @@ const STRATEGY_DATA = [
             "quantity": 814.0,
             "unit_cost": 375.03,
             "cost": 305272.3,
-            "price": 355.55,
-            "market_value": 289417.69,
-            "gain_loss": -15855.0,
-            "gl_pct": -5.19,
-            "assets_pct": 1.77
+            "price": 386.9,
+            "market_value": 314936.6,
+            "gain_loss": 9664.0,
+            "gl_pct": 3.17,
+            "assets_pct": 1.95
           },
           {
             "asset_class": "Equity",
@@ -3128,11 +3104,11 @@ const STRATEGY_DATA = [
             "quantity": 723.0,
             "unit_cost": 188.71,
             "cost": 136436.51,
-            "price": 431.75,
-            "market_value": 312155.25,
-            "gain_loss": 175719.0,
-            "gl_pct": 128.79,
-            "assets_pct": 1.91
+            "price": 428.6,
+            "market_value": 309877.8,
+            "gain_loss": 173441.0,
+            "gl_pct": 127.12,
+            "assets_pct": 1.92
           },
           {
             "asset_class": "Equity",
@@ -3140,11 +3116,11 @@ const STRATEGY_DATA = [
             "quantity": 2295.0,
             "unit_cost": 184.93,
             "cost": 424414.35,
-            "price": 126.46,
-            "market_value": 290225.7,
-            "gain_loss": -134189.0,
-            "gl_pct": -31.62,
-            "assets_pct": 1.78
+            "price": 133.25,
+            "market_value": 305808.75,
+            "gain_loss": -118606.0,
+            "gl_pct": -27.95,
+            "assets_pct": 1.9
           },
           {
             "asset_class": "Equity",
@@ -3152,11 +3128,11 @@ const STRATEGY_DATA = [
             "quantity": 1051.0,
             "unit_cost": 233.45,
             "cost": 245355.34,
-            "price": 286.35,
-            "market_value": 300953.86,
-            "gain_loss": 55599.0,
-            "gl_pct": 22.66,
-            "assets_pct": 1.84
+            "price": 290.55,
+            "market_value": 305368.05,
+            "gain_loss": 60013.0,
+            "gl_pct": 24.46,
+            "assets_pct": 1.9
           },
           {
             "asset_class": "Equity",
@@ -3164,11 +3140,11 @@ const STRATEGY_DATA = [
             "quantity": 284.0,
             "unit_cost": 221.88,
             "cost": 63013.92,
-            "price": 1026.5,
-            "market_value": 291526.0,
-            "gain_loss": 228512.0,
-            "gl_pct": 362.64,
-            "assets_pct": 1.79
+            "price": 964.4,
+            "market_value": 273889.6,
+            "gain_loss": 210876.0,
+            "gl_pct": 334.65,
+            "assets_pct": 1.73
           },
           {
             "asset_class": "Equity",
@@ -3176,11 +3152,11 @@ const STRATEGY_DATA = [
             "quantity": 50.0,
             "unit_cost": 5110.82,
             "cost": 255540.88,
-            "price": 5045.0,
-            "market_value": 252250.0,
-            "gain_loss": -3291.0,
-            "gl_pct": -1.29,
-            "assets_pct": 1.54
+            "price": 5194.3,
+            "market_value": 259715.0,
+            "gain_loss": 4174.0,
+            "gl_pct": 1.63,
+            "assets_pct": 1.61
           },
           {
             "asset_class": "Equity",
@@ -3188,11 +3164,11 @@ const STRATEGY_DATA = [
             "quantity": 49.0,
             "unit_cost": 4789.92,
             "cost": 234706.32,
-            "price": 5643.5,
-            "market_value": 276531.5,
-            "gain_loss": 41825.0,
-            "gl_pct": 17.82,
-            "assets_pct": 1.69
+            "price": 5267.5,
+            "market_value": 258107.5,
+            "gain_loss": 23401.0,
+            "gl_pct": 9.97,
+            "assets_pct": 1.6
           },
           {
             "asset_class": "Equity",
@@ -3200,11 +3176,11 @@ const STRATEGY_DATA = [
             "quantity": 57.0,
             "unit_cost": 0.0,
             "cost": 0.0,
-            "price": 4442.7998,
-            "market_value": 253239.59,
-            "gain_loss": 253240.0,
+            "price": 4410.8,
+            "market_value": 251415.6,
+            "gain_loss": 251416.0,
             "gl_pct": 0.0,
-            "assets_pct": 1.55
+            "assets_pct": 1.56
           },
           {
             "asset_class": "Equity",
@@ -3212,11 +3188,11 @@ const STRATEGY_DATA = [
             "quantity": 53.0,
             "unit_cost": 997.5,
             "cost": 52867.5,
-            "price": 4380.5,
-            "market_value": 232166.5,
-            "gain_loss": 179299.0,
-            "gl_pct": 339.15,
-            "assets_pct": 1.42
+            "price": 4074.9,
+            "market_value": 215969.7,
+            "gain_loss": 163102.0,
+            "gl_pct": 308.51,
+            "assets_pct": 1.34
           },
           {
             "asset_class": "Equity",
@@ -3224,11 +3200,11 @@ const STRATEGY_DATA = [
             "quantity": 450.0,
             "unit_cost": 59.01,
             "cost": 26553.0,
-            "price": 417.05,
-            "market_value": 187672.49,
-            "gain_loss": 161119.0,
-            "gl_pct": 606.78,
-            "assets_pct": 1.15
+            "price": 476.15,
+            "market_value": 214267.5,
+            "gain_loss": 187714.0,
+            "gl_pct": 706.94,
+            "assets_pct": 1.33
           },
           {
             "asset_class": "Equity",
@@ -3236,10 +3212,10 @@ const STRATEGY_DATA = [
             "quantity": 743.0,
             "unit_cost": 203.37,
             "cost": 151100.86,
-            "price": 290.75,
-            "market_value": 216027.25,
-            "gain_loss": 64926.0,
-            "gl_pct": 42.97,
+            "price": 286.9,
+            "market_value": 213166.7,
+            "gain_loss": 62066.0,
+            "gl_pct": 41.08,
             "assets_pct": 1.32
           },
           {
@@ -3248,11 +3224,11 @@ const STRATEGY_DATA = [
             "quantity": 11.0,
             "unit_cost": 3653.37,
             "cost": 40187.07,
-            "price": 11373.0,
-            "market_value": 125103.0,
-            "gain_loss": 84916.0,
-            "gl_pct": 211.3,
-            "assets_pct": 0.77
+            "price": 11482.0,
+            "market_value": 126302.0,
+            "gain_loss": 86115.0,
+            "gl_pct": 214.29,
+            "assets_pct": 0.78
           },
           {
             "asset_class": "Alternative Assets",
@@ -3260,10 +3236,10 @@ const STRATEGY_DATA = [
             "quantity": 200.0,
             "unit_cost": 417.75,
             "cost": 83550.0,
-            "price": 429.84,
-            "market_value": 85968.0,
-            "gain_loss": 2418.0,
-            "gl_pct": 2.89,
+            "price": 427.17,
+            "market_value": 85434.0,
+            "gain_loss": 1884.0,
+            "gl_pct": 2.25,
             "assets_pct": 0.53
           },
           {
@@ -3276,7 +3252,7 @@ const STRATEGY_DATA = [
             "market_value": 265185.5,
             "gain_loss": 0.0,
             "gl_pct": 0.0,
-            "assets_pct": 1.62
+            "assets_pct": 1.65
           },
           {
             "asset_class": "Cash and Equivalent",
@@ -3284,10 +3260,10 @@ const STRATEGY_DATA = [
             "quantity": 1.164,
             "unit_cost": 1000.0,
             "cost": 1164.0,
-            "price": 1043.6743,
-            "market_value": 1214.84,
-            "gain_loss": 51.0,
-            "gl_pct": 4.38,
+            "price": 999.99,
+            "market_value": 1163.99,
+            "gain_loss": -0.0,
+            "gl_pct": 0.0,
             "assets_pct": 0.01
           },
           {
@@ -3436,28 +3412,25 @@ const STRATEGY_DATA = [
             }
           ],
           "note": ""
-        },
-        "auto_aum": 15605579.73,
-        "manual_aum": 0.0,
-        "cash_aum": 726356.54
+        }
       },
       {
         "account": "100581",
         "ndas": "NDAS0016",
         "name": "Jerai Fitness Limited",
         "inception": "08/04/2026",
-        "aum": 56991106.39,
-        "gl_pct": 42.48,
-        "p1m": 0.814388,
-        "b1m": 0.4878,
+        "aum": 40144861.11,
+        "gl_pct": 0.38,
+        "p1m": 0.07999999999999119,
+        "b1m": 0.138353,
         "p3m": null,
         "b3m": 1.100041,
         "p6m": null,
         "b6m": 3.12967,
         "p12m": null,
         "b12m": 6.632437,
-        "psi": 1.329756,
-        "bsi": 1.162155,
+        "psi": 0.3602239999999757,
+        "bsi": 0.348676,
         "outperform": true,
         "si_ann": null,
         "si_ann_bm": null,
@@ -3468,11 +3441,11 @@ const STRATEGY_DATA = [
             "quantity": 475304.33,
             "unit_cost": 42.08,
             "cost": 20000000.05,
-            "price": 42.5656,
-            "market_value": 20231613.99,
-            "gain_loss": 231614.0,
-            "gl_pct": 1.16,
-            "assets_pct": 35.5
+            "price": 42.2442,
+            "market_value": 20078851.18,
+            "gain_loss": 78851.0,
+            "gl_pct": 0.39,
+            "assets_pct": 50.02
           },
           {
             "asset_class": "Fixed Income",
@@ -3480,11 +3453,11 @@ const STRATEGY_DATA = [
             "quantity": 517773.464,
             "unit_cost": 38.63,
             "cost": 20000000.05,
-            "price": 71.0124,
-            "market_value": 36768336.33,
-            "gain_loss": 16768336.0,
-            "gl_pct": 83.84,
-            "assets_pct": 64.52
+            "price": 38.7715,
+            "market_value": 20074853.86,
+            "gain_loss": 74854.0,
+            "gl_pct": 0.37,
+            "assets_pct": 50.01
           },
           {
             "asset_class": "Cash and Equivalent",
@@ -3552,28 +3525,25 @@ const STRATEGY_DATA = [
           "reason": "100% Arbitrage Fund",
           "profile": null,
           "params": []
-        },
-        "auto_aum": 56999950.32,
-        "manual_aum": 0.0,
-        "cash_aum": -8843.93
+        }
       },
       {
         "account": "100689",
         "ndas": "NDAS0017",
         "name": "Infinity Ocean Line LLP",
         "inception": "19/05/2026",
-        "aum": 30213942.53,
-        "gl_pct": 202.14,
-        "p1m": 0.583315,
-        "b1m": 0.4878,
+        "aum": 30061733.99,
+        "gl_pct": -0.01,
+        "p1m": null,
+        "b1m": 0.138353,
         "p3m": null,
         "b3m": 1.100041,
         "p6m": null,
         "b6m": 3.12967,
         "p12m": null,
         "b12m": 6.632437,
-        "psi": 0.556051,
-        "bsi": 0.448001,
+        "psi": 0.019999999999997797,
+        "bsi": -0.284126,
         "outperform": true,
         "si_ann": null,
         "si_ann_bm": null,
@@ -3584,11 +3554,11 @@ const STRATEGY_DATA = [
             "quantity": 236077.239,
             "unit_cost": 42.36,
             "cost": 10000000.0,
-            "price": 42.5656,
-            "market_value": 10048769.32,
-            "gain_loss": 48769.0,
-            "gl_pct": 0.49,
-            "assets_pct": 33.26
+            "price": 42.2442,
+            "market_value": 9972894.1,
+            "gain_loss": -27106.0,
+            "gl_pct": -0.27,
+            "assets_pct": 33.17
           },
           {
             "asset_class": "Cash and Equivalent",
@@ -3596,11 +3566,11 @@ const STRATEGY_DATA = [
             "quantity": 6477.379,
             "unit_cost": 3097.0,
             "cost": 20060454.16,
-            "price": 3112.6876,
-            "market_value": 20162057.29,
-            "gain_loss": 101603.0,
-            "gl_pct": 0.51,
-            "assets_pct": 66.73
+            "price": 3100.903,
+            "market_value": 20085723.97,
+            "gain_loss": 25270.0,
+            "gl_pct": 0.13,
+            "assets_pct": 66.81
           },
           {
             "asset_class": "Cash and Equivalent",
@@ -3661,10 +3631,7 @@ const STRATEGY_DATA = [
           "reason": "100% Liquid + Arbitrage",
           "profile": null,
           "params": []
-        },
-        "auto_aum": 10048769.32,
-        "manual_aum": 0.0,
-        "cash_aum": 20165173.21
+        }
       }
     ],
     "scheme_alloc": {
@@ -3675,14 +3642,13 @@ const STRATEGY_DATA = [
       "mid_cap": 21.843030190920842,
       "small_cap": 6.0062471080959865
     },
-    "has_12m": true,
-    "total_auto_aum": 860419258.94
+    "has_12m": true
   },
   {
     "name": "LVPMS — Large Value Portfolio",
     "benchmark": "Per-client standardised: Nifty 500 TRI (Equity) + Nifty Arbitrage (Debt + Others) — buckets: 100% N500, 80:20, 70:30, 100% Arb",
     "total_clients": 5,
-    "total_aum": 2131158565.0,
+    "total_aum": 1753672087.09,
     "outperformers": 5,
     "underperformers": 0,
     "aum_outperform": 1753672087.0900002,
@@ -3736,18 +3702,18 @@ const STRATEGY_DATA = [
         "name": "Siddhant Jain",
         "last_review": "Jun 2026 (Wk 2)",
         "inception": "26/12/2025",
-        "aum": 267343279.56,
-        "gl_pct": 137.6,
-        "p1m": 1.381535,
-        "b1m": 2.102635,
-        "p3m": 6.7546,
-        "b3m": 5.360807,
-        "p6m": 0.699246,
-        "b6m": -0.82877,
+        "aum": 125386429.71,
+        "gl_pct": 4.81,
+        "p1m": 1.5600000000000058,
+        "b1m": 0.01706,
+        "p3m": 1.4566119200000172,
+        "b3m": -1.419262,
+        "p6m": null,
+        "b6m": -3.431831,
         "p12m": null,
         "b12m": 1.551132,
-        "psi": -0.50393,
-        "bsi": -1.79918,
+        "psi": 3.320857528117327,
+        "bsi": -3.056011,
         "outperform": true,
         "si_ann": null,
         "si_ann_bm": null,
@@ -3758,11 +3724,11 @@ const STRATEGY_DATA = [
             "quantity": 690273.199,
             "unit_cost": 18.42,
             "cost": 12715221.54,
-            "price": 18.0324,
-            "market_value": 12447282.43,
-            "gain_loss": -267939.0,
-            "gl_pct": -2.11,
-            "assets_pct": 4.66
+            "price": 17.8532,
+            "market_value": 12323585.48,
+            "gain_loss": -391636.0,
+            "gl_pct": -3.08,
+            "assets_pct": 9.83
           },
           {
             "asset_class": "Equity",
@@ -3770,11 +3736,11 @@ const STRATEGY_DATA = [
             "quantity": 827205.0,
             "unit_cost": 10.86,
             "cost": 8987546.3,
-            "price": 12.9888,
-            "market_value": 10744400.3,
-            "gain_loss": 1756854.0,
-            "gl_pct": 19.55,
-            "assets_pct": 4.02
+            "price": 13.48,
+            "market_value": 11150723.4,
+            "gain_loss": 2163177.0,
+            "gl_pct": 24.07,
+            "assets_pct": 8.89
           },
           {
             "asset_class": "Equity",
@@ -3782,11 +3748,11 @@ const STRATEGY_DATA = [
             "quantity": 215156.505,
             "unit_cost": 45.19,
             "cost": 9722555.0,
-            "price": 50.38,
-            "market_value": 10839584.72,
-            "gain_loss": 1117030.0,
-            "gl_pct": 11.49,
-            "assets_pct": 4.05
+            "price": 48.09,
+            "market_value": 10346876.33,
+            "gain_loss": 624321.0,
+            "gl_pct": 6.42,
+            "assets_pct": 8.25
           },
           {
             "asset_class": "Equity",
@@ -3798,7 +3764,7 @@ const STRATEGY_DATA = [
             "market_value": 10345702.2,
             "gain_loss": 323078.0,
             "gl_pct": 3.22,
-            "assets_pct": 3.87
+            "assets_pct": 8.25
           },
           {
             "asset_class": "Equity",
@@ -3806,11 +3772,11 @@ const STRATEGY_DATA = [
             "quantity": 531179.049,
             "unit_cost": 17.6,
             "cost": 9348032.0,
-            "price": 284.42,
-            "market_value": 151077945.12,
-            "gain_loss": 141729913.0,
-            "gl_pct": 1516.15,
-            "assets_pct": 56.51
+            "price": 18.41,
+            "market_value": 9779006.29,
+            "gain_loss": 430974.0,
+            "gl_pct": 4.61,
+            "assets_pct": 7.8
           },
           {
             "asset_class": "Equity",
@@ -3818,11 +3784,11 @@ const STRATEGY_DATA = [
             "quantity": 40809.813,
             "unit_cost": 211.37,
             "cost": 8625819.0,
-            "price": 233.979,
-            "market_value": 9548639.24,
-            "gain_loss": 922820.0,
-            "gl_pct": 10.7,
-            "assets_pct": 3.57
+            "price": 228.044,
+            "market_value": 9306433.0,
+            "gain_loss": 680614.0,
+            "gl_pct": 7.89,
+            "assets_pct": 7.42
           },
           {
             "asset_class": "Equity",
@@ -3830,11 +3796,11 @@ const STRATEGY_DATA = [
             "quantity": 419966.952,
             "unit_cost": 20.29,
             "cost": 8523214.46,
-            "price": 21.5004,
-            "market_value": 9029457.45,
-            "gain_loss": 506243.0,
-            "gl_pct": 5.94,
-            "assets_pct": 3.38
+            "price": 21.0966,
+            "market_value": 8859874.8,
+            "gain_loss": 336660.0,
+            "gl_pct": 3.95,
+            "assets_pct": 7.07
           },
           {
             "asset_class": "Equity",
@@ -3842,11 +3808,11 @@ const STRATEGY_DATA = [
             "quantity": 71574.346,
             "unit_cost": 109.12,
             "cost": 7810500.0,
-            "price": 108.2352,
-            "market_value": 7746863.65,
-            "gain_loss": -63636.0,
-            "gl_pct": -0.81,
-            "assets_pct": 2.9
+            "price": 106.2856,
+            "market_value": 7607322.31,
+            "gain_loss": -203178.0,
+            "gl_pct": -2.6,
+            "assets_pct": 6.07
           },
           {
             "asset_class": "Equity",
@@ -3854,11 +3820,11 @@ const STRATEGY_DATA = [
             "quantity": 257810.0,
             "unit_cost": 27.47,
             "cost": 7082925.54,
-            "price": 29.655,
-            "market_value": 7645355.55,
-            "gain_loss": 562430.0,
-            "gl_pct": 7.94,
-            "assets_pct": 2.86
+            "price": 29.23,
+            "market_value": 7535786.3,
+            "gain_loss": 452861.0,
+            "gl_pct": 6.39,
+            "assets_pct": 6.01
           },
           {
             "asset_class": "Equity",
@@ -3866,11 +3832,11 @@ const STRATEGY_DATA = [
             "quantity": 75325.373,
             "unit_cost": 97.03,
             "cost": 7309064.0,
-            "price": 95.868,
-            "market_value": 7221292.86,
-            "gain_loss": -87771.0,
-            "gl_pct": -1.2,
-            "assets_pct": 2.7
+            "price": 94.557,
+            "market_value": 7122541.29,
+            "gain_loss": -186523.0,
+            "gl_pct": -2.55,
+            "assets_pct": 5.68
           },
           {
             "asset_class": "Equity",
@@ -3878,11 +3844,11 @@ const STRATEGY_DATA = [
             "quantity": 316680.519,
             "unit_cost": 15.39,
             "cost": 4873543.91,
-            "price": 15.5228,
-            "market_value": 4915768.36,
-            "gain_loss": 42224.0,
-            "gl_pct": 0.87,
-            "assets_pct": 1.84
+            "price": 15.3396,
+            "market_value": 4857752.49,
+            "gain_loss": -15791.0,
+            "gl_pct": -0.32,
+            "assets_pct": 3.87
           },
           {
             "asset_class": "Alternative Assets",
@@ -3890,11 +3856,11 @@ const STRATEGY_DATA = [
             "quantity": 157366.062,
             "unit_cost": 41.8,
             "cost": 6577200.0,
-            "price": 45.8476,
-            "market_value": 7214856.26,
-            "gain_loss": 637656.0,
-            "gl_pct": 9.69,
-            "assets_pct": 2.7
+            "price": 47.5329,
+            "market_value": 7480065.29,
+            "gain_loss": 902865.0,
+            "gl_pct": 13.73,
+            "assets_pct": 5.97
           },
           {
             "asset_class": "Alternative Assets",
@@ -3906,7 +3872,7 @@ const STRATEGY_DATA = [
             "market_value": 4622261.82,
             "gain_loss": 167762.0,
             "gl_pct": 3.77,
-            "assets_pct": 1.73
+            "assets_pct": 3.69
           },
           {
             "asset_class": "Alternative Assets",
@@ -3918,7 +3884,7 @@ const STRATEGY_DATA = [
             "market_value": 4493533.37,
             "gain_loss": 39033.0,
             "gl_pct": 0.88,
-            "assets_pct": 1.68
+            "assets_pct": 3.58
           },
           {
             "asset_class": "Alternative Assets",
@@ -3926,11 +3892,11 @@ const STRATEGY_DATA = [
             "quantity": 5234.0,
             "unit_cost": 229.09,
             "cost": 1199038.46,
-            "price": 246.7739,
-            "market_value": 1291614.59,
-            "gain_loss": 92576.0,
-            "gl_pct": 7.72,
-            "assets_pct": 0.48
+            "price": 260.35,
+            "market_value": 1362671.9,
+            "gain_loss": 163633.0,
+            "gl_pct": 13.65,
+            "assets_pct": 1.09
           },
           {
             "asset_class": "Alternative Assets",
@@ -3938,11 +3904,11 @@ const STRATEGY_DATA = [
             "quantity": 3677.0,
             "unit_cost": 214.98,
             "cost": 790483.12,
-            "price": 236.405,
-            "market_value": 869261.19,
-            "gain_loss": 78778.0,
-            "gl_pct": 9.97,
-            "assets_pct": 0.33
+            "price": 249.37,
+            "market_value": 916933.49,
+            "gain_loss": 126450.0,
+            "gl_pct": 16.0,
+            "assets_pct": 0.73
           },
           {
             "asset_class": "Alternative Assets",
@@ -3950,11 +3916,11 @@ const STRATEGY_DATA = [
             "quantity": 581.029,
             "unit_cost": 35.27,
             "cost": 20493.98,
-            "price": 37.8429,
-            "market_value": 21987.82,
-            "gain_loss": 1494.0,
-            "gl_pct": 7.29,
-            "assets_pct": 0.01
+            "price": 39.9439,
+            "market_value": 23208.56,
+            "gain_loss": 2715.0,
+            "gl_pct": 13.25,
+            "assets_pct": 0.02
           },
           {
             "asset_class": "Cash and Equivalent",
@@ -3962,11 +3928,11 @@ const STRATEGY_DATA = [
             "quantity": 6340.0,
             "unit_cost": 1084.86,
             "cost": 6878012.4,
-            "price": 1109.1066,
-            "market_value": 7031735.84,
-            "gain_loss": 153723.0,
-            "gl_pct": 2.23,
-            "assets_pct": 2.63
+            "price": 1106.69,
+            "market_value": 7016414.6,
+            "gain_loss": 138402.0,
+            "gl_pct": 2.01,
+            "assets_pct": 5.6
           },
           {
             "asset_class": "Cash and Equivalent",
@@ -3978,7 +3944,7 @@ const STRATEGY_DATA = [
             "market_value": 235736.79,
             "gain_loss": 0.0,
             "gl_pct": 0.0,
-            "assets_pct": 0.09
+            "assets_pct": 0.19
           }
         ],
         "allocation": {
@@ -4160,10 +4126,7 @@ const STRATEGY_DATA = [
             }
           ],
           "note": ""
-        },
-        "auto_aum": 240614309.54,
-        "manual_aum": 19461497.39,
-        "cash_aum": 7267472.63
+        }
       },
       {
         "account": "100352",
@@ -4171,18 +4134,18 @@ const STRATEGY_DATA = [
         "name": "Rakesh Kumar Jain",
         "last_review": "Jun 2026 (Wk 2)",
         "inception": "07/01/2026",
-        "aum": 479413316.94,
-        "gl_pct": 99.71,
-        "p1m": 1.170794,
-        "b1m": 1.90078,
-        "p3m": 6.153864,
-        "b3m": 4.879653,
+        "aum": 246775425.13,
+        "gl_pct": 2.75,
+        "p1m": 1.8100000000000005,
+        "b1m": 0.032222,
+        "p3m": 0.6616391954999967,
+        "b3m": -1.104349,
         "p6m": null,
         "b6m": -2.611644,
         "p12m": null,
         "b12m": 2.186295,
-        "psi": -1.248832,
-        "bsi": -1.933277,
+        "psi": 2.7352689629273064,
+        "bsi": -3.108819,
         "outperform": true,
         "si_ann": null,
         "si_ann_bm": null,
@@ -4193,11 +4156,11 @@ const STRATEGY_DATA = [
             "quantity": 1260040.608,
             "unit_cost": 19.4,
             "cost": 24442632.9,
-            "price": 18.0324,
-            "market_value": 22721556.26,
-            "gain_loss": -1721077.0,
-            "gl_pct": -7.04,
-            "assets_pct": 4.74
+            "price": 17.8532,
+            "market_value": 22495756.98,
+            "gain_loss": -1946876.0,
+            "gl_pct": -7.97,
+            "assets_pct": 9.12
           },
           {
             "asset_class": "Equity",
@@ -4205,11 +4168,11 @@ const STRATEGY_DATA = [
             "quantity": 1360103.0,
             "unit_cost": 11.59,
             "cost": 15757867.74,
-            "price": 12.9888,
-            "market_value": 17666105.85,
-            "gain_loss": 1908238.0,
-            "gl_pct": 12.11,
-            "assets_pct": 3.68
+            "price": 13.48,
+            "market_value": 18334188.44,
+            "gain_loss": 2576321.0,
+            "gl_pct": 16.35,
+            "assets_pct": 7.43
           },
           {
             "asset_class": "Equity",
@@ -4217,11 +4180,11 @@ const STRATEGY_DATA = [
             "quantity": 72382.895,
             "unit_cost": 212.29,
             "cost": 15366200.0,
-            "price": 233.979,
-            "market_value": 16936077.39,
-            "gain_loss": 1569877.0,
-            "gl_pct": 10.22,
-            "assets_pct": 3.53
+            "price": 228.044,
+            "market_value": 16506484.91,
+            "gain_loss": 1140285.0,
+            "gl_pct": 7.42,
+            "assets_pct": 6.69
           },
           {
             "asset_class": "Equity",
@@ -4233,7 +4196,7 @@ const STRATEGY_DATA = [
             "market_value": 16257698.5,
             "gain_loss": 507699.0,
             "gl_pct": 3.22,
-            "assets_pct": 3.39
+            "assets_pct": 6.59
           },
           {
             "asset_class": "Equity",
@@ -4241,11 +4204,11 @@ const STRATEGY_DATA = [
             "quantity": 336041.202,
             "unit_cost": 45.5,
             "cost": 15291000.0,
-            "price": 50.38,
-            "market_value": 16929755.76,
-            "gain_loss": 1638756.0,
-            "gl_pct": 10.72,
-            "assets_pct": 3.53
+            "price": 48.09,
+            "market_value": 16160221.4,
+            "gain_loss": 869221.0,
+            "gl_pct": 5.68,
+            "assets_pct": 6.55
           },
           {
             "asset_class": "Equity",
@@ -4253,11 +4216,11 @@ const STRATEGY_DATA = [
             "quantity": 762874.563,
             "unit_cost": 21.41,
             "cost": 16333266.96,
-            "price": 21.5004,
-            "market_value": 16402108.25,
-            "gain_loss": 68841.0,
-            "gl_pct": 0.42,
-            "assets_pct": 3.42
+            "price": 21.0966,
+            "market_value": 16094059.51,
+            "gain_loss": -239207.0,
+            "gl_pct": -1.46,
+            "assets_pct": 6.52
           },
           {
             "asset_class": "Equity",
@@ -4265,11 +4228,11 @@ const STRATEGY_DATA = [
             "quantity": 872683.206,
             "unit_cost": 17.77,
             "cost": 15511699.95,
-            "price": 284.42,
-            "market_value": 248208557.45,
-            "gain_loss": 232696858.0,
-            "gl_pct": 1500.14,
-            "assets_pct": 51.77
+            "price": 18.41,
+            "market_value": 16066097.82,
+            "gain_loss": 554398.0,
+            "gl_pct": 3.57,
+            "assets_pct": 6.51
           },
           {
             "asset_class": "Equity",
@@ -4277,11 +4240,11 @@ const STRATEGY_DATA = [
             "quantity": 144632.709,
             "unit_cost": 109.57,
             "cost": 15848000.0,
-            "price": 108.2352,
-            "market_value": 15654350.19,
-            "gain_loss": -193650.0,
-            "gl_pct": -1.22,
-            "assets_pct": 3.27
+            "price": 106.2856,
+            "market_value": 15372374.26,
+            "gain_loss": -475626.0,
+            "gl_pct": -3.0,
+            "assets_pct": 6.23
           },
           {
             "asset_class": "Equity",
@@ -4289,11 +4252,11 @@ const STRATEGY_DATA = [
             "quantity": 156551.218,
             "unit_cost": 98.44,
             "cost": 15410900.0,
-            "price": 95.868,
-            "market_value": 15008252.17,
-            "gain_loss": -402648.0,
-            "gl_pct": -2.61,
-            "assets_pct": 3.13
+            "price": 94.557,
+            "market_value": 14803013.52,
+            "gain_loss": -607886.0,
+            "gl_pct": -3.94,
+            "assets_pct": 6.0
           },
           {
             "asset_class": "Equity",
@@ -4301,11 +4264,11 @@ const STRATEGY_DATA = [
             "quantity": 426047.0,
             "unit_cost": 28.59,
             "cost": 12182511.26,
-            "price": 29.655,
-            "market_value": 12634423.79,
-            "gain_loss": 451913.0,
-            "gl_pct": 3.71,
-            "assets_pct": 2.64
+            "price": 29.23,
+            "market_value": 12453353.81,
+            "gain_loss": 270843.0,
+            "gl_pct": 2.22,
+            "assets_pct": 5.05
           },
           {
             "asset_class": "Equity",
@@ -4313,11 +4276,11 @@ const STRATEGY_DATA = [
             "quantity": 498213.753,
             "unit_cost": 16.39,
             "cost": 8166632.95,
-            "price": 15.5228,
-            "market_value": 7733672.45,
-            "gain_loss": -432960.0,
-            "gl_pct": -5.3,
-            "assets_pct": 1.61
+            "price": 15.3396,
+            "market_value": 7642399.69,
+            "gain_loss": -524233.0,
+            "gl_pct": -6.42,
+            "assets_pct": 3.1
           },
           {
             "asset_class": "Fixed Income",
@@ -4325,11 +4288,11 @@ const STRATEGY_DATA = [
             "quantity": 1422785.628,
             "unit_cost": 12.3,
             "cost": 17499999.95,
-            "price": 12.3983,
-            "market_value": 17640123.05,
-            "gain_loss": 140123.0,
-            "gl_pct": 0.8,
-            "assets_pct": 3.68
+            "price": 12.2427,
+            "market_value": 17418737.61,
+            "gain_loss": -81262.0,
+            "gl_pct": -0.46,
+            "assets_pct": 7.06
           },
           {
             "asset_class": "Alternative Assets",
@@ -4337,11 +4300,11 @@ const STRATEGY_DATA = [
             "quantity": 629857.645,
             "unit_cost": 41.68,
             "cost": 26249999.92,
-            "price": 45.8476,
-            "market_value": 28877461.36,
-            "gain_loss": 2627461.0,
-            "gl_pct": 10.01,
-            "assets_pct": 6.02
+            "price": 47.5329,
+            "market_value": 29938960.45,
+            "gain_loss": 3688961.0,
+            "gl_pct": 14.05,
+            "assets_pct": 12.13
           },
           {
             "asset_class": "Alternative Assets",
@@ -4349,11 +4312,11 @@ const STRATEGY_DATA = [
             "quantity": 232700.511,
             "unit_cost": 37.6,
             "cost": 8749999.96,
-            "price": 37.8429,
-            "market_value": 8806062.17,
-            "gain_loss": 56062.0,
-            "gl_pct": 0.64,
-            "assets_pct": 1.84
+            "price": 39.9439,
+            "market_value": 9294965.94,
+            "gain_loss": 544966.0,
+            "gl_pct": 6.23,
+            "assets_pct": 3.77
           },
           {
             "asset_class": "Alternative Assets",
@@ -4365,7 +4328,7 @@ const STRATEGY_DATA = [
             "market_value": 9039954.49,
             "gain_loss": 289954.0,
             "gl_pct": 3.31,
-            "assets_pct": 1.89
+            "assets_pct": 3.66
           },
           {
             "asset_class": "Alternative Assets",
@@ -4377,7 +4340,7 @@ const STRATEGY_DATA = [
             "market_value": 8791080.66,
             "gain_loss": 41081.0,
             "gl_pct": 0.47,
-            "assets_pct": 1.83
+            "assets_pct": 3.56
           },
           {
             "asset_class": "Cash and Equivalent",
@@ -4389,7 +4352,7 @@ const STRATEGY_DATA = [
             "market_value": 106077.15,
             "gain_loss": 0.0,
             "gl_pct": 0.0,
-            "assets_pct": 0.02
+            "assets_pct": 0.04
           }
         ],
         "allocation": {
@@ -4558,28 +4521,25 @@ const STRATEGY_DATA = [
             }
           ],
           "note": ""
-        },
-        "auto_aum": 445218506.14,
-        "manual_aum": 34088733.65,
-        "cash_aum": 106077.15
+        }
       },
       {
         "account": "100622",
         "ndas": "AONDLV0009",
         "name": "Sangeeta Agarwal",
         "inception": "05/05/2026",
-        "aum": 110247138.85,
-        "gl_pct": 0.23,
-        "p1m": -0.947598,
-        "b1m": 1.90078,
+        "aum": 111467607.09,
+        "gl_pct": 1.33,
+        "p1m": null,
+        "b1m": 0.032222,
         "p3m": null,
         "b3m": -1.104349,
         "p6m": null,
         "b6m": -2.611644,
         "p12m": null,
         "b12m": 2.186295,
-        "psi": 0.782749,
-        "bsi": 0.917127,
+        "psi": 0.39000000000000146,
+        "bsi": -0.380344,
         "outperform": true,
         "si_ann": null,
         "si_ann_bm": null,
@@ -4590,11 +4550,11 @@ const STRATEGY_DATA = [
             "quantity": 1177100.959,
             "unit_cost": 18.27,
             "cost": 21500000.0,
-            "price": 18.0324,
-            "market_value": 21225955.33,
-            "gain_loss": -274045.0,
-            "gl_pct": -1.27,
-            "assets_pct": 19.25
+            "price": 17.8532,
+            "market_value": 21015018.84,
+            "gain_loss": -484981.0,
+            "gl_pct": -2.26,
+            "assets_pct": 18.85
           },
           {
             "asset_class": "Equity",
@@ -4602,11 +4562,11 @@ const STRATEGY_DATA = [
             "quantity": 1524390.0,
             "unit_cost": 13.22,
             "cost": 20148023.1,
-            "price": 12.9888,
-            "market_value": 19799996.83,
-            "gain_loss": -348026.0,
-            "gl_pct": -1.73,
-            "assets_pct": 17.96
+            "price": 13.48,
+            "market_value": 20548777.2,
+            "gain_loss": 400754.0,
+            "gl_pct": 1.99,
+            "assets_pct": 18.43
           },
           {
             "asset_class": "Equity",
@@ -4614,11 +4574,11 @@ const STRATEGY_DATA = [
             "quantity": 883072.971,
             "unit_cost": 21.52,
             "cost": 19000000.0,
-            "price": 21.5004,
-            "market_value": 18986422.11,
-            "gain_loss": -13578.0,
-            "gl_pct": -0.07,
-            "assets_pct": 17.22
+            "price": 21.0966,
+            "market_value": 18629837.24,
+            "gain_loss": -370163.0,
+            "gl_pct": -1.95,
+            "assets_pct": 16.71
           },
           {
             "asset_class": "Equity",
@@ -4630,7 +4590,7 @@ const STRATEGY_DATA = [
             "market_value": 13139929.89,
             "gain_loss": 640555.0,
             "gl_pct": 5.12,
-            "assets_pct": 11.92
+            "assets_pct": 11.79
           },
           {
             "asset_class": "Equity",
@@ -4638,11 +4598,11 @@ const STRATEGY_DATA = [
             "quantity": 72505.337,
             "unit_cost": 96.54,
             "cost": 6999649.99,
-            "price": 100.0048,
-            "market_value": 7250881.73,
-            "gain_loss": 251232.0,
-            "gl_pct": 3.59,
-            "assets_pct": 6.58
+            "price": 98.4656,
+            "market_value": 7139281.51,
+            "gain_loss": 139632.0,
+            "gl_pct": 1.99,
+            "assets_pct": 6.4
           },
           {
             "asset_class": "Alternative Assets",
@@ -4650,11 +4610,11 @@ const STRATEGY_DATA = [
             "quantity": 205150.0,
             "unit_cost": 145.47,
             "cost": 29843170.5,
-            "price": 145.4304,
-            "market_value": 29835046.56,
-            "gain_loss": -8124.0,
-            "gl_pct": -0.03,
-            "assets_pct": 27.06
+            "price": 151.04,
+            "market_value": 30985856.0,
+            "gain_loss": 1142686.0,
+            "gl_pct": 3.83,
+            "assets_pct": 27.8
           },
           {
             "asset_class": "Cash and Equivalent",
@@ -4789,28 +4749,25 @@ const STRATEGY_DATA = [
             }
           ],
           "note": ""
-        },
-        "auto_aum": 110238232.45,
-        "manual_aum": 0.0,
-        "cash_aum": 8906.4
+        }
       },
       {
         "account": "100624",
         "ndas": "AONDLV0003",
         "name": "Harish Agarwal",
         "inception": "06/05/2026",
-        "aum": 19505213.87,
-        "gl_pct": 6.01,
-        "p1m": 2.791098,
-        "b1m": 2.506343,
+        "aum": 19385285.71,
+        "gl_pct": 4.78,
+        "p1m": null,
+        "b1m": -0.013263,
         "p3m": null,
         "b3m": -2.049088,
         "p6m": null,
         "b6m": -5.072207,
         "p12m": null,
         "b12m": 0.280806,
-        "psi": 3.317364,
-        "bsi": -0.427516,
+        "psi": 4.7800000000000065,
+        "bsi": -1.958515,
         "outperform": true,
         "si_ann": null,
         "si_ann_bm": null,
@@ -4821,11 +4778,11 @@ const STRATEGY_DATA = [
             "quantity": 195897.03,
             "unit_cost": 46.96,
             "cost": 9200000.0,
-            "price": 50.1581,
-            "market_value": 9825822.82,
-            "gain_loss": 625823.0,
-            "gl_pct": 6.8,
-            "assets_pct": 50.38
+            "price": 49.5459,
+            "market_value": 9705894.66,
+            "gain_loss": 505895.0,
+            "gl_pct": 5.5,
+            "assets_pct": 50.07
           },
           {
             "asset_class": "Equity",
@@ -4837,7 +4794,7 @@ const STRATEGY_DATA = [
             "market_value": 9579291.05,
             "gain_loss": 379291.0,
             "gl_pct": 4.12,
-            "assets_pct": 49.11
+            "assets_pct": 49.42
           },
           {
             "asset_class": "Cash and Equivalent",
@@ -4849,7 +4806,7 @@ const STRATEGY_DATA = [
             "market_value": 100100.0,
             "gain_loss": 0.0,
             "gl_pct": 0.0,
-            "assets_pct": 0.51
+            "assets_pct": 0.52
           }
         ],
         "allocation": {
@@ -4972,28 +4929,25 @@ const STRATEGY_DATA = [
             }
           ],
           "note": ""
-        },
-        "auto_aum": 9825822.82,
-        "manual_aum": 0.0,
-        "cash_aum": 9679391.05
+        }
       },
       {
         "account": "100715",
         "ndas": "AONDLV0012",
         "name": "Jyoti Bhatia",
         "inception": "27/05/2026",
-        "aum": 1254649615.78,
+        "aum": 1250657339.45,
         "gl_pct": 0.05,
-        "p1m": 0.54192,
-        "b1m": 0.4878,
+        "p1m": null,
+        "b1m": 0.138353,
         "p3m": null,
         "b3m": 1.100041,
         "p6m": null,
         "b6m": 3.12967,
         "p12m": null,
         "b12m": 6.632437,
-        "psi": 0.393545,
-        "bsi": 0.569304,
+        "psi": 0.04999999999999449,
+        "bsi": -0.28971,
         "outperform": true,
         "si_ann": null,
         "si_ann_bm": null,
@@ -5004,11 +4958,11 @@ const STRATEGY_DATA = [
             "quantity": 158114.82,
             "unit_cost": 3099.01,
             "cost": 490000000.0,
-            "price": 3112.6876,
-            "market_value": 492162039.59,
-            "gain_loss": 2162040.0,
-            "gl_pct": 0.44,
-            "assets_pct": 39.23
+            "price": 3100.903,
+            "market_value": 490298719.68,
+            "gain_loss": 298720.0,
+            "gl_pct": 0.06,
+            "assets_pct": 39.2
           },
           {
             "asset_class": "Cash and Equivalent",
@@ -5016,11 +4970,11 @@ const STRATEGY_DATA = [
             "quantity": 340897.865,
             "unit_cost": 1437.38,
             "cost": 490000000.0,
-            "price": 1441.1714,
-            "market_value": 491292253.36,
-            "gain_loss": 1292253.0,
-            "gl_pct": 0.26,
-            "assets_pct": 39.16
+            "price": 1437.9344,
+            "market_value": 490188766.97,
+            "gain_loss": 188767.0,
+            "gl_pct": 0.04,
+            "assets_pct": 39.19
           },
           {
             "asset_class": "Cash and Equivalent",
@@ -5028,11 +4982,11 @@ const STRATEGY_DATA = [
             "quantity": 67775.474,
             "unit_cost": 3983.74,
             "cost": 270000000.0,
-            "price": 4001.377,
-            "market_value": 271195222.83,
-            "gain_loss": 1195223.0,
-            "gl_pct": 0.44,
-            "assets_pct": 21.62
+            "price": 3986.2466,
+            "market_value": 270169752.8,
+            "gain_loss": 169753.0,
+            "gl_pct": 0.06,
+            "assets_pct": 21.6
           },
           {
             "asset_class": "Cash and Equivalent",
@@ -5081,10 +5035,7 @@ const STRATEGY_DATA = [
           "reason": "100% Liquid Fund",
           "profile": null,
           "params": []
-        },
-        "auto_aum": 0.0,
-        "manual_aum": 0.0,
-        "cash_aum": 1254649615.78
+        }
       }
     ],
     "scheme_alloc": {
@@ -5095,14 +5046,13 @@ const STRATEGY_DATA = [
       "mid_cap": 24.555407536249568,
       "small_cap": 21.372914982050894
     },
-    "has_12m": false,
-    "total_auto_aum": 805896870.95
+    "has_12m": false
   },
   {
     "name": "CoPilot — Ionic Co-Pilot Portfolio",
     "benchmark": "Per-client standardised: Nifty 500 TRI (Equity) + Nifty Arbitrage (Debt + Others) — buckets: 100% N500, 80:20, 70:30, 100% Arb",
     "total_clients": 7,
-    "total_aum": 455965703.84,
+    "total_aum": 466764484.89,
     "outperformers": 4,
     "underperformers": 3,
     "aum_outperform": 215252900.99,
@@ -5155,18 +5105,18 @@ const STRATEGY_DATA = [
         "ndas": "AONDCP0001",
         "name": "Rohit Garg",
         "inception": "11/11/2025",
-        "aum": 5851652.77,
-        "gl_pct": 6.58,
-        "p1m": 0.860635,
-        "b1m": 0.4878,
-        "p3m": 4.105886,
-        "b3m": 1.511576,
-        "p6m": 4.756028,
-        "b6m": 3.213634,
+        "aum": 5826047.33,
+        "gl_pct": 5.13,
+        "p1m": 1.1400000000000077,
+        "b1m": 0.138353,
+        "p3m": 3.6328987200000107,
+        "b3m": 1.100041,
+        "p6m": 5.298936772437002,
+        "b6m": 3.12967,
         "p12m": null,
         "b12m": 6.632437,
-        "psi": 5.644028,
-        "bsi": 3.932666,
+        "psi": 5.993909755135096,
+        "bsi": 3.489724,
         "outperform": true,
         "si_ann": null,
         "si_ann_bm": null,
@@ -5177,11 +5127,11 @@ const STRATEGY_DATA = [
             "quantity": 9776.785,
             "unit_cost": 51.14,
             "cost": 500000.01,
-            "price": 53.977,
-            "market_value": 527721.52,
-            "gain_loss": 27722.0,
-            "gl_pct": 5.54,
-            "assets_pct": 9.02
+            "price": 52.862,
+            "market_value": 516820.41,
+            "gain_loss": 16820.0,
+            "gl_pct": 3.36,
+            "assets_pct": 8.87
           },
           {
             "asset_class": "Equity",
@@ -5189,11 +5139,11 @@ const STRATEGY_DATA = [
             "quantity": 329.0,
             "unit_cost": 274.44,
             "cost": 90289.81,
-            "price": 257.1787,
-            "market_value": 84611.79,
-            "gain_loss": -5678.0,
-            "gl_pct": -6.29,
-            "assets_pct": 1.45
+            "price": 252.87,
+            "market_value": 83194.23,
+            "gain_loss": -7096.0,
+            "gl_pct": -7.86,
+            "assets_pct": 1.43
           },
           {
             "asset_class": "Hybrid",
@@ -5201,11 +5151,11 @@ const STRATEGY_DATA = [
             "quantity": 194881.079,
             "unit_cost": 15.39,
             "cost": 3000000.0,
-            "price": 16.202,
-            "market_value": 3157463.24,
-            "gain_loss": 157463.0,
-            "gl_pct": 5.25,
-            "assets_pct": 53.96
+            "price": 16.114,
+            "market_value": 3140313.71,
+            "gain_loss": 140314.0,
+            "gl_pct": 4.68,
+            "assets_pct": 53.9
           },
           {
             "asset_class": "Hybrid",
@@ -5213,11 +5163,11 @@ const STRATEGY_DATA = [
             "quantity": 121853.979,
             "unit_cost": 15.59,
             "cost": 1900000.0,
-            "price": 16.6614,
-            "market_value": 2030257.89,
-            "gain_loss": 130258.0,
-            "gl_pct": 6.86,
-            "assets_pct": 34.7
+            "price": 16.6931,
+            "market_value": 2034120.66,
+            "gain_loss": 134121.0,
+            "gl_pct": 7.06,
+            "assets_pct": 34.91
           },
           {
             "asset_class": "Cash and Equivalent",
@@ -5229,7 +5179,7 @@ const STRATEGY_DATA = [
             "market_value": 51598.33,
             "gain_loss": 0.0,
             "gl_pct": 0.0,
-            "assets_pct": 0.88
+            "assets_pct": 0.89
           }
         ],
         "allocation": {
@@ -5326,28 +5276,25 @@ const STRATEGY_DATA = [
           "reason": "Marked 'no IPS'",
           "profile": null,
           "params": []
-        },
-        "auto_aum": 5800054.44,
-        "manual_aum": 0.0,
-        "cash_aum": 51598.33
+        }
       },
       {
         "account": "100372",
         "ndas": "AONDCP0004",
         "name": "Sakshat Vidyadhar Mhatre",
         "inception": "02/02/2026",
-        "aum": 44290389.15,
-        "gl_pct": 93.9,
-        "p1m": 2.851388,
-        "b1m": 2.506343,
-        "p3m": 4.813488,
-        "b3m": 6.323114,
+        "aum": 44744524.42,
+        "gl_pct": 91.71,
+        "p1m": -1.759999999999995,
+        "b1m": -0.013263,
+        "p3m": -4.732031142399984,
+        "b3m": -2.049088,
         "p6m": null,
         "b6m": -5.072207,
         "p12m": null,
         "b12m": 0.280806,
-        "psi": -1.939775,
-        "bsi": 0.960429,
+        "psi": -2.7409305932761474,
+        "bsi": -0.562046,
         "outperform": false,
         "si_ann": null,
         "si_ann_bm": null,
@@ -5358,11 +5305,11 @@ const STRATEGY_DATA = [
             "quantity": 3728.0,
             "unit_cost": 275.13,
             "cost": 1025680.6,
-            "price": 1157.7,
-            "market_value": 4315905.42,
-            "gain_loss": 3290225.0,
-            "gl_pct": 320.78,
-            "assets_pct": 9.74
+            "price": 1160.9,
+            "market_value": 4327835.2,
+            "gain_loss": 3302155.0,
+            "gl_pct": 321.95,
+            "assets_pct": 9.67
           },
           {
             "asset_class": "Equity",
@@ -5370,11 +5317,11 @@ const STRATEGY_DATA = [
             "quantity": 2558.0,
             "unit_cost": 171.8,
             "cost": 439474.44,
-            "price": 1332.7,
-            "market_value": 3409046.48,
-            "gain_loss": 2969572.0,
-            "gl_pct": 675.71,
-            "assets_pct": 7.7
+            "price": 1321.2,
+            "market_value": 3379629.6,
+            "gain_loss": 2940155.0,
+            "gl_pct": 669.02,
+            "assets_pct": 7.55
           },
           {
             "asset_class": "Equity",
@@ -5382,11 +5329,11 @@ const STRATEGY_DATA = [
             "quantity": 3164.0,
             "unit_cost": 97.05,
             "cost": 307063.0,
-            "price": 1026.5,
-            "market_value": 3247846.0,
-            "gain_loss": 2940783.0,
-            "gl_pct": 957.71,
-            "assets_pct": 7.33
+            "price": 964.4,
+            "market_value": 3051361.6,
+            "gain_loss": 2744299.0,
+            "gl_pct": 893.72,
+            "assets_pct": 6.94
           },
           {
             "asset_class": "Equity",
@@ -5394,11 +5341,11 @@ const STRATEGY_DATA = [
             "quantity": 59.0,
             "unit_cost": 3499.87,
             "cost": 206492.3,
-            "price": 39230.0,
-            "market_value": 2314570.0,
-            "gain_loss": 2108078.0,
-            "gl_pct": 1020.9,
-            "assets_pct": 5.23
+            "price": 36625.0,
+            "market_value": 2160875.0,
+            "gain_loss": 1954383.0,
+            "gl_pct": 946.47,
+            "assets_pct": 4.83
           },
           {
             "asset_class": "Equity",
@@ -5406,11 +5353,11 @@ const STRATEGY_DATA = [
             "quantity": 430.0,
             "unit_cost": 645.06,
             "cost": 277375.6,
-            "price": 3102.8,
-            "market_value": 1334204.02,
-            "gain_loss": 1056828.0,
-            "gl_pct": 381.01,
-            "assets_pct": 3.01
+            "price": 4224.0,
+            "market_value": 1816320.0,
+            "gain_loss": 1538944.0,
+            "gl_pct": 554.82,
+            "assets_pct": 4.06
           },
           {
             "asset_class": "Equity",
@@ -5418,11 +5365,11 @@ const STRATEGY_DATA = [
             "quantity": 98557.299,
             "unit_cost": 17.66,
             "cost": 1740304.74,
-            "price": 18.0324,
-            "market_value": 1777224.64,
-            "gain_loss": 36920.0,
-            "gl_pct": 2.12,
-            "assets_pct": 4.01
+            "price": 17.8532,
+            "market_value": 1759563.17,
+            "gain_loss": 19258.0,
+            "gl_pct": 1.11,
+            "assets_pct": 3.93
           },
           {
             "asset_class": "Equity",
@@ -5430,11 +5377,11 @@ const STRATEGY_DATA = [
             "quantity": 367.0,
             "unit_cost": 1780.07,
             "cost": 653286.13,
-            "price": 4207.7002,
-            "market_value": 1544225.97,
-            "gain_loss": 890940.0,
-            "gl_pct": 136.38,
-            "assets_pct": 3.49
+            "price": 4076.5,
+            "market_value": 1496075.5,
+            "gain_loss": 842789.0,
+            "gl_pct": 129.01,
+            "assets_pct": 3.37
           },
           {
             "asset_class": "Equity",
@@ -5442,11 +5389,11 @@ const STRATEGY_DATA = [
             "quantity": 750.0,
             "unit_cost": 276.11,
             "cost": 207082.5,
-            "price": 1988.7,
-            "market_value": 1491524.96,
-            "gain_loss": 1284442.0,
-            "gl_pct": 620.26,
-            "assets_pct": 3.37
+            "price": 1928.0,
+            "market_value": 1446000.0,
+            "gain_loss": 1238918.0,
+            "gl_pct": 598.27,
+            "assets_pct": 3.23
           },
           {
             "asset_class": "Equity",
@@ -5454,11 +5401,11 @@ const STRATEGY_DATA = [
             "quantity": 1011.0,
             "unit_cost": 1283.1,
             "cost": 1297217.99,
-            "price": 1336.8,
-            "market_value": 1351504.85,
-            "gain_loss": 54287.0,
-            "gl_pct": 4.18,
-            "assets_pct": 3.05
+            "price": 1256.4,
+            "market_value": 1270220.4,
+            "gain_loss": -26998.0,
+            "gl_pct": -2.08,
+            "assets_pct": 2.84
           },
           {
             "asset_class": "Equity",
@@ -5466,11 +5413,11 @@ const STRATEGY_DATA = [
             "quantity": 4236.0,
             "unit_cost": 284.89,
             "cost": 1206803.1,
-            "price": 286.35,
-            "market_value": 1212978.63,
-            "gain_loss": 6176.0,
-            "gl_pct": 0.51,
-            "assets_pct": 2.74
+            "price": 290.55,
+            "market_value": 1230769.8,
+            "gain_loss": 23967.0,
+            "gl_pct": 1.99,
+            "assets_pct": 2.75
           },
           {
             "asset_class": "Equity",
@@ -5478,10 +5425,10 @@ const STRATEGY_DATA = [
             "quantity": 260.0,
             "unit_cost": 454.0,
             "cost": 118040.0,
-            "price": 4543.6001,
-            "market_value": 1181336.03,
-            "gain_loss": 1063296.0,
-            "gl_pct": 900.79,
+            "price": 4593.0,
+            "market_value": 1194180.0,
+            "gain_loss": 1076140.0,
+            "gl_pct": 911.67,
             "assets_pct": 2.67
           },
           {
@@ -5490,11 +5437,11 @@ const STRATEGY_DATA = [
             "quantity": 8103.0,
             "unit_cost": 122.93,
             "cost": 996062.16,
-            "price": 145.1,
-            "market_value": 1175745.35,
-            "gain_loss": 179683.0,
-            "gl_pct": 18.04,
-            "assets_pct": 2.65
+            "price": 145.74,
+            "market_value": 1180931.22,
+            "gain_loss": 184869.0,
+            "gl_pct": 18.56,
+            "assets_pct": 2.64
           },
           {
             "asset_class": "Equity",
@@ -5502,11 +5449,11 @@ const STRATEGY_DATA = [
             "quantity": 150.0,
             "unit_cost": 2326.04,
             "cost": 348905.5,
-            "price": 7029.0,
-            "market_value": 1054350.0,
-            "gain_loss": 705444.0,
-            "gl_pct": 202.19,
-            "assets_pct": 2.38
+            "price": 7204.5,
+            "market_value": 1080675.0,
+            "gain_loss": 731770.0,
+            "gl_pct": 209.73,
+            "assets_pct": 2.42
           },
           {
             "asset_class": "Equity",
@@ -5514,11 +5461,11 @@ const STRATEGY_DATA = [
             "quantity": 353.0,
             "unit_cost": 3142.29,
             "cost": 1109228.17,
-            "price": 3132.8999,
-            "market_value": 1105913.67,
-            "gain_loss": -3314.0,
-            "gl_pct": -0.3,
-            "assets_pct": 2.5
+            "price": 3045.6,
+            "market_value": 1075096.8,
+            "gain_loss": -34131.0,
+            "gl_pct": -3.08,
+            "assets_pct": 2.4
           },
           {
             "asset_class": "Equity",
@@ -5526,11 +5473,11 @@ const STRATEGY_DATA = [
             "quantity": 1364.0,
             "unit_cost": 732.95,
             "cost": 999738.53,
-            "price": 752.0,
-            "market_value": 1025728.0,
-            "gain_loss": 25989.0,
-            "gl_pct": 2.6,
-            "assets_pct": 2.32
+            "price": 771.95,
+            "market_value": 1052939.8,
+            "gain_loss": 53201.0,
+            "gl_pct": 5.32,
+            "assets_pct": 2.35
           },
           {
             "asset_class": "Equity",
@@ -5538,11 +5485,11 @@ const STRATEGY_DATA = [
             "quantity": 710.0,
             "unit_cost": 1407.24,
             "cost": 999137.97,
-            "price": 1422.4,
-            "market_value": 1009904.02,
-            "gain_loss": 10766.0,
-            "gl_pct": 1.08,
-            "assets_pct": 2.28
+            "price": 1426.4,
+            "market_value": 1012744.0,
+            "gain_loss": 13606.0,
+            "gl_pct": 1.36,
+            "assets_pct": 2.26
           },
           {
             "asset_class": "Equity",
@@ -5550,11 +5497,11 @@ const STRATEGY_DATA = [
             "quantity": 17520.0,
             "unit_cost": 57.04,
             "cost": 999318.65,
-            "price": 56.75,
-            "market_value": 994260.0,
-            "gain_loss": -5059.0,
-            "gl_pct": -0.51,
-            "assets_pct": 2.24
+            "price": 54.39,
+            "market_value": 952912.8,
+            "gain_loss": -46406.0,
+            "gl_pct": -4.64,
+            "assets_pct": 2.13
           },
           {
             "asset_class": "Equity",
@@ -5562,11 +5509,11 @@ const STRATEGY_DATA = [
             "quantity": 43511.152,
             "unit_cost": 19.44,
             "cost": 845761.07,
-            "price": 21.5004,
-            "market_value": 935507.17,
-            "gain_loss": 89746.0,
-            "gl_pct": 10.61,
-            "assets_pct": 2.11
+            "price": 21.0966,
+            "market_value": 917937.37,
+            "gain_loss": 72176.0,
+            "gl_pct": 8.53,
+            "assets_pct": 2.05
           },
           {
             "asset_class": "Equity",
@@ -5574,11 +5521,11 @@ const STRATEGY_DATA = [
             "quantity": 58741.995,
             "unit_cost": 14.69,
             "cost": 863209.53,
-            "price": 15.5228,
-            "market_value": 911840.24,
-            "gain_loss": 48631.0,
-            "gl_pct": 5.63,
-            "assets_pct": 2.06
+            "price": 15.3396,
+            "market_value": 901078.71,
+            "gain_loss": 37869.0,
+            "gl_pct": 4.39,
+            "assets_pct": 2.01
           },
           {
             "asset_class": "Equity",
@@ -5586,11 +5533,11 @@ const STRATEGY_DATA = [
             "quantity": 14082.991,
             "unit_cost": 51.49,
             "cost": 725179.64,
-            "price": 61.32,
-            "market_value": 863569.01,
-            "gain_loss": 138389.0,
-            "gl_pct": 19.08,
-            "assets_pct": 1.95
+            "price": 60.24,
+            "market_value": 848359.38,
+            "gain_loss": 123180.0,
+            "gl_pct": 16.99,
+            "assets_pct": 1.9
           },
           {
             "asset_class": "Equity",
@@ -5598,11 +5545,11 @@ const STRATEGY_DATA = [
             "quantity": 60913.0,
             "unit_cost": 11.46,
             "cost": 697910.31,
-            "price": 12.9888,
-            "market_value": 791186.77,
-            "gain_loss": 93276.0,
-            "gl_pct": 13.37,
-            "assets_pct": 1.79
+            "price": 13.48,
+            "market_value": 821107.24,
+            "gain_loss": 123197.0,
+            "gl_pct": 17.65,
+            "assets_pct": 1.84
           },
           {
             "asset_class": "Equity",
@@ -5610,11 +5557,11 @@ const STRATEGY_DATA = [
             "quantity": 16747.225,
             "unit_cost": 46.73,
             "cost": 782600.0,
-            "price": 50.38,
-            "market_value": 843725.2,
-            "gain_loss": 61125.0,
-            "gl_pct": 7.81,
-            "assets_pct": 1.9
+            "price": 48.09,
+            "market_value": 805374.05,
+            "gain_loss": 22774.0,
+            "gl_pct": 2.91,
+            "assets_pct": 1.8
           },
           {
             "asset_class": "Equity",
@@ -5622,11 +5569,11 @@ const STRATEGY_DATA = [
             "quantity": 5000.0,
             "unit_cost": 15.03,
             "cost": 75155.0,
-            "price": 170.78,
-            "market_value": 853899.99,
-            "gain_loss": 778745.0,
-            "gl_pct": 1036.19,
-            "assets_pct": 1.93
+            "price": 160.47,
+            "market_value": 802350.0,
+            "gain_loss": 727195.0,
+            "gl_pct": 967.59,
+            "assets_pct": 1.79
           },
           {
             "asset_class": "Equity",
@@ -5634,11 +5581,11 @@ const STRATEGY_DATA = [
             "quantity": 19183.327,
             "unit_cost": 40.79,
             "cost": 782550.0,
-            "price": 173.314,
-            "market_value": 3324739.14,
-            "gain_loss": 2542189.0,
-            "gl_pct": 324.86,
-            "assets_pct": 7.51
+            "price": 41.522,
+            "market_value": 796530.1,
+            "gain_loss": 13980.0,
+            "gl_pct": 1.79,
+            "assets_pct": 1.78
           },
           {
             "asset_class": "Equity",
@@ -5646,11 +5593,11 @@ const STRATEGY_DATA = [
             "quantity": 25517.0,
             "unit_cost": 25.68,
             "cost": 655280.69,
-            "price": 29.655,
-            "market_value": 756706.64,
-            "gain_loss": 101426.0,
-            "gl_pct": 15.48,
-            "assets_pct": 1.71
+            "price": 29.23,
+            "market_value": 745861.91,
+            "gain_loss": 90581.0,
+            "gl_pct": 13.82,
+            "assets_pct": 1.67
           },
           {
             "asset_class": "Equity",
@@ -5658,11 +5605,11 @@ const STRATEGY_DATA = [
             "quantity": 17391.155,
             "unit_cost": 36.26,
             "cost": 630611.89,
-            "price": 41.0847,
-            "market_value": 714510.39,
-            "gain_loss": 83898.0,
-            "gl_pct": 13.3,
-            "assets_pct": 1.61
+            "price": 40.8852,
+            "market_value": 711040.85,
+            "gain_loss": 80429.0,
+            "gl_pct": 12.75,
+            "assets_pct": 1.59
           },
           {
             "asset_class": "Equity",
@@ -5670,11 +5617,11 @@ const STRATEGY_DATA = [
             "quantity": 2964.0,
             "unit_cost": 116.23,
             "cost": 344498.78,
-            "price": 242.98,
-            "market_value": 720192.71,
-            "gain_loss": 375694.0,
-            "gl_pct": 109.06,
-            "assets_pct": 1.63
+            "price": 238.95,
+            "market_value": 708247.8,
+            "gain_loss": 363749.0,
+            "gl_pct": 105.59,
+            "assets_pct": 1.58
           },
           {
             "asset_class": "Equity",
@@ -5682,11 +5629,11 @@ const STRATEGY_DATA = [
             "quantity": 1499.0,
             "unit_cost": 432.52,
             "cost": 648342.95,
-            "price": 455.75,
-            "market_value": 683169.25,
-            "gain_loss": 34826.0,
-            "gl_pct": 5.37,
-            "assets_pct": 1.54
+            "price": 457.9,
+            "market_value": 686392.1,
+            "gain_loss": 38049.0,
+            "gl_pct": 5.87,
+            "assets_pct": 1.53
           },
           {
             "asset_class": "Equity",
@@ -5694,11 +5641,11 @@ const STRATEGY_DATA = [
             "quantity": 3150.0,
             "unit_cost": 320.56,
             "cost": 1009759.15,
-            "price": 221.52,
-            "market_value": 697788.01,
-            "gain_loss": -311971.0,
-            "gl_pct": -30.9,
-            "assets_pct": 1.58
+            "price": 207.45,
+            "market_value": 653467.5,
+            "gain_loss": -356292.0,
+            "gl_pct": -35.28,
+            "assets_pct": 1.46
           },
           {
             "asset_class": "Equity",
@@ -5706,11 +5653,11 @@ const STRATEGY_DATA = [
             "quantity": 500.0,
             "unit_cost": 195.84,
             "cost": 97920.0,
-            "price": 732.6,
-            "market_value": 366299.99,
-            "gain_loss": 268380.0,
-            "gl_pct": 274.08,
-            "assets_pct": 0.83
+            "price": 755.4,
+            "market_value": 377700.0,
+            "gain_loss": 279780.0,
+            "gl_pct": 285.72,
+            "assets_pct": 0.84
           },
           {
             "asset_class": "Equity",
@@ -5718,11 +5665,11 @@ const STRATEGY_DATA = [
             "quantity": 200.0,
             "unit_cost": 716.93,
             "cost": 143386.5,
-            "price": 1875.7,
-            "market_value": 375139.99,
-            "gain_loss": 231753.0,
-            "gl_pct": 161.63,
-            "assets_pct": 0.85
+            "price": 1829.0,
+            "market_value": 365800.0,
+            "gain_loss": 222414.0,
+            "gl_pct": 155.11,
+            "assets_pct": 0.82
           },
           {
             "asset_class": "Equity",
@@ -5730,11 +5677,11 @@ const STRATEGY_DATA = [
             "quantity": 1609.0,
             "unit_cost": 104.03,
             "cost": 167386.14,
-            "price": 135.24,
-            "market_value": 217601.17,
-            "gain_loss": 50215.0,
-            "gl_pct": 30.0,
-            "assets_pct": 0.49
+            "price": 130.8,
+            "market_value": 210457.2,
+            "gain_loss": 43071.0,
+            "gl_pct": 25.73,
+            "assets_pct": 0.47
           },
           {
             "asset_class": "Alternative Assets",
@@ -5742,11 +5689,11 @@ const STRATEGY_DATA = [
             "quantity": 22815.4,
             "unit_cost": 45.98,
             "cost": 1049100.0,
-            "price": 45.8476,
-            "market_value": 1046031.33,
-            "gain_loss": -3069.0,
-            "gl_pct": -0.29,
-            "assets_pct": 2.36
+            "price": 47.5329,
+            "market_value": 1084482.13,
+            "gain_loss": 35382.0,
+            "gl_pct": 3.37,
+            "assets_pct": 2.42
           },
           {
             "asset_class": "Alternative Assets",
@@ -5754,11 +5701,11 @@ const STRATEGY_DATA = [
             "quantity": 5177.871,
             "unit_cost": 35.75,
             "cost": 185100.0,
-            "price": 37.8429,
-            "market_value": 195945.65,
-            "gain_loss": 10846.0,
-            "gl_pct": 5.86,
-            "assets_pct": 0.44
+            "price": 39.9439,
+            "market_value": 206824.36,
+            "gain_loss": 21724.0,
+            "gl_pct": 11.74,
+            "assets_pct": 0.46
           },
           {
             "asset_class": "Alternative Assets",
@@ -5766,11 +5713,11 @@ const STRATEGY_DATA = [
             "quantity": 1221.0,
             "unit_cost": 141.13,
             "cost": 172318.47,
-            "price": 145.4304,
-            "market_value": 177570.52,
-            "gain_loss": 5252.0,
-            "gl_pct": 3.05,
-            "assets_pct": 0.4
+            "price": 151.04,
+            "market_value": 184419.84,
+            "gain_loss": 12101.0,
+            "gl_pct": 7.02,
+            "assets_pct": 0.41
           },
           {
             "asset_class": "Alternative Assets",
@@ -5778,11 +5725,11 @@ const STRATEGY_DATA = [
             "quantity": 129.0,
             "unit_cost": 263.71,
             "cost": 34018.59,
-            "price": 246.7739,
-            "market_value": 31833.83,
-            "gain_loss": -2185.0,
-            "gl_pct": -6.42,
-            "assets_pct": 0.07
+            "price": 260.35,
+            "market_value": 33585.15,
+            "gain_loss": -433.0,
+            "gl_pct": -1.27,
+            "assets_pct": 0.08
           },
           {
             "asset_class": "Cash and Equivalent",
@@ -5956,28 +5903,25 @@ const STRATEGY_DATA = [
             }
           ],
           "note": ""
-        },
-        "auto_aum": 44053525.04,
-        "manual_aum": 0.0,
-        "cash_aum": 236864.11
+        }
       },
       {
         "account": "100422",
         "ndas": "AONDCP0006",
         "name": "Dinanath Ramchandra Thakar",
         "inception": "05/03/2026",
-        "aum": 36687983.48,
-        "gl_pct": 64.69,
-        "p1m": 3.081082,
-        "b1m": 2.506343,
-        "p3m": 6.1499,
-        "b3m": 6.323114,
+        "aum": 46511135.41,
+        "gl_pct": 91.0,
+        "p1m": 0.6899999999999906,
+        "b1m": -0.013263,
+        "p3m": null,
+        "b3m": -2.049088,
         "p6m": null,
         "b6m": -5.072207,
         "p12m": null,
         "b12m": 0.280806,
-        "psi": 3.040563,
-        "bsi": 1.511034,
+        "psi": -1.7817129475000026,
+        "bsi": -0.024924,
         "outperform": false,
         "si_ann": null,
         "si_ann_bm": null,
@@ -5988,11 +5932,11 @@ const STRATEGY_DATA = [
             "quantity": 2500.0,
             "unit_cost": 383.94,
             "cost": 959858.93,
-            "price": 1332.7,
-            "market_value": 3331749.88,
-            "gain_loss": 2371891.0,
-            "gl_pct": 247.11,
-            "assets_pct": 9.08
+            "price": 1321.2,
+            "market_value": 3303000.0,
+            "gain_loss": 2343141.0,
+            "gl_pct": 244.11,
+            "assets_pct": 7.1
           },
           {
             "asset_class": "Equity",
@@ -6004,7 +5948,7 @@ const STRATEGY_DATA = [
             "market_value": 3200052.5,
             "gain_loss": 2583543.0,
             "gl_pct": 419.06,
-            "assets_pct": 8.72
+            "assets_pct": 6.97
           },
           {
             "asset_class": "Equity",
@@ -6012,11 +5956,11 @@ const STRATEGY_DATA = [
             "quantity": 1800.0,
             "unit_cost": 353.16,
             "cost": 635690.03,
-            "price": 1336.8,
-            "market_value": 2406240.09,
-            "gain_loss": 1770550.0,
-            "gl_pct": 278.52,
-            "assets_pct": 6.56
+            "price": 1256.4,
+            "market_value": 2261520.0,
+            "gain_loss": 1625830.0,
+            "gl_pct": 255.76,
+            "assets_pct": 4.86
           },
           {
             "asset_class": "Equity",
@@ -6024,11 +5968,11 @@ const STRATEGY_DATA = [
             "quantity": 500.0,
             "unit_cost": 634.09,
             "cost": 317043.6,
-            "price": 3150.3999,
-            "market_value": 1575199.95,
-            "gain_loss": 1258156.0,
-            "gl_pct": 396.84,
-            "assets_pct": 4.29
+            "price": 3122.4,
+            "market_value": 1561200.0,
+            "gain_loss": 1244156.0,
+            "gl_pct": 392.42,
+            "assets_pct": 3.36
           },
           {
             "asset_class": "Equity",
@@ -6040,7 +5984,7 @@ const STRATEGY_DATA = [
             "market_value": 1541095.8,
             "gain_loss": 147871.0,
             "gl_pct": 10.61,
-            "assets_pct": 4.2
+            "assets_pct": 3.31
           },
           {
             "asset_class": "Equity",
@@ -6048,11 +5992,11 @@ const STRATEGY_DATA = [
             "quantity": 130.0,
             "unit_cost": 2634.96,
             "cost": 342544.28,
-            "price": 11373.0,
-            "market_value": 1478490.0,
-            "gain_loss": 1135946.0,
-            "gl_pct": 331.62,
-            "assets_pct": 4.03
+            "price": 11482.0,
+            "market_value": 1492660.0,
+            "gain_loss": 1150116.0,
+            "gl_pct": 335.76,
+            "assets_pct": 3.21
           },
           {
             "asset_class": "Equity",
@@ -6060,11 +6004,11 @@ const STRATEGY_DATA = [
             "quantity": 786.0,
             "unit_cost": 861.05,
             "cost": 676781.96,
-            "price": 1764.6,
-            "market_value": 1386975.58,
-            "gain_loss": 710194.0,
-            "gl_pct": 104.94,
-            "assets_pct": 3.78
+            "price": 1783.6,
+            "market_value": 1401909.6,
+            "gain_loss": 725128.0,
+            "gl_pct": 107.14,
+            "assets_pct": 3.01
           },
           {
             "asset_class": "Equity",
@@ -6076,7 +6020,7 @@ const STRATEGY_DATA = [
             "market_value": 1357754.68,
             "gain_loss": 57755.0,
             "gl_pct": 4.44,
-            "assets_pct": 3.7
+            "assets_pct": 2.92
           },
           {
             "asset_class": "Equity",
@@ -6084,11 +6028,11 @@ const STRATEGY_DATA = [
             "quantity": 11121.0,
             "unit_cost": 107.88,
             "cost": 1199744.6,
-            "price": 114.77,
-            "market_value": 1276357.13,
-            "gain_loss": 76613.0,
-            "gl_pct": 6.39,
-            "assets_pct": 3.48
+            "price": 118.26,
+            "market_value": 1315169.46,
+            "gain_loss": 115425.0,
+            "gl_pct": 9.62,
+            "assets_pct": 2.83
           },
           {
             "asset_class": "Equity",
@@ -6096,11 +6040,11 @@ const STRATEGY_DATA = [
             "quantity": 800.0,
             "unit_cost": 597.95,
             "cost": 478358.1,
-            "price": 1462.4,
-            "market_value": 1169920.02,
-            "gain_loss": 691562.0,
-            "gl_pct": 144.57,
-            "assets_pct": 3.19
+            "price": 1483.9,
+            "market_value": 1187120.0,
+            "gain_loss": 708762.0,
+            "gl_pct": 148.17,
+            "assets_pct": 2.55
           },
           {
             "asset_class": "Equity",
@@ -6108,11 +6052,11 @@ const STRATEGY_DATA = [
             "quantity": 2720.0,
             "unit_cost": 436.43,
             "cost": 1187089.06,
-            "price": 411.85,
-            "market_value": 1120232.02,
-            "gain_loss": -66857.0,
-            "gl_pct": -5.63,
-            "assets_pct": 3.05
+            "price": 428.65,
+            "market_value": 1165928.0,
+            "gain_loss": -21161.0,
+            "gl_pct": -1.78,
+            "assets_pct": 2.51
           },
           {
             "asset_class": "Equity",
@@ -6120,11 +6064,11 @@ const STRATEGY_DATA = [
             "quantity": 2600.0,
             "unit_cost": 188.85,
             "cost": 491005.53,
-            "price": 426.45,
-            "market_value": 1108770.03,
-            "gain_loss": 617764.0,
-            "gl_pct": 125.82,
-            "assets_pct": 3.02
+            "price": 447.85,
+            "market_value": 1164410.0,
+            "gain_loss": 673404.0,
+            "gl_pct": 137.15,
+            "assets_pct": 2.5
           },
           {
             "asset_class": "Equity",
@@ -6132,11 +6076,11 @@ const STRATEGY_DATA = [
             "quantity": 521.637,
             "unit_cost": 2076.79,
             "cost": 1083333.0,
-            "price": 2104.62,
-            "market_value": 1097847.66,
-            "gain_loss": 14515.0,
-            "gl_pct": 1.34,
-            "assets_pct": 2.99
+            "price": 2078.21,
+            "market_value": 1084071.23,
+            "gain_loss": 738.0,
+            "gl_pct": 0.07,
+            "assets_pct": 2.33
           },
           {
             "asset_class": "Equity",
@@ -6144,11 +6088,11 @@ const STRATEGY_DATA = [
             "quantity": 1065.0,
             "unit_cost": 485.58,
             "cost": 517146.27,
-            "price": 1026.5,
-            "market_value": 1093222.5,
-            "gain_loss": 576076.0,
-            "gl_pct": 111.4,
-            "assets_pct": 2.98
+            "price": 964.4,
+            "market_value": 1027086.0,
+            "gain_loss": 509940.0,
+            "gl_pct": 98.61,
+            "assets_pct": 2.29
           },
           {
             "asset_class": "Equity",
@@ -6156,11 +6100,11 @@ const STRATEGY_DATA = [
             "quantity": 1838.0,
             "unit_cost": 541.51,
             "cost": 995299.24,
-            "price": 630.25,
-            "market_value": 1158399.5,
-            "gain_loss": 163100.0,
-            "gl_pct": 16.39,
-            "assets_pct": 3.16
+            "price": 558.3,
+            "market_value": 1026155.4,
+            "gain_loss": 30856.0,
+            "gl_pct": 3.1,
+            "assets_pct": 2.21
           },
           {
             "asset_class": "Equity",
@@ -6168,11 +6112,11 @@ const STRATEGY_DATA = [
             "quantity": 1381.0,
             "unit_cost": 720.88,
             "cost": 995529.48,
-            "price": 764.9,
-            "market_value": 1056326.93,
-            "gain_loss": 60797.0,
-            "gl_pct": 6.11,
-            "assets_pct": 2.88
+            "price": 716.85,
+            "market_value": 989969.85,
+            "gain_loss": -5560.0,
+            "gl_pct": -0.56,
+            "assets_pct": 2.13
           },
           {
             "asset_class": "Equity",
@@ -6180,11 +6124,11 @@ const STRATEGY_DATA = [
             "quantity": 17985.0,
             "unit_cost": 55.34,
             "cost": 995313.28,
-            "price": 56.75,
-            "market_value": 1020648.75,
-            "gain_loss": 25335.0,
-            "gl_pct": 2.55,
-            "assets_pct": 2.78
+            "price": 54.39,
+            "market_value": 978204.15,
+            "gain_loss": -17109.0,
+            "gl_pct": -1.72,
+            "assets_pct": 2.1
           },
           {
             "asset_class": "Equity",
@@ -6196,7 +6140,7 @@ const STRATEGY_DATA = [
             "market_value": 949019.4,
             "gain_loss": -43514.0,
             "gl_pct": -4.38,
-            "assets_pct": 2.59
+            "assets_pct": 2.04
           },
           {
             "asset_class": "Equity",
@@ -6204,11 +6148,11 @@ const STRATEGY_DATA = [
             "quantity": 18156.639,
             "unit_cost": 47.73,
             "cost": 866666.0,
-            "price": 50.1581,
-            "market_value": 910702.51,
-            "gain_loss": 44037.0,
-            "gl_pct": 5.08,
-            "assets_pct": 2.48
+            "price": 49.5459,
+            "market_value": 899587.02,
+            "gain_loss": 32921.0,
+            "gl_pct": 3.8,
+            "assets_pct": 1.93
           },
           {
             "asset_class": "Equity",
@@ -6216,11 +6160,11 @@ const STRATEGY_DATA = [
             "quantity": 170.0,
             "unit_cost": 3141.59,
             "cost": 534069.71,
-            "price": 5045.0,
-            "market_value": 857650.0,
-            "gain_loss": 323580.0,
-            "gl_pct": 60.59,
-            "assets_pct": 2.34
+            "price": 5194.3,
+            "market_value": 883031.0,
+            "gain_loss": 348961.0,
+            "gl_pct": 65.34,
+            "assets_pct": 1.9
           },
           {
             "asset_class": "Equity",
@@ -6228,11 +6172,11 @@ const STRATEGY_DATA = [
             "quantity": 2173.922,
             "unit_cost": 298.98,
             "cost": 649965.0,
-            "price": 299.6541,
-            "market_value": 651424.64,
-            "gain_loss": 1460.0,
-            "gl_pct": 0.22,
-            "assets_pct": 1.78
+            "price": 292.9274,
+            "market_value": 636801.32,
+            "gain_loss": -13164.0,
+            "gl_pct": -2.03,
+            "assets_pct": 1.37
           },
           {
             "asset_class": "Equity",
@@ -6240,11 +6184,11 @@ const STRATEGY_DATA = [
             "quantity": 2500.0,
             "unit_cost": 182.86,
             "cost": 457161.1,
-            "price": 258.4,
-            "market_value": 645999.98,
-            "gain_loss": 188839.0,
-            "gl_pct": 41.31,
-            "assets_pct": 1.76
+            "price": 250.58,
+            "market_value": 626450.0,
+            "gain_loss": 169289.0,
+            "gl_pct": 37.03,
+            "assets_pct": 1.35
           },
           {
             "asset_class": "Equity",
@@ -6252,11 +6196,11 @@ const STRATEGY_DATA = [
             "quantity": 16983.65,
             "unit_cost": 29.44,
             "cost": 499975.0,
-            "price": 32.7202,
-            "market_value": 555708.42,
-            "gain_loss": 55733.0,
-            "gl_pct": 11.15,
-            "assets_pct": 1.51
+            "price": 31.5057,
+            "market_value": 535081.78,
+            "gain_loss": 35107.0,
+            "gl_pct": 7.02,
+            "assets_pct": 1.15
           },
           {
             "asset_class": "Equity",
@@ -6264,11 +6208,11 @@ const STRATEGY_DATA = [
             "quantity": 167.0,
             "unit_cost": 4143.3,
             "cost": 691931.64,
-            "price": 3248.3,
-            "market_value": 542466.11,
-            "gain_loss": -149466.0,
-            "gl_pct": -21.6,
-            "assets_pct": 1.48
+            "price": 3133.6,
+            "market_value": 523311.2,
+            "gain_loss": -168620.0,
+            "gl_pct": -24.37,
+            "assets_pct": 1.13
           },
           {
             "asset_class": "Equity",
@@ -6276,11 +6220,11 @@ const STRATEGY_DATA = [
             "quantity": 2000.0,
             "unit_cost": 130.03,
             "cost": 260065.4,
-            "price": 242.98,
-            "market_value": 485959.99,
-            "gain_loss": 225895.0,
-            "gl_pct": 86.86,
-            "assets_pct": 1.32
+            "price": 238.95,
+            "market_value": 477900.0,
+            "gain_loss": 217835.0,
+            "gl_pct": 83.76,
+            "assets_pct": 1.03
           },
           {
             "asset_class": "Equity",
@@ -6288,11 +6232,11 @@ const STRATEGY_DATA = [
             "quantity": 200.0,
             "unit_cost": 851.16,
             "cost": 170232.91,
-            "price": 1574.4,
-            "market_value": 314880.0,
-            "gain_loss": 144647.0,
-            "gl_pct": 84.97,
-            "assets_pct": 0.86
+            "price": 1401.7,
+            "market_value": 280340.0,
+            "gain_loss": 110107.0,
+            "gl_pct": 64.68,
+            "assets_pct": 0.6
           },
           {
             "asset_class": "Equity",
@@ -6300,11 +6244,11 @@ const STRATEGY_DATA = [
             "quantity": 150.0,
             "unit_cost": 1583.01,
             "cost": 237451.93,
-            "price": 1636.2,
-            "market_value": 245429.99,
-            "gain_loss": 7978.0,
-            "gl_pct": 3.36,
-            "assets_pct": 0.67
+            "price": 1675.6,
+            "market_value": 251340.0,
+            "gain_loss": 13888.0,
+            "gl_pct": 5.85,
+            "assets_pct": 0.54
           },
           {
             "asset_class": "Equity",
@@ -6312,11 +6256,11 @@ const STRATEGY_DATA = [
             "quantity": 150.0,
             "unit_cost": 1399.61,
             "cost": 209941.12,
-            "price": 1766.5,
-            "market_value": 264975.0,
-            "gain_loss": 55034.0,
-            "gl_pct": 26.21,
-            "assets_pct": 0.72
+            "price": 1527.8,
+            "market_value": 229170.0,
+            "gain_loss": 19229.0,
+            "gl_pct": 9.16,
+            "assets_pct": 0.49
           },
           {
             "asset_class": "Equity",
@@ -6324,11 +6268,11 @@ const STRATEGY_DATA = [
             "quantity": 30.0,
             "unit_cost": 6108.57,
             "cost": 183257.02,
-            "price": 6663.5,
-            "market_value": 199905.0,
-            "gain_loss": 16648.0,
-            "gl_pct": 9.08,
-            "assets_pct": 0.54
+            "price": 6667.0,
+            "market_value": 200010.0,
+            "gain_loss": 16753.0,
+            "gl_pct": 9.14,
+            "assets_pct": 0.43
           },
           {
             "asset_class": "Equity",
@@ -6336,11 +6280,11 @@ const STRATEGY_DATA = [
             "quantity": 400.0,
             "unit_cost": 443.18,
             "cost": 177273.89,
-            "price": 360.95,
-            "market_value": 144380.0,
-            "gain_loss": -32894.0,
-            "gl_pct": -18.56,
-            "assets_pct": 0.39
+            "price": 393.9,
+            "market_value": 157560.0,
+            "gain_loss": -19714.0,
+            "gl_pct": -11.12,
+            "assets_pct": 0.34
           },
           {
             "asset_class": "Alternative Assets",
@@ -6348,11 +6292,11 @@ const STRATEGY_DATA = [
             "quantity": 12570.0,
             "unit_cost": 146.26,
             "cost": 1838459.47,
-            "price": 145.4304,
-            "market_value": 1828060.13,
-            "gain_loss": -10399.0,
-            "gl_pct": -0.57,
-            "assets_pct": 4.98
+            "price": 151.04,
+            "market_value": 1898572.8,
+            "gain_loss": 60113.0,
+            "gl_pct": 3.27,
+            "assets_pct": 4.08
           },
           {
             "asset_class": "Alternative Assets",
@@ -6360,11 +6304,11 @@ const STRATEGY_DATA = [
             "quantity": 1279.0,
             "unit_cost": 253.32,
             "cost": 324001.36,
-            "price": 246.7739,
-            "market_value": 315623.82,
-            "gain_loss": -8378.0,
-            "gl_pct": -2.59,
-            "assets_pct": 0.86
+            "price": 260.35,
+            "market_value": 332987.65,
+            "gain_loss": 8986.0,
+            "gl_pct": 2.77,
+            "assets_pct": 0.72
           },
           {
             "asset_class": "Cash and Equivalent",
@@ -6376,7 +6320,7 @@ const STRATEGY_DATA = [
             "market_value": 1401058.39,
             "gain_loss": 0.0,
             "gl_pct": 0.0,
-            "assets_pct": 3.82
+            "assets_pct": 3.01
           },
           {
             "asset_class": "Cash and Equivalent",
@@ -6537,28 +6481,25 @@ const STRATEGY_DATA = [
             }
           ],
           "note": ""
-        },
-        "auto_aum": 28243545.63,
-        "manual_aum": 0.0,
-        "cash_aum": 8444437.85
+        }
       },
       {
         "account": "100428",
         "ndas": "ANGNR0004",
         "name": "Tara Singh Sarna",
         "inception": "18/03/2026",
-        "aum": 94136770.45,
-        "gl_pct": 5.09,
-        "p1m": 0.976748,
-        "b1m": 0.4878,
-        "p3m": 1.450192,
-        "b3m": 1.511576,
+        "aum": 93873134.66,
+        "gl_pct": 4.82,
+        "p1m": 0.07999999999999119,
+        "b1m": 0.138353,
+        "p3m": null,
+        "b3m": 1.100041,
         "p6m": null,
         "b6m": 3.12967,
         "p12m": null,
         "b12m": 6.632437,
-        "psi": 1.3832,
-        "bsi": 1.445135,
+        "psi": 0.731504787199988,
+        "bsi": 0.575031,
         "outperform": true,
         "si_ann": null,
         "si_ann_bm": null,
@@ -6569,11 +6510,11 @@ const STRATEGY_DATA = [
             "quantity": 3128396.955,
             "unit_cost": 15.73,
             "cost": 49200298.91,
-            "price": 23.6115,
-            "market_value": 73866144.7,
-            "gain_loss": 24665846.0,
-            "gl_pct": 50.13,
-            "assets_pct": 78.47
+            "price": 16.478,
+            "market_value": 51549725.02,
+            "gain_loss": 2349426.0,
+            "gl_pct": 4.78,
+            "assets_pct": 54.91
           },
           {
             "asset_class": "Fixed Income",
@@ -6581,11 +6522,11 @@ const STRATEGY_DATA = [
             "quantity": 1924880.976,
             "unit_cost": 20.92,
             "cost": 40260618.01,
-            "price": 10.483,
-            "market_value": 20178527.27,
-            "gain_loss": -20082091.0,
-            "gl_pct": -49.88,
-            "assets_pct": 21.44
+            "price": 21.9397,
+            "market_value": 42231311.15,
+            "gain_loss": 1970693.0,
+            "gl_pct": 4.89,
+            "assets_pct": 44.99
           },
           {
             "asset_class": "Fixed Income",
@@ -6678,28 +6619,25 @@ const STRATEGY_DATA = [
           "reason": "Essentially 100% Arbitrage",
           "profile": null,
           "params": []
-        },
-        "auto_aum": 94044671.97,
-        "manual_aum": 0.0,
-        "cash_aum": 92098.48
+        }
       },
       {
         "account": "100462",
         "ndas": "AONDCP0007",
         "name": "Brinda Sankar",
         "inception": "24/03/2026",
-        "aum": 163185433.06,
-        "gl_pct": 123.98,
-        "p1m": 2.354829,
-        "b1m": 2.506343,
-        "p3m": 3.47174,
-        "b3m": 6.323114,
+        "aum": 160255924.07,
+        "gl_pct": 120.32,
+        "p1m": -0.44999999999999485,
+        "b1m": -0.013263,
+        "p3m": null,
+        "b3m": -2.049088,
         "p6m": null,
         "b6m": -5.072207,
         "p12m": null,
         "b12m": 0.280806,
-        "psi": 6.459682,
-        "bsi": 9.361054,
+        "psi": 6.653713787499993,
+        "bsi": 7.697846,
         "outperform": false,
         "si_ann": null,
         "si_ann_bm": null,
@@ -6710,11 +6648,11 @@ const STRATEGY_DATA = [
             "quantity": 69693.734,
             "unit_cost": 521.86,
             "cost": 36370441.72,
-            "price": 1203.643,
-            "market_value": 83886375.07,
-            "gain_loss": 47515933.0,
-            "gl_pct": 130.64,
-            "assets_pct": 51.41
+            "price": 1175.104,
+            "market_value": 81897385.6,
+            "gain_loss": 45526944.0,
+            "gl_pct": 125.18,
+            "assets_pct": 51.1
           },
           {
             "asset_class": "Equity",
@@ -6722,11 +6660,11 @@ const STRATEGY_DATA = [
             "quantity": 733419.072,
             "unit_cost": 39.02,
             "cost": 28621679.28,
-            "price": 95.868,
-            "market_value": 70311419.59,
-            "gain_loss": 41689740.0,
-            "gl_pct": 145.66,
-            "assets_pct": 43.09
+            "price": 94.557,
+            "market_value": 69349907.19,
+            "gain_loss": 40728228.0,
+            "gl_pct": 142.3,
+            "assets_pct": 43.27
           },
           {
             "asset_class": "Equity",
@@ -6734,11 +6672,11 @@ const STRATEGY_DATA = [
             "quantity": 47711.105,
             "unit_cost": 164.83,
             "cost": 7864250.13,
-            "price": 190.84,
-            "market_value": 9105187.28,
-            "gain_loss": 1240937.0,
-            "gl_pct": 15.78,
-            "assets_pct": 5.58
+            "price": 191.28,
+            "market_value": 9126180.16,
+            "gain_loss": 1261930.0,
+            "gl_pct": 16.05,
+            "assets_pct": 5.69
           },
           {
             "asset_class": "Cash and Equivalent",
@@ -6875,28 +6813,25 @@ const STRATEGY_DATA = [
             }
           ],
           "note": ""
-        },
-        "auto_aum": 163302981.94,
-        "manual_aum": 0.0,
-        "cash_aum": -117548.88
+        }
       },
       {
         "account": "100566",
         "ndas": "AONDCP0008",
         "name": "Sankar Subramaniam",
         "inception": "10/04/2026",
-        "aum": 11687271.13,
-        "gl_pct": 4.67,
-        "p1m": 2.176578,
-        "b1m": 2.506343,
+        "aum": 11573720.0,
+        "gl_pct": 2.76,
+        "p1m": 2.200000000000002,
+        "b1m": -0.013263,
         "p3m": null,
         "b3m": -2.049088,
         "p6m": null,
         "b6m": -5.072207,
         "p12m": null,
         "b12m": 0.280806,
-        "psi": 3.654562,
-        "bsi": 3.094617,
+        "psi": 3.487719999999994,
+        "bsi": 1.514211,
         "outperform": true,
         "si_ann": null,
         "si_ann_bm": null,
@@ -6907,11 +6842,11 @@ const STRATEGY_DATA = [
             "quantity": 67125.262,
             "unit_cost": 93.34,
             "cost": 6265673.33,
-            "price": 95.868,
-            "market_value": 6435164.62,
-            "gain_loss": 169491.0,
-            "gl_pct": 2.71,
-            "assets_pct": 55.06
+            "price": 94.557,
+            "market_value": 6347163.4,
+            "gain_loss": 81490.0,
+            "gl_pct": 1.3,
+            "assets_pct": 54.84
           },
           {
             "asset_class": "Equity",
@@ -6923,7 +6858,7 @@ const STRATEGY_DATA = [
             "market_value": 3061208.28,
             "gain_loss": 121208.0,
             "gl_pct": 4.12,
-            "assets_pct": 26.19
+            "assets_pct": 26.45
           },
           {
             "asset_class": "Equity",
@@ -6931,11 +6866,11 @@ const STRATEGY_DATA = [
             "quantity": 41734.585,
             "unit_cost": 46.96,
             "cost": 1960000.0,
-            "price": 50.1581,
-            "market_value": 2093327.49,
-            "gain_loss": 133327.0,
-            "gl_pct": 6.8,
-            "assets_pct": 17.91
+            "price": 49.5459,
+            "market_value": 2067777.57,
+            "gain_loss": 107778.0,
+            "gl_pct": 5.5,
+            "assets_pct": 17.87
           },
           {
             "asset_class": "Cash and Equivalent",
@@ -6947,7 +6882,7 @@ const STRATEGY_DATA = [
             "market_value": 97570.74,
             "gain_loss": 0.0,
             "gl_pct": 0.0,
-            "assets_pct": 0.83
+            "assets_pct": 0.84
           }
         ],
         "allocation": {
@@ -7077,28 +7012,25 @@ const STRATEGY_DATA = [
             }
           ],
           "note": ""
-        },
-        "auto_aum": 8528492.11,
-        "manual_aum": 0.0,
-        "cash_aum": 3158779.02
+        }
       },
       {
         "account": "100644",
         "ndas": "AONDCP0009",
         "name": "Dhiraj Sarna",
         "inception": "05/05/2026",
-        "aum": 100126203.8,
-        "gl_pct": 0.34,
-        "p1m": -4.721183,
-        "b1m": 0.4878,
+        "aum": 103979999.0,
+        "gl_pct": 3.98,
+        "p1m": null,
+        "b1m": 0.138353,
         "p3m": null,
         "b3m": 1.100041,
         "p6m": null,
         "b6m": 3.12967,
         "p12m": null,
         "b12m": 6.632437,
-        "psi": 2.058979,
-        "bsi": 0.744142,
+        "psi": 3.9800000000000058,
+        "bsi": 0.040829,
         "outperform": true,
         "si_ann": null,
         "si_ann_bm": null,
@@ -7109,11 +7041,11 @@ const STRATEGY_DATA = [
             "quantity": 687000.0,
             "unit_cost": 145.25,
             "cost": 99784481.0,
-            "price": 145.4304,
-            "market_value": 99910684.8,
-            "gain_loss": 126204.0,
-            "gl_pct": 0.13,
-            "assets_pct": 99.78
+            "price": 151.04,
+            "market_value": 103764480.0,
+            "gain_loss": 3979999.0,
+            "gl_pct": 3.99,
+            "assets_pct": 99.79
           },
           {
             "asset_class": "Cash and Equivalent",
@@ -7125,7 +7057,7 @@ const STRATEGY_DATA = [
             "market_value": 215519.0,
             "gain_loss": 0.0,
             "gl_pct": 0.0,
-            "assets_pct": 0.22
+            "assets_pct": 0.21
           }
         ],
         "allocation": {
@@ -7242,10 +7174,7 @@ const STRATEGY_DATA = [
             }
           ],
           "note": ""
-        },
-        "auto_aum": 99910684.8,
-        "manual_aum": 0.0,
-        "cash_aum": 215519.0
+        }
       }
     ],
     "scheme_alloc": {
@@ -7256,8 +7185,7 @@ const STRATEGY_DATA = [
       "mid_cap": 18.842606543280223,
       "small_cap": 8.369073619964338
     },
-    "has_12m": false,
-    "total_auto_aum": 443883955.93
+    "has_12m": false
   }
 ];
 
@@ -7806,8 +7734,6 @@ const STRATEGY_DATA = [
     const PARKING_DATA = {"NDAS0001": {"cash": 18727.43, "liquid": 0, "overnight": 0, "arbitrage": 23.87, "total": 385103677.08, "cash_pct": 0.0, "liquid_pct": 0.0, "overnight_pct": 0.0, "arb_pct": 0.0, "rm": "Gaurav Khadgawat", "srm": "Rohit Singh"}, "NDAS0002": {"cash": 67143.69, "liquid": 502805.7, "overnight": 0, "arbitrage": 0, "total": 23594450.55, "cash_pct": 0.28, "liquid_pct": 2.13, "overnight_pct": 0.0, "arb_pct": 0.0, "rm": "Pratyaksha Gupta", "srm": "Priyesh Mishra"}, "NDAS0008": {"cash": -62153.58, "liquid": 0, "overnight": 0, "arbitrage": 26874296.74, "total": 337812985.75, "cash_pct": -0.02, "liquid_pct": 0.0, "overnight_pct": 0.0, "arb_pct": 7.96, "rm": "Gaurav Khadgawat", "srm": "Rohit Singh"}, "AONDCP0001": {"cash": 51598.33, "liquid": 0, "overnight": 0, "arbitrage": 0, "total": 5826047.33, "cash_pct": 0.89, "liquid_pct": 0.0, "overnight_pct": 0.0, "arb_pct": 0.0, "rm": "Direct", "srm": ""}, "AONDLV0001": {"cash": 235736.79, "liquid": 7016414.6, "overnight": 0, "arbitrage": 0, "total": 125386429.71, "cash_pct": 0.19, "liquid_pct": 5.6, "overnight_pct": 0.0, "arb_pct": 0.0, "rm": "Damanjit Mayal", "srm": "Rohit Singh"}, "AONDLV0002": {"cash": 106077.15, "liquid": 0, "overnight": 0, "arbitrage": 0, "total": 246775425.13, "cash_pct": 0.04, "liquid_pct": 0.0, "overnight_pct": 0.0, "arb_pct": 0.0, "rm": "Damanjit Mayal", "srm": "Rohit Singh"}, "NDAS0010": {"cash": -34063.74, "liquid": 50063.4, "overnight": 0, "arbitrage": 0, "total": 72499243.53, "cash_pct": -0.05, "liquid_pct": 0.07, "overnight_pct": 0.0, "arb_pct": 0.0, "rm": "Parth Shah", "srm": "Riddhi Patel"}, "AONDCP0004": {"cash": 236864.11, "liquid": 0, "overnight": 0, "arbitrage": 0, "total": 44675683.02, "cash_pct": 0.53, "liquid_pct": 0.0, "overnight_pct": 0.0, "arb_pct": 0.0, "rm": "Yashkumar Jain", "srm": "Rohit Singh"}, "NDAS0011": {"cash": 37680.33, "liquid": 0, "overnight": 0, "arbitrage": 0, "total": 9986497.28, "cash_pct": 0.38, "liquid_pct": 0.0, "overnight_pct": 0.0, "arb_pct": 0.0, "rm": "Parth Shah", "srm": "Riddhi Patel"}, "NDAS0012": {"cash": 37680.33, "liquid": 0, "overnight": 0, "arbitrage": 0, "total": 9986497.24, "cash_pct": 0.38, "liquid_pct": 0.0, "overnight_pct": 0.0, "arb_pct": 0.0, "rm": "Parth Shah", "srm": "Riddhi Patel"}, "NDAS0013": {"cash": 34013.55, "liquid": 0, "overnight": 0, "arbitrage": 0, "total": 10082658.86, "cash_pct": 0.34, "liquid_pct": 0.0, "overnight_pct": 0.0, "arb_pct": 0.0, "rm": "Parth Shah", "srm": "Riddhi Patel"}, "AONDCP0006": {"cash": 1396515.47, "liquid": 0, "overnight": 0, "arbitrage": 0, "total": 46390659.91, "cash_pct": 3.01, "liquid_pct": 0.0, "overnight_pct": 0.0, "arb_pct": 0.0, "rm": "Kaushik Medhi", "srm": "Akshay Rudrap"}, "ANGNR0004": {"cash": -24861.52, "liquid": 0, "overnight": 0, "arbitrage": 93781036.17, "total": 93873134.66, "cash_pct": -0.03, "liquid_pct": 0.0, "overnight_pct": 0.0, "arb_pct": 99.9, "rm": "Gaurav Khadgawat", "srm": "Rohit Singh"}, "AONDCP0007": {"cash": -117548.88, "liquid": 0, "overnight": 0, "arbitrage": 0, "total": 160255924.07, "cash_pct": -0.07, "liquid_pct": 0.0, "overnight_pct": 0.0, "arb_pct": 0.0, "rm": "Chv Gowtham", "srm": "Rashmi MA"}, "NDAS0014": {"cash": 266179.5, "liquid": 1163.99, "overnight": 0, "arbitrage": 0, "total": 16100380.42, "cash_pct": 1.65, "liquid_pct": 0.01, "overnight_pct": 0.0, "arb_pct": 0.0, "rm": "Jay Anil Patel", "srm": "Riddhi Patel"}, "AONDCP0008": {"cash": 97570.74, "liquid": 0, "overnight": 0, "arbitrage": 0, "total": 11573720.0, "cash_pct": 0.84, "liquid_pct": 0.0, "overnight_pct": 0.0, "arb_pct": 0.0, "rm": "Chv Gowtham", "srm": "Rashmi MA"}, "NDAS0016": {"cash": -8843.93, "liquid": 0, "overnight": 0, "arbitrage": 40153705.04, "total": 40144861.11, "cash_pct": -0.02, "liquid_pct": 0.0, "overnight_pct": 0.0, "arb_pct": 100.02, "rm": "Dhiran Shah", "srm": "Ashwini Pandey"}, "AONDLV0009": {"cash": 8906.4, "liquid": 0, "overnight": 0, "arbitrage": 0, "total": 111467607.09, "cash_pct": 0.01, "liquid_pct": 0.0, "overnight_pct": 0.0, "arb_pct": 0.0, "rm": "Gaurav Khadgawat", "srm": "Rohit Singh"}, "AONDLV0003": {"cash": 100100, "liquid": 0, "overnight": 0, "arbitrage": 0, "total": 19385285.71, "cash_pct": 0.52, "liquid_pct": 0.0, "overnight_pct": 0.0, "arb_pct": 0.0, "rm": "Gaurav Khadgawat", "srm": "Rohit Singh"}, "AONDCP0009": {"cash": 215519, "liquid": 0, "overnight": 0, "arbitrage": 0, "total": 103979999, "cash_pct": 0.21, "liquid_pct": 0.0, "overnight_pct": 0.0, "arb_pct": 0.0, "rm": "Gaurav Khadgawat", "srm": "Rohit Singh"}, "NDAS0017": {"cash": 3115.92, "liquid": 20085723.97, "overnight": 0, "arbitrage": 9972894.1, "total": 30061733.99, "cash_pct": 0.01, "liquid_pct": 66.81, "overnight_pct": 0.0, "arb_pct": 33.17, "rm": "Parth Shah", "srm": "Riddhi Patel"}, "AONDLV0012": {"cash": 100, "liquid": 760468472.48, "overnight": 490188766.97, "arbitrage": 0, "total": 1250657339.45, "cash_pct": 0.0, "liquid_pct": 60.81, "overnight_pct": 39.19, "arb_pct": 0.0, "rm": "Deepika Bhatia", "srm": "Meetu Sharma"}};
     const UNFUNDED_DATA = [{"code": "AONDCP0002", "client_name": "Owen Roger Roncon", "name": "Ionic Co-Pilot Portfolio", "rm": "Prerna Lotlikar", "srm": "Shairoz Tejani"}, {"code": "AONDLV0004", "client_name": "Suman Agarwal", "name": "Ionic Large Value Portfolio", "rm": "Gaurav Khadgawat", "srm": "Rohit Singh"}, {"code": "AONDLV0007", "client_name": "Agarwal Ritu", "name": "Ionic Large Value Portfolio", "rm": "Gaurav Khadgawat", "srm": "Rohit Singh"}, {"code": "AONDLV0008", "client_name": "Kiran Agarwal", "name": "Ionic Large Value Portfolio", "rm": "Gaurav Khadgawat", "srm": "Rohit Singh"}, {"code": "AONDLV0010", "client_name": "Agarwal Lalita", "name": "Ionic Large Value Portfolio", "rm": "Gaurav Khadgawat", "srm": "Rohit Singh"}, {"code": "NDAS0003", "client_name": "Anuj Surendra Ruia", "name": "Ionic Select Portfolio", "rm": "Parth Shah", "srm": "Riddhi Patel"}, {"code": "NDAS0004", "client_name": "Sanjay Prakash Ruia", "name": "Ionic Select Portfolio", "rm": "Parth Shah", "srm": "Riddhi Patel"}, {"code": "NDAS0005", "client_name": "Surendra Prakash Ruia", "name": "Ionic Select Portfolio", "rm": "Parth Shah", "srm": "Riddhi Patel"}, {"code": "NDAS0006", "client_name": "Diksha Gupta", "name": "Ionic Select Portfolio", "rm": "Parth Shah", "srm": "Riddhi Patel"}, {"code": "NDAS0007", "client_name": "Sonali Sanjay Ruia", "name": "Ionic Select Portfolio", "rm": "Parth Shah", "srm": "Riddhi Patel"}, {"code": "NDAS0009", "client_name": "Ambarish Chintamani Kenghe", "name": "Ionic Select Portfolio", "rm": "Direct", "srm": ""}, {"code": "NDAS0015", "client_name": "Kanaiya Lal Bachani", "name": "Ionic Select Portfolio", "rm": "Jay Anil Patel", "srm": "Riddhi Patel"}];
 
-    const PRICE_DATE = "17 Jun 2026";
-    const MANUAL_SECURITIES = ["SageOne Flagship Growth OE Fund","Altiva Hybrid Long Short Fund","Magnum Hybrid Long Short Fund"];
     const MIS_DATA ={"AONDCP0002":{"advisor":"Farzan","last_review":"08-May-2026"},"AONDLV0004":{"advisor":"Abhinandan","last_review":null},"AONDLV0007":{"advisor":"Abhinandan","last_review":null},"AONDLV0008":{"advisor":"Abhinandan","last_review":null},"AONDLV0010":{"advisor":"Abhinandan","last_review":null},"NDAS0003":{"advisor":"Farzan","last_review":"05-Apr-2026"},"NDAS0004":{"advisor":"Farzan","last_review":"05-Apr-2026"},"NDAS0005":{"advisor":"Farzan","last_review":"05-Apr-2026"},"NDAS0006":{"advisor":"Farzan","last_review":"05-Apr-2026"},"NDAS0007":{"advisor":"Farzan","last_review":"05-Apr-2026"},"NDAS0009":{"advisor":null,"last_review":null},"NDAS0015":{"advisor":null,"last_review":null},"ANGNR0004":{"advisor":"Pransu","last_review":"NR"},"AONDCP0001":{"advisor":null,"last_review":"NR"},"AONDCP0004":{"advisor":null,"last_review":null},"AONDCP0006":{"advisor":null,"last_review":"11-Jun-2026"},"AONDCP0007":{"advisor":null,"last_review":"15-Jun-2026"},"AONDCP0008":{"advisor":null,"last_review":"15-Jun-2026"},"AONDCP0009":{"advisor":"Pransu","last_review":"NR"},"AONDCP0011":{"advisor":"Abhinandan","last_review":null},"AONDLV0001":{"advisor":"Abhinandan","last_review":"15-Jun-2026"},"AONDLV0002":{"advisor":"Abhinandan","last_review":"15-Jun-2026"},"AONDLV0009":{"advisor":"Abhinandan","last_review":null},"AONDLV0012":{"advisor":"Abhinandan","last_review":null},"NDAS0001":{"advisor":null,"last_review":"17-Apr-2026"},"NDAS0002":{"advisor":null,"last_review":null},"NDAS0008":{"advisor":"Farzan","last_review":"09-Apr-2026"},"NDAS0010":{"advisor":null,"last_review":"NR"},"NDAS0011":{"advisor":null,"last_review":null},"NDAS0012":{"advisor":null,"last_review":null},"NDAS0013":{"advisor":null,"last_review":null},"NDAS0014":{"advisor":null,"last_review":"15-Jun-2026"},"NDAS0016":{"advisor":"Farzan","last_review":"NR"},"NDAS0017":{"advisor":null,"last_review":"NR"}};
 
 
@@ -7879,7 +7805,7 @@ function renderStrategy(s, i) {
       <td><a class="client-link" onclick="showClient(${i}, ${j})">${c.name}</a>${c.allocation ? ' <span class="alloc-badge" title="Allocation breakdown available">A</span>' : ''}</td>
       <td>${c.ndas}</td>
       <td>${c.inception}</td>
-      <td class="num">${fmtINR(c.aum)}${c.manual_aum ? `<span class="small" title="Live: ${fmtINR(c.auto_aum)} | AIF/PMS: ${fmtINR(c.manual_aum)} | Cash: ${fmtINR(c.cash_aum)}">&#9432; split</span>` : ''}</td>
+      <td class="num">${fmtINR(c.aum)}</td>
       <td class="num">${fmtPct(c.p1m)} <span class="small">vs ${fmtPct(c.b1m)}</span></td>
       <td class="num">${fmtPct(c.p3m)} <span class="small">vs ${fmtPct(c.b3m)}</span></td>
       <td class="num">${fmtPct(c.p6m)} <span class="small">vs ${fmtPct(c.b6m)}</span></td>
@@ -8031,9 +7957,6 @@ function showClient(strategyIdx, clientIdx) {
     <div class="info-card"><div class="label">RM</div><div class="value">${(PARKING_DATA[c.ndas]||{}).rm || 'N/A'}</div></div>
     <div class="info-card"><div class="label">SRM</div><div class="value">${(PARKING_DATA[c.ndas]||{}).srm || '\u2014'}</div></div>
     <div class="info-card"><div class="label">Total AUM</div><div class="value">${fmtINR(c.aum)}</div></div>
-    ${c.auto_aum != null ? `<div class="info-card" style="border-color:#c5d8ec"><div class="label" style="color:var(--primary)">&#9679; Live AUM</div><div class="value" style="color:var(--primary)">${fmtINR(c.auto_aum)}</div><div class="small">auto-priced securities</div></div>` : ''}
-    ${c.manual_aum ? `<div class="info-card" style="border-color:#F0C040"><div class="label" style="color:#856404">&#9632; AIF / PMS</div><div class="value" style="color:#856404">${fmtINR(c.manual_aum)}</div><div class="small">manually priced</div></div>` : ''}
-    ${c.cash_aum != null ? `<div class="info-card" style="border-color:#bce0b8"><div class="label" style="color:var(--green)">&#9650; Cash &amp; Equiv</div><div class="value" style="color:var(--green)">${fmtINR(c.cash_aum)}</div></div>` : ''}
     <div class="info-card"><div class="label">Overall G/L %</div><div class="value" style="color:${c.gl_pct>=0?'var(--green)':'var(--red)'}">${fmtPct(c.gl_pct)}</div><div class="small">live holdings vs cost</div></div>
     <div class="info-card"><div class="label">Status (SI)</div><div class="value">${statusPill(c.psi, c.bsi)}</div></div>
   `;
@@ -8048,9 +7971,6 @@ function showClient(strategyIdx, clientIdx) {
       <td>${statusPill(p, b)}</td>
     </tr>`;
   const perfTable = `
-    <div style="background:#EAF1F8;border:1px solid #c5d8ec;border-radius:6px;padding:8px 14px;margin-bottom:10px;font-size:12px;color:#1F4E78">
-      &#9432;&nbsp;All returns calculated from live holding prices as of <strong>${PRICE_DATE}</strong>. Portfolio returns assume buy-and-hold (same quantities throughout each period) — will differ from XIRR if mid-period transactions occurred.
-    </div>
     <table>
       <thead><tr><th>Period</th><th>Portfolio %</th><th>Benchmark %</th><th>Alpha (bps)</th><th>Status</th></tr></thead>
       <tbody>
@@ -8418,12 +8338,6 @@ function askRefresh() {
 
 renderMainView();
 
-(function(){
-  var bar = document.getElementById('price-notice-bar');
-  if (!bar) return;
-  var tags = MANUAL_SECURITIES.map(function(s){ return '<span class="manual-tag">'+s+'</span>'; }).join(' ');
-  bar.innerHTML = '<strong>&#9432; Market prices as on ' + PRICE_DATE + '</strong>&nbsp;&nbsp;|&nbsp;&nbsp;Not auto-updated:&nbsp;' + tags;
-})();
 
 
 // ═══════════════════════════════════════════
