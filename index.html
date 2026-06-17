@@ -7810,7 +7810,7 @@ function renderStrategy(s, i) {
       <td><a class="client-link" onclick="showClient(${i}, ${j})">${c.name}</a>${c.allocation ? ' <span class="alloc-badge" title="Allocation breakdown available">A</span>' : ''}</td>
       <td>${c.ndas}</td>
       <td>${c.inception}</td>
-      <td class="num">${fmtINR(c.aum)}</td>
+      <td class="num">${fmtINR(c.aum)}${c.manual_aum ? `<span class="small" title="Live: ${fmtINR(c.auto_aum)} | AIF/PMS: ${fmtINR(c.manual_aum)} | Cash: ${fmtINR(c.cash_aum)}">&#9432; split</span>` : ''}</td>
       <td class="num">${fmtPct(c.p1m)} <span class="small">vs ${fmtPct(c.b1m)}</span></td>
       <td class="num">${fmtPct(c.p3m)} <span class="small">vs ${fmtPct(c.b3m)}</span></td>
       <td class="num">${fmtPct(c.p6m)} <span class="small">vs ${fmtPct(c.b6m)}</span></td>
@@ -7961,8 +7961,11 @@ function showClient(strategyIdx, clientIdx) {
     <div class="info-card"><div class="label">Advisor</div><div class="value" style="color:${(MIS_DATA[c.ndas]||{}).advisor?'var(--primary)':'var(--muted)'}">${(MIS_DATA[c.ndas]||{}).advisor || '\u2014'}</div></div>
     <div class="info-card"><div class="label">RM</div><div class="value">${(PARKING_DATA[c.ndas]||{}).rm || 'N/A'}</div></div>
     <div class="info-card"><div class="label">SRM</div><div class="value">${(PARKING_DATA[c.ndas]||{}).srm || '\u2014'}</div></div>
-    <div class="info-card"><div class="label">AUM</div><div class="value">${fmtINR(c.aum)}</div></div>
-    <div class="info-card"><div class="label">Overall G/L %</div><div class="value" style="color:${c.gl_pct>=0?'var(--green)':'var(--red)'}">${fmtPct(c.gl_pct)}</div></div>
+    <div class="info-card"><div class="label">Total AUM</div><div class="value">${fmtINR(c.aum)}</div></div>
+    ${c.auto_aum != null ? `<div class="info-card" style="border-color:#c5d8ec"><div class="label" style="color:var(--primary)">&#9679; Live AUM</div><div class="value" style="color:var(--primary)">${fmtINR(c.auto_aum)}</div><div class="small">auto-priced securities</div></div>` : ''}
+    ${c.manual_aum ? `<div class="info-card" style="border-color:#F0C040"><div class="label" style="color:#856404">&#9632; AIF / PMS</div><div class="value" style="color:#856404">${fmtINR(c.manual_aum)}</div><div class="small">manually priced</div></div>` : ''}
+    ${c.cash_aum != null ? `<div class="info-card" style="border-color:#bce0b8"><div class="label" style="color:var(--green)">&#9650; Cash &amp; Equiv</div><div class="value" style="color:var(--green)">${fmtINR(c.cash_aum)}</div></div>` : ''}
+    <div class="info-card"><div class="label">Overall G/L %</div><div class="value" style="color:${c.gl_pct>=0?'var(--green)':'var(--red)'}">${fmtPct(c.gl_pct)}</div><div class="small">live holdings vs cost</div></div>
     <div class="info-card"><div class="label">Status (SI)</div><div class="value">${statusPill(c.psi, c.bsi)}</div></div>
   `;
 
@@ -7976,6 +7979,10 @@ function showClient(strategyIdx, clientIdx) {
       <td>${statusPill(p, b)}</td>
     </tr>`;
   const perfTable = `
+    <div style="background:#FFF9E6;border:1px solid #F0C040;border-radius:6px;padding:8px 14px;margin-bottom:10px;font-size:12px;color:#6B5500">
+      &#9432;&nbsp;<strong>Portfolio returns (p1m, p3m etc.) are from the last PDF report</strong> — benchmark returns are live as of ${PRICE_DATE}.
+      Portfolio returns will update when you next refresh from a new report.
+    </div>
     <table>
       <thead><tr><th>Period</th><th>Portfolio %</th><th>Benchmark %</th><th>Alpha (bps)</th><th>Status</th></tr></thead>
       <tbody>
