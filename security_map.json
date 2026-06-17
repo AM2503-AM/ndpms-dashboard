@@ -1,143 +1,601 @@
 {
-  "Aditya Birla SL Flexi Cap Direct-G":              {"type":"mf",     "mfapi_code":null, "search":"Aditya Birla Sun Life Flexi Cap Direct Growth"},
-  "Altiva Hybrid Long Short Fund Direct Plan Growth": {"type":"manual"},
-  "Axis Greater China Equity FoF Direct- G":         {"type":"skip"},
-  "Axis Liquid Direct-G":                            {"type":"mf",     "mfapi_code":null, "search":"Axis Liquid Direct Growth"},
-  "Axis Overnight Direct-G":                         {"type":"mf",     "mfapi_code":null, "search":"Axis Overnight Direct Growth"},
-  "Bandhan Nifty100 Low Volatility 30 Index Direct-G":{"type":"mf",    "mfapi_code":null, "search":"Bandhan Nifty100 Low Volatility 30 Index Direct Growth"},
-  "Bandhan Small Cap Direct-G":                      {"type":"mf",     "mfapi_code":null, "search":"Bandhan Small Cap Direct Growth"},
-  "Canara Robeco Mid Cap Direct-G":                  {"type":"mf",     "mfapi_code":null, "search":"Canara Robeco Mid Cap Direct Growth"},
-  "DSP Arbitrage Direct-G":                          {"type":"mf",     "mfapi_code":null, "search":"DSP Arbitrage Direct Growth"},
-  "DSP Liquidity Direct-G":                          {"type":"mf",     "mfapi_code":null, "search":"DSP Liquidity Direct Growth"},
-  "DSP Multi Asset Allocation Direct-G":             {"type":"mf",     "mfapi_code":null, "search":"DSP Multi Asset Allocation Direct Growth"},
-  "DSP Small Cap Direct-G":                          {"type":"mf",     "mfapi_code":null, "search":"DSP Small Cap Direct Growth"},
-  "Edelweiss Arbitrage Direct-G":                    {"type":"mf",     "mfapi_code":null, "search":"Edelweiss Arbitrage Direct Growth"},
-  "Edelweiss Equity Savings Direct-G":               {"type":"mf",     "mfapi_code":null, "search":"Edelweiss Equity Savings Direct Growth"},
-  "Edelweiss Greater China Equity Off- shore Direct-G":{"type":"mf",   "mfapi_code":"140243", "search":"Edelweiss Greater China Equity Off-shore Direct Growth"},
-  "Edelweiss Recently Listed IPO Direct- G":         {"type":"mf",     "mfapi_code":null, "search":"Edelweiss Recently Listed IPO Direct Growth"},
-  "Franklin Asian Equity Direct-G":                  {"type":"mf",     "mfapi_code":null, "search":"Franklin Asian Equity Direct Growth"},
-  "Franklin U.S. Opportunities Equity Active FoF Direct-G":{"type":"mf","mfapi_code":null,"search":"Franklin US Opportunities Equity FOF Direct Growth"},
-  "HDFC Flexi Cap Direct-G":                         {"type":"mf",     "mfapi_code":null, "search":"HDFC Flexi Cap Direct Growth"},
-  "HDFC Focused Direct-G":                           {"type":"mf",     "mfapi_code":null, "search":"HDFC Focused Direct Growth"},
-  "HDFC Large Cap Direct-G":                         {"type":"mf",     "mfapi_code":null, "search":"HDFC Large Cap Direct Growth"},
-  "HDFC Long Duration Debt Direct-G":                {"type":"mf",     "mfapi_code":null, "search":"HDFC Long Duration Debt Direct Growth"},
-  "ICICI Pru Arbitrage Direct-G":                    {"type":"mf",     "mfapi_code":null, "search":"ICICI Prudential Arbitrage Direct Growth"},
-  "ICICI Pru Flexicap Direct-G":                     {"type":"mf",     "mfapi_code":null, "search":"ICICI Prudential Flexicap Direct Growth"},
-  "ICICI Pru India Opportunities Direct-G":          {"type":"mf",     "mfapi_code":null, "search":"ICICI Prudential India Opportunities Fund Direct"},
-  "ICICI Pru Silver ETF FoF Direct-G":               {"type":"mf",     "mfapi_code":null, "search":"ICICI Prudential Silver ETF FOF Direct Growth"},
-  "ICICI Pru Technology Direct-G":                   {"type":"mf",     "mfapi_code":null, "search":"ICICI Prudential Technology Direct Growth"},
-  "Invesco India Flexi Cap Direct-G":                {"type":"mf",     "mfapi_code":null, "search":"Invesco India Flexi Cap Direct Growth"},
-  "Invesco India Smallcap Direct-G":                 {"type":"mf",     "mfapi_code":null, "search":"Invesco India Smallcap Direct Growth"},
-  "Kotak Equity Arbitrage Direct-G":                 {"type":"mf",     "mfapi_code":null, "search":"Kotak Equity Arbitrage Fund Direct"},
-  "Kotak Flexicap Direct-G":                         {"type":"mf",     "mfapi_code":null, "search":"Kotak Flexicap Direct Growth"},
-  "Kotak Gilt Investment Direct-G":                  {"type":"mf",     "mfapi_code":null, "search":"Kotak Gilt Investment Direct Growth"},
-  "Magnum Hybrid Long Short Fund Direct Plan Growth": {"type":"manual"},
-  "Mirae Asset CRISIL IBX Gilt Index -":             {"type":"mf",     "mfapi_code":null, "search":"Mirae Asset CRISIL IBX Gilt Index Direct Growth"},
-  "Mirae Asset Midcap Direct-G":                     {"type":"mf",     "mfapi_code":null, "search":"Mirae Asset Midcap Direct Growth"},
-  "Motilal Oswal Flexi Cap Direct-G":                {"type":"mf",     "mfapi_code":null, "search":"Motilal Oswal Flexi Cap Fund Direct"},
-  "Motilal Oswal Midcap Direct-G":                   {"type":"mf",     "mfapi_code":null, "search":"Motilal Oswal Midcap Fund Direct"},
-  "Motilal Oswal Nasdaq 100 FOF Direct- G":          {"type":"mf",     "mfapi_code":null, "search":"Motilal Oswal Nasdaq 100 Fund of Fund Direct"},
-  "Motilal Oswal Nifty India Defence Index Direct-G":{"type":"mf",     "mfapi_code":"152712", "search":"Motilal Oswal Nifty India Defence Index Direct Growth"},
-  "Motilal Oswal Nifty Midcap 150 Index Direct-G":   {"type":"mf",     "mfapi_code":null, "search":"Motilal Oswal Nifty Midcap 150 Index Fund Direct"},
-  "Nippon India Large Cap Direct-G":                 {"type":"mf",     "mfapi_code":null, "search":"Nippon India Large Cap Direct Growth"},
-  "Nippon India Nifty 50 Value 20 Index Direct-G":   {"type":"mf",     "mfapi_code":null, "search":"Nippon India Nifty 50 Value 20 Index Direct Growth"},
-  "Parag Parikh Flexi Cap Direct-G":                 {"type":"mf",     "mfapi_code":null, "search":"Parag Parikh Flexi Cap Direct Growth"},
-  "Quant Small Cap Direct-G":                        {"type":"mf",     "mfapi_code":null, "search":"Quant Small Cap Direct Growth"},
-  "SBI Arbitrage Opportunities Direct-G":            {"type":"mf",     "mfapi_code":null, "search":"SBI Arbitrage Opportunities Fund Direct"},
-  "SBI Gold Direct-G":                               {"type":"mf",     "mfapi_code":null, "search":"SBI Gold Direct Growth"},
-  "UTI Nifty200 Momentum 30 Index Direct-G":         {"type":"mf",     "mfapi_code":null, "search":"UTI Nifty 200 Momentum 30 Index Fund Direct"},
-  "Union Small Cap Direct-G":                        {"type":"mf",     "mfapi_code":null, "search":"Union Small Cap Direct Growth"},
-  "WhiteOak Capital Multi Asset Allocation Direct-G":{"type":"mf",     "mfapi_code":null, "search":"WhiteOak Capital Multi Asset Allocation Direct Growth"},
-
-  "ICICI PRUDENTIAL GOLD ETF":                       {"type":"etf",    "mfapi_code":null, "search":"ICICI Prudential Gold ETF"},
-  "ICICI PRUDENTIAL NIFTY METAL ETF":                {"type":"etf",    "mfapi_code":null, "search":"ICICI Prudential Nifty Metal ETF"},
-  "ICICI PRUDENTIAL SILVER ETF":                     {"type":"etf",    "mfapi_code":null, "search":"ICICI Prudential Silver ETF"},
-  "KOTAK NIFTY 1D RATE LIQUID ETF":                  {"type":"etf",    "mfapi_code":null, "search":"Kotak Nifty 1D Rate Liquid ETF"},
-  "KOTAK NIFTY CHEMICALS ETF":                       {"type":"etf",    "mfapi_code":null, "search":"Kotak Nifty Chemicals ETF"},
-  "MIRAE ASSET GOLD ETF":                            {"type":"etf",    "mfapi_code":null, "search":"Mirae Asset Gold ETF"},
-  "MIRAE ASSET SILVER ETF":                          {"type":"etf",    "mfapi_code":null, "search":"Mirae Asset Silver ETF"},
-  "NIPPON INDIA ETF NIFTY MIDCAP":                   {"type":"etf",    "mfapi_code":null, "search":"Nippon India ETF Nifty Midcap 150"},
-  "NIPPON INDIA NIFTY 1D RATE LIQUID BEES ETF":      {"type":"etf",    "mfapi_code":null, "search":"Nippon India Nifty 1D Rate Liquid BeES ETF"},
-  "NIPPON INDIA SILVER ETF":                         {"type":"etf",    "mfapi_code":null, "search":"Nippon India Silver ETF"},
-  "SBI ETF GOLD":                                    {"type":"etf",    "mfapi_code":null, "search":"SBI ETF Gold"},
-  "SBI ETF NIFTY 50":                                {"type":"etf",    "mfapi_code":null, "search":"SBI ETF Nifty 50"},
-  "UTI SILVER ETF":                                  {"type":"etf",    "mfapi_code":null, "search":"UTI Silver ETF"},
-  "ZERODHA NIFTY 1D RATE LIQUID ETF":                {"type":"etf",    "mfapi_code":null, "search":"Zerodha Nifty 1D Rate Liquid ETF"},
-
-  "ALLIED BLENDERS and DISTILLERS LTD":              {"type":"equity", "ticker":"ABDL.NS"},
-  "AMBUJA CEMENTS LTD":                              {"type":"equity", "ticker":"AMBUJACEM.NS"},
-  "ASTRA MICROWAVE PRODUCTS LTD":                    {"type":"equity", "ticker":"ASTRAMICRO.NS"},
-  "AUROBINDO PHARMA LTD":                            {"type":"equity", "ticker":"AUROPHARMA.NS"},
-  "AXIS BANK LTD":                                   {"type":"equity", "ticker":"AXISBANK.NS"},
-  "Aditya Birla Real Estate Limited":                {"type":"skip"},
-  "BAJAJ FINANCE LTD":                               {"type":"equity", "ticker":"BAJFINANCE.NS"},
-  "BAJAJ FINSERV LTD":                               {"type":"equity", "ticker":"BAJAJFINSV.NS"},
-  "BANDHAN BANK LTD":                                {"type":"equity", "ticker":"BANDHANBNK.NS"},
-  "BHARTI AIRTEL LTD":                               {"type":"equity", "ticker":"BHARTIARTL.NS"},
-  "BIOCON LTD":                                      {"type":"equity", "ticker":"BIOCON.NS"},
-  "BOSCH LTD":                                       {"type":"equity", "ticker":"BOSCHLTD.NS"},
-  "CANARA BANK":                                     {"type":"equity", "ticker":"CANBK.NS"},
-  "COAL INDIA LTD":                                  {"type":"equity", "ticker":"COALINDIA.NS"},
-  "DIVIS LABORATORIES LTD":                          {"type":"equity", "ticker":"DIVISLAB.NS"},
-  "EID PARRY INDIA LTD":                             {"type":"equity", "ticker":"EIDPARRY.NS"},
-  "ETERNAL LIMITED":                                 {"type":"equity", "ticker":"ETERNAL.NS"},
-  "FEDERAL BANK LTD":                                {"type":"equity", "ticker":"FEDERALBNK.NS"},
-  "GARDEN REACH SHIPBUILDERS and ENGINEERS LTD":     {"type":"equity", "ticker":"GRSE.NS"},
-  "GRASIM INDUSTRIES LTD":                           {"type":"equity", "ticker":"GRASIM.NS"},
-  "HDFC BANK LTD":                                   {"type":"equity", "ticker":"HDFCBANK.NS"},
-  "HINDUSTAN AERONAUTICS LTD":                       {"type":"equity", "ticker":"HAL.NS"},
-  "ICICI BANK LTD":                                  {"type":"equity", "ticker":"ICICIBANK.NS"},
-  "ICICI LOMBARD GENERAL INSURANCE COMPANY LTD":     {"type":"equity", "ticker":"ICICIGI.NS"},
-  "IDFC FIRST BANK LTD":                             {"type":"equity", "ticker":"IDFCFIRSTB.NS"},
-  "INDIAN RENEWABLE ENERGY DEVELOPMENT AGENCY LTD":  {"type":"equity", "ticker":"IREDA.NS"},
-  "INDRAPRASTHA GAS LTD":                            {"type":"equity", "ticker":"IGL.NS"},
-  "INFOSYS LTD":                                     {"type":"equity", "ticker":"INFY.NS"},
-  "INTELLECT DESIGN ARENA LTD":                      {"type":"equity", "ticker":"INTELLECT.NS"},
-  "INVENTURUS KNOWLEDGE SOLUTIONS LTD":              {"type":"equity", "ticker":"IKS.NS"},
-  "ITC LTD":                                         {"type":"equity", "ticker":"ITC.NS"},
-  "JIO FINANCIAL SERVICES LTD":                      {"type":"equity", "ticker":"JIOFIN.NS"},
-  "JSW ENERGY LTD":                                  {"type":"equity", "ticker":"JSWENERGY.NS"},
-  "KAYNES TECHNOLOGY INDIA LTD":                     {"type":"equity", "ticker":"KAYNES.NS"},
-  "KEI INDUSTRIES LTD":                              {"type":"equity", "ticker":"KEI.NS"},
-  "KIRLOSKAR OIL ENGINES LTD":                       {"type":"equity", "ticker":"KIRLOSENG.NS"},
-  "KPIT TECHNOLOGIES LTD":                           {"type":"equity", "ticker":"KPITTECH.NS"},
-  "LARSEN and TOUBRO LTD":                           {"type":"equity", "ticker":"LT.NS"},
-  "LARSEN and TOUBRO LTD %":                         {"type":"skip"},
-  "LINDE INDIA LTD":                                 {"type":"equity", "ticker":"LINDEINDIA.NS"},
-  "MAHINDRA and MAHINDRA LTD":                       {"type":"equity", "ticker":"M&M.NS"},
-  "NARAYANA HRUDAYALAYA LTD":                        {"type":"equity", "ticker":"NH.NS"},
-  "NIIT LEARNING SYSTEMS LTD":                       {"type":"equity", "ticker":"NIITMTS.NS"},
-  "NTPC LTD":                                        {"type":"equity", "ticker":"NTPC.NS"},
-  "OIL INDIA LTD":                                   {"type":"equity", "ticker":"OIL.NS"},
-  "PERSISTENT SYSTEMS LTD":                          {"type":"equity", "ticker":"PERSISTENT.NS"},
-  "PETRONET LNG LTD":                                {"type":"equity", "ticker":"PETRONET.NS"},
-  "POWER FINANCE CORPORATION LTD":                   {"type":"equity", "ticker":"PFC.NS"},
-  "POWER GRID CORPORATION OF INDIA LTD":             {"type":"equity", "ticker":"POWERGRID.NS"},
-  "RELIANCE INDUSTRIES LTD":                         {"type":"equity", "ticker":"RELIANCE.NS"},
-  "SAMVARDHANA MOTHERSON INTERNATIONAL LTD":         {"type":"equity", "ticker":"MOTHERSON.NS"},
-  "SANSTAR LTD":                                     {"type":"equity", "ticker":"SANSTAR.NS"},
-  "SIEMENS ENERGY INDIA LTD":                        {"type":"skip"},
-  "STATE BANK OF INDIA":                             {"type":"equity", "ticker":"SBIN.NS"},
-  "SUN PHARMACEUTICAL INDUSTRIES LTD":               {"type":"equity", "ticker":"SUNPHARMA.NS"},
-  "SageOne - Flagship Growth OE Fund -":             {"type":"manual"},
-  "TECH MAHINDRA LTD":                               {"type":"equity", "ticker":"TECHM.NS"},
-  "TITAN COMPANY LTD":                               {"type":"equity", "ticker":"TITAN.NS"},
-  "TORRENT PHARMACEUTICALS LTD":                     {"type":"equity", "ticker":"TORNTPHARM.NS"},
-  "TRENT LTD":                                       {"type":"equity", "ticker":"TRENT.NS"},
-  "Tata Motors Passenger Vehicles Limited":          {"type":"manual"},
-  "UJJIVAN SMALL FINANCE BANK LTD":                  {"type":"equity", "ticker":"UJJIVANSFB.NS"},
-  "ULTRATECH CEMENT LTD":                            {"type":"equity", "ticker":"ULTRACEMCO.NS"},
-  "VA TECH WABAG LTD":                               {"type":"equity", "ticker":"WABAG.NS"},
-  "VST TILLERS TRACTORS LTD":                        {"type":"equity", "ticker":"VSTTILLERS.NS"},
-  "WAAREE ENERGIES LTD":                             {"type":"equity", "ticker":"WAAREEENER.NS"},
-
-  "BHARAT HIGHWAYS INVIT":                           {"type":"reit",   "ticker":"BHINVIT.NS"},
-  "EMBASSY OFFICE PARKS REIT":                       {"type":"reit",   "ticker":"EMBASSY.NS"},
-  "MINDSPACE BUSINESS PARKS REIT":                   {"type":"reit",   "ticker":"MINDSPACE.NS"},
-
-  "Cash":                                            {"type":"skip"},
-  "Cash Rec/Payable":                                {"type":"skip"},
-  "Tax Deducted at Source":                          {"type":"skip"},
-  "_benchmark_n500": {"type":"benchmark", "mfapi_code":null, "search":"Nippon India Nifty 500 Index Fund Direct Growth"},
-  "_benchmark_arb":  {"type":"benchmark", "mfapi_code":null, "search":"ICICI Prudential Arbitrage Fund Direct Growth"}
+  "Aditya Birla SL Flexi Cap Direct-G": {
+    "type": "mf",
+    "mfapi_code": "120564",
+    "search": "Aditya Birla Sun Life Flexi Cap Direct Growth"
+  },
+  "Altiva Hybrid Long Short Fund Direct Plan Growth": {
+    "type": "manual"
+  },
+  "Axis Greater China Equity FoF Direct- G": {
+    "type": "skip"
+  },
+  "Axis Liquid Direct-G": {
+    "type": "mf",
+    "mfapi_code": "120389",
+    "search": "Axis Liquid Direct Growth"
+  },
+  "Axis Overnight Direct-G": {
+    "type": "mf",
+    "mfapi_code": "146675",
+    "search": "Axis Overnight Direct Growth"
+  },
+  "Bandhan Nifty100 Low Volatility 30 Index Direct-G": {
+    "type": "mf",
+    "mfapi_code": "150636",
+    "search": "Bandhan Nifty100 Low Volatility 30 Index Direct Growth"
+  },
+  "Bandhan Small Cap Direct-G": {
+    "type": "mf",
+    "mfapi_code": "147946",
+    "search": "Bandhan Small Cap Direct Growth"
+  },
+  "Canara Robeco Mid Cap Direct-G": {
+    "type": "mf",
+    "mfapi_code": null,
+    "search": "Canara Robeco Mid Cap Direct Growth"
+  },
+  "DSP Arbitrage Direct-G": {
+    "type": "mf",
+    "mfapi_code": null,
+    "search": "DSP Arbitrage Direct Growth"
+  },
+  "DSP Liquidity Direct-G": {
+    "type": "mf",
+    "mfapi_code": "119125",
+    "search": "DSP Liquidity Direct Growth"
+  },
+  "DSP Multi Asset Allocation Direct-G": {
+    "type": "mf",
+    "mfapi_code": "152056",
+    "search": "DSP Multi Asset Allocation Direct Growth"
+  },
+  "DSP Small Cap Direct-G": {
+    "type": "mf",
+    "mfapi_code": "119212",
+    "search": "DSP Small Cap Direct Growth"
+  },
+  "Edelweiss Arbitrage Direct-G": {
+    "type": "mf",
+    "mfapi_code": "153712",
+    "search": "Edelweiss Arbitrage Direct Growth"
+  },
+  "Edelweiss Equity Savings Direct-G": {
+    "type": "mf",
+    "mfapi_code": "118638",
+    "search": "Edelweiss Equity Savings Direct Growth"
+  },
+  "Edelweiss Greater China Equity Off- shore Direct-G": {
+    "type": "mf",
+    "mfapi_code": "140243",
+    "search": "Edelweiss Greater China Equity Off-shore Direct Growth"
+  },
+  "Edelweiss Recently Listed IPO Direct- G": {
+    "type": "mf",
+    "mfapi_code": "142388",
+    "search": "Edelweiss Recently Listed IPO Direct Growth"
+  },
+  "Franklin Asian Equity Direct-G": {
+    "type": "mf",
+    "mfapi_code": "118559",
+    "search": "Franklin Asian Equity Direct Growth"
+  },
+  "Franklin U.S. Opportunities Equity Active FoF Direct-G": {
+    "type": "mf",
+    "mfapi_code": null,
+    "search": "Franklin US Opportunities Equity FOF Direct Growth"
+  },
+  "HDFC Flexi Cap Direct-G": {
+    "type": "mf",
+    "mfapi_code": "118955",
+    "search": "HDFC Flexi Cap Direct Growth"
+  },
+  "HDFC Focused Direct-G": {
+    "type": "mf",
+    "mfapi_code": "118927",
+    "search": "HDFC Focused Direct Growth"
+  },
+  "HDFC Large Cap Direct-G": {
+    "type": "mf",
+    "mfapi_code": "118927",
+    "search": "HDFC Large Cap Direct Growth"
+  },
+  "HDFC Long Duration Debt Direct-G": {
+    "type": "mf",
+    "mfapi_code": "151313",
+    "search": "HDFC Long Duration Debt Direct Growth"
+  },
+  "ICICI Pru Arbitrage Direct-G": {
+    "type": "mf",
+    "mfapi_code": "120313",
+    "search": "ICICI Prudential Arbitrage Direct Growth"
+  },
+  "ICICI Pru Flexicap Direct-G": {
+    "type": "mf",
+    "mfapi_code": "148990",
+    "search": "ICICI Prudential Flexicap Direct Growth"
+  },
+  "ICICI Pru India Opportunities Direct-G": {
+    "type": "mf",
+    "mfapi_code": "145897",
+    "search": "ICICI Prudential India Opportunities Fund Direct"
+  },
+  "ICICI Pru Silver ETF FoF Direct-G": {
+    "type": "mf",
+    "mfapi_code": "149775",
+    "search": "ICICI Prudential Silver ETF FOF Direct Growth"
+  },
+  "ICICI Pru Technology Direct-G": {
+    "type": "mf",
+    "mfapi_code": "120594",
+    "search": "ICICI Prudential Technology Direct Growth"
+  },
+  "Invesco India Flexi Cap Direct-G": {
+    "type": "mf",
+    "mfapi_code": "149763",
+    "search": "Invesco India Flexi Cap Direct Growth"
+  },
+  "Invesco India Smallcap Direct-G": {
+    "type": "mf",
+    "mfapi_code": "145137",
+    "search": "Invesco India Smallcap Direct Growth"
+  },
+  "Kotak Equity Arbitrage Direct-G": {
+    "type": "mf",
+    "mfapi_code": "133033",
+    "search": "Kotak Equity Arbitrage Fund Direct"
+  },
+  "Kotak Flexicap Direct-G": {
+    "type": "mf",
+    "mfapi_code": "120166",
+    "search": "Kotak Flexicap Direct Growth"
+  },
+  "Kotak Gilt Investment Direct-G": {
+    "type": "mf",
+    "mfapi_code": "119757",
+    "search": "Kotak Gilt Investment Direct Growth"
+  },
+  "Magnum Hybrid Long Short Fund Direct Plan Growth": {
+    "type": "manual"
+  },
+  "Mirae Asset CRISIL IBX Gilt Index -": {
+    "type": "mf",
+    "mfapi_code": "150792",
+    "search": "Mirae Asset CRISIL IBX Gilt Index Direct Growth"
+  },
+  "Mirae Asset Midcap Direct-G": {
+    "type": "mf",
+    "mfapi_code": "118834",
+    "search": "Mirae Asset Midcap Direct Growth"
+  },
+  "Motilal Oswal Flexi Cap Direct-G": {
+    "type": "mf",
+    "mfapi_code": "129046",
+    "search": "Motilal Oswal Flexi Cap Fund Direct"
+  },
+  "Motilal Oswal Midcap Direct-G": {
+    "type": "mf",
+    "mfapi_code": "127042",
+    "search": "Motilal Oswal Midcap Fund Direct"
+  },
+  "Motilal Oswal Nasdaq 100 FOF Direct- G": {
+    "type": "mf",
+    "mfapi_code": "145552",
+    "search": "Motilal Oswal Nasdaq 100 Fund of Fund Direct"
+  },
+  "Motilal Oswal Nifty India Defence Index Direct-G": {
+    "type": "mf",
+    "mfapi_code": "152712",
+    "search": "Motilal Oswal Nifty India Defence Index Direct Growth"
+  },
+  "Motilal Oswal Nifty Midcap 150 Index Direct-G": {
+    "type": "mf",
+    "mfapi_code": "147622",
+    "search": "Motilal Oswal Nifty Midcap 150 Index Fund Direct"
+  },
+  "Nippon India Large Cap Direct-G": {
+    "type": "mf",
+    "mfapi_code": "118632",
+    "search": "Nippon India Large Cap Direct Growth"
+  },
+  "Nippon India Nifty 50 Value 20 Index Direct-G": {
+    "type": "mf",
+    "mfapi_code": "148721",
+    "search": "Nippon India Nifty 50 Value 20 Index Direct Growth"
+  },
+  "Parag Parikh Flexi Cap Direct-G": {
+    "type": "mf",
+    "mfapi_code": "122639",
+    "search": "Parag Parikh Flexi Cap Direct Growth"
+  },
+  "Quant Small Cap Direct-G": {
+    "type": "mf",
+    "mfapi_code": "120828",
+    "search": "Quant Small Cap Direct Growth"
+  },
+  "SBI Arbitrage Opportunities Direct-G": {
+    "type": "mf",
+    "mfapi_code": "119574",
+    "search": "SBI Arbitrage Opportunities Fund Direct"
+  },
+  "SBI Gold Direct-G": {
+    "type": "mf",
+    "mfapi_code": "119788",
+    "search": "SBI Gold Direct Growth"
+  },
+  "UTI Nifty200 Momentum 30 Index Direct-G": {
+    "type": "mf",
+    "mfapi_code": "148703",
+    "search": "UTI Nifty 200 Momentum 30 Index Fund Direct"
+  },
+  "Union Small Cap Direct-G": {
+    "type": "mf",
+    "mfapi_code": null,
+    "search": "Union Small Cap Direct Growth"
+  },
+  "WhiteOak Capital Multi Asset Allocation Direct-G": {
+    "type": "mf",
+    "mfapi_code": "151745",
+    "search": "WhiteOak Capital Multi Asset Allocation Direct Growth"
+  },
+  "ICICI PRUDENTIAL GOLD ETF": {
+    "type": "etf",
+    "mfapi_code": "113076",
+    "search": "ICICI Prudential Gold ETF"
+  },
+  "ICICI PRUDENTIAL NIFTY METAL ETF": {
+    "type": "etf",
+    "mfapi_code": "152769",
+    "search": "ICICI Prudential Nifty Metal ETF"
+  },
+  "ICICI PRUDENTIAL SILVER ETF": {
+    "type": "etf",
+    "mfapi_code": "149464",
+    "search": "ICICI Prudential Silver ETF"
+  },
+  "KOTAK NIFTY 1D RATE LIQUID ETF": {
+    "type": "etf",
+    "mfapi_code": "151358",
+    "search": "Kotak Nifty 1D Rate Liquid ETF"
+  },
+  "KOTAK NIFTY CHEMICALS ETF": {
+    "type": "etf",
+    "mfapi_code": "153934",
+    "search": "Kotak Nifty Chemicals ETF"
+  },
+  "MIRAE ASSET GOLD ETF": {
+    "type": "etf",
+    "mfapi_code": "151416",
+    "search": "Mirae Asset Gold ETF"
+  },
+  "MIRAE ASSET SILVER ETF": {
+    "type": "etf",
+    "mfapi_code": "151779",
+    "search": "Mirae Asset Silver ETF"
+  },
+  "NIPPON INDIA ETF NIFTY MIDCAP": {
+    "type": "etf",
+    "mfapi_code": "146271",
+    "search": "Nippon India ETF Nifty Midcap 150"
+  },
+  "NIPPON INDIA NIFTY 1D RATE LIQUID BEES ETF": {
+    "type": "etf",
+    "mfapi_code": "140086",
+    "search": "Nippon India Nifty 1D Rate Liquid BeES ETF"
+  },
+  "NIPPON INDIA SILVER ETF": {
+    "type": "etf",
+    "mfapi_code": "149759",
+    "search": "Nippon India Silver ETF"
+  },
+  "SBI ETF GOLD": {
+    "type": "etf",
+    "mfapi_code": "111954",
+    "search": "SBI ETF Gold"
+  },
+  "SBI ETF NIFTY 50": {
+    "type": "etf",
+    "mfapi_code": "134013",
+    "search": "SBI ETF Nifty 50"
+  },
+  "UTI SILVER ETF": {
+    "type": "etf",
+    "mfapi_code": "151731",
+    "search": "UTI Silver ETF"
+  },
+  "ZERODHA NIFTY 1D RATE LIQUID ETF": {
+    "type": "etf",
+    "mfapi_code": "152327",
+    "search": "Zerodha Nifty 1D Rate Liquid ETF"
+  },
+  "ALLIED BLENDERS and DISTILLERS LTD": {
+    "type": "equity",
+    "ticker": "ABDL.NS"
+  },
+  "AMBUJA CEMENTS LTD": {
+    "type": "equity",
+    "ticker": "AMBUJACEM.NS"
+  },
+  "ASTRA MICROWAVE PRODUCTS LTD": {
+    "type": "equity",
+    "ticker": "ASTRAMICRO.NS"
+  },
+  "AUROBINDO PHARMA LTD": {
+    "type": "equity",
+    "ticker": "AUROPHARMA.NS"
+  },
+  "AXIS BANK LTD": {
+    "type": "equity",
+    "ticker": "AXISBANK.NS"
+  },
+  "Aditya Birla Real Estate Limited": {
+    "type": "skip"
+  },
+  "BAJAJ FINANCE LTD": {
+    "type": "equity",
+    "ticker": "BAJFINANCE.NS"
+  },
+  "BAJAJ FINSERV LTD": {
+    "type": "equity",
+    "ticker": "BAJAJFINSV.NS"
+  },
+  "BANDHAN BANK LTD": {
+    "type": "equity",
+    "ticker": "BANDHANBNK.NS"
+  },
+  "BHARTI AIRTEL LTD": {
+    "type": "equity",
+    "ticker": "BHARTIARTL.NS"
+  },
+  "BIOCON LTD": {
+    "type": "equity",
+    "ticker": "BIOCON.NS"
+  },
+  "BOSCH LTD": {
+    "type": "equity",
+    "ticker": "BOSCHLTD.NS"
+  },
+  "CANARA BANK": {
+    "type": "equity",
+    "ticker": "CANBK.NS"
+  },
+  "COAL INDIA LTD": {
+    "type": "equity",
+    "ticker": "COALINDIA.NS"
+  },
+  "DIVIS LABORATORIES LTD": {
+    "type": "equity",
+    "ticker": "DIVISLAB.NS"
+  },
+  "EID PARRY INDIA LTD": {
+    "type": "equity",
+    "ticker": "EIDPARRY.NS"
+  },
+  "ETERNAL LIMITED": {
+    "type": "equity",
+    "ticker": "ETERNAL.NS"
+  },
+  "FEDERAL BANK LTD": {
+    "type": "equity",
+    "ticker": "FEDERALBNK.NS"
+  },
+  "GARDEN REACH SHIPBUILDERS and ENGINEERS LTD": {
+    "type": "equity",
+    "ticker": "GRSE.NS"
+  },
+  "GRASIM INDUSTRIES LTD": {
+    "type": "equity",
+    "ticker": "GRASIM.NS"
+  },
+  "HDFC BANK LTD": {
+    "type": "equity",
+    "ticker": "HDFCBANK.NS"
+  },
+  "HINDUSTAN AERONAUTICS LTD": {
+    "type": "equity",
+    "ticker": "HAL.NS"
+  },
+  "ICICI BANK LTD": {
+    "type": "equity",
+    "ticker": "ICICIBANK.NS"
+  },
+  "ICICI LOMBARD GENERAL INSURANCE COMPANY LTD": {
+    "type": "equity",
+    "ticker": "ICICIGI.NS"
+  },
+  "IDFC FIRST BANK LTD": {
+    "type": "equity",
+    "ticker": "IDFCFIRSTB.NS"
+  },
+  "INDIAN RENEWABLE ENERGY DEVELOPMENT AGENCY LTD": {
+    "type": "equity",
+    "ticker": "IREDA.NS"
+  },
+  "INDRAPRASTHA GAS LTD": {
+    "type": "equity",
+    "ticker": "IGL.NS"
+  },
+  "INFOSYS LTD": {
+    "type": "equity",
+    "ticker": "INFY.NS"
+  },
+  "INTELLECT DESIGN ARENA LTD": {
+    "type": "equity",
+    "ticker": "INTELLECT.NS"
+  },
+  "INVENTURUS KNOWLEDGE SOLUTIONS LTD": {
+    "type": "equity",
+    "ticker": "IKS.NS"
+  },
+  "ITC LTD": {
+    "type": "equity",
+    "ticker": "ITC.NS"
+  },
+  "JIO FINANCIAL SERVICES LTD": {
+    "type": "equity",
+    "ticker": "JIOFIN.NS"
+  },
+  "JSW ENERGY LTD": {
+    "type": "equity",
+    "ticker": "JSWENERGY.NS"
+  },
+  "KAYNES TECHNOLOGY INDIA LTD": {
+    "type": "equity",
+    "ticker": "KAYNES.NS"
+  },
+  "KEI INDUSTRIES LTD": {
+    "type": "equity",
+    "ticker": "KEI.NS"
+  },
+  "KIRLOSKAR OIL ENGINES LTD": {
+    "type": "equity",
+    "ticker": "KIRLOSENG.NS"
+  },
+  "KPIT TECHNOLOGIES LTD": {
+    "type": "equity",
+    "ticker": "KPITTECH.NS"
+  },
+  "LARSEN and TOUBRO LTD": {
+    "type": "equity",
+    "ticker": "LT.NS"
+  },
+  "LARSEN and TOUBRO LTD %": {
+    "type": "skip"
+  },
+  "LINDE INDIA LTD": {
+    "type": "equity",
+    "ticker": "LINDEINDIA.NS"
+  },
+  "MAHINDRA and MAHINDRA LTD": {
+    "type": "equity",
+    "ticker": "M&M.NS"
+  },
+  "NARAYANA HRUDAYALAYA LTD": {
+    "type": "equity",
+    "ticker": "NH.NS"
+  },
+  "NIIT LEARNING SYSTEMS LTD": {
+    "type": "equity",
+    "ticker": "NIITMTS.NS"
+  },
+  "NTPC LTD": {
+    "type": "equity",
+    "ticker": "NTPC.NS"
+  },
+  "OIL INDIA LTD": {
+    "type": "equity",
+    "ticker": "OIL.NS"
+  },
+  "PERSISTENT SYSTEMS LTD": {
+    "type": "equity",
+    "ticker": "PERSISTENT.NS"
+  },
+  "PETRONET LNG LTD": {
+    "type": "equity",
+    "ticker": "PETRONET.NS"
+  },
+  "POWER FINANCE CORPORATION LTD": {
+    "type": "equity",
+    "ticker": "PFC.NS"
+  },
+  "POWER GRID CORPORATION OF INDIA LTD": {
+    "type": "equity",
+    "ticker": "POWERGRID.NS"
+  },
+  "RELIANCE INDUSTRIES LTD": {
+    "type": "equity",
+    "ticker": "RELIANCE.NS"
+  },
+  "SAMVARDHANA MOTHERSON INTERNATIONAL LTD": {
+    "type": "equity",
+    "ticker": "MOTHERSON.NS"
+  },
+  "SANSTAR LTD": {
+    "type": "equity",
+    "ticker": "SANSTAR.NS"
+  },
+  "SIEMENS ENERGY INDIA LTD": {
+    "type": "skip"
+  },
+  "STATE BANK OF INDIA": {
+    "type": "equity",
+    "ticker": "SBIN.NS"
+  },
+  "SUN PHARMACEUTICAL INDUSTRIES LTD": {
+    "type": "equity",
+    "ticker": "SUNPHARMA.NS"
+  },
+  "SageOne - Flagship Growth OE Fund -": {
+    "type": "manual"
+  },
+  "TECH MAHINDRA LTD": {
+    "type": "equity",
+    "ticker": "TECHM.NS"
+  },
+  "TITAN COMPANY LTD": {
+    "type": "equity",
+    "ticker": "TITAN.NS"
+  },
+  "TORRENT PHARMACEUTICALS LTD": {
+    "type": "equity",
+    "ticker": "TORNTPHARM.NS"
+  },
+  "TRENT LTD": {
+    "type": "equity",
+    "ticker": "TRENT.NS"
+  },
+  "Tata Motors Passenger Vehicles Limited": {
+    "type": "manual"
+  },
+  "UJJIVAN SMALL FINANCE BANK LTD": {
+    "type": "equity",
+    "ticker": "UJJIVANSFB.NS"
+  },
+  "ULTRATECH CEMENT LTD": {
+    "type": "equity",
+    "ticker": "ULTRACEMCO.NS"
+  },
+  "VA TECH WABAG LTD": {
+    "type": "equity",
+    "ticker": "WABAG.NS"
+  },
+  "VST TILLERS TRACTORS LTD": {
+    "type": "equity",
+    "ticker": "VSTTILLERS.NS"
+  },
+  "WAAREE ENERGIES LTD": {
+    "type": "equity",
+    "ticker": "WAAREEENER.NS"
+  },
+  "BHARAT HIGHWAYS INVIT": {
+    "type": "reit",
+    "ticker": "BHINVIT.NS"
+  },
+  "EMBASSY OFFICE PARKS REIT": {
+    "type": "reit",
+    "ticker": "EMBASSY.NS"
+  },
+  "MINDSPACE BUSINESS PARKS REIT": {
+    "type": "reit",
+    "ticker": "MINDSPACE.NS"
+  },
+  "Cash": {
+    "type": "skip"
+  },
+  "Cash Rec/Payable": {
+    "type": "skip"
+  },
+  "Tax Deducted at Source": {
+    "type": "skip"
+  },
+  "_benchmark_n500": {
+    "type": "benchmark",
+    "mfapi_code": "152842",
+    "search": "Nippon India Nifty 500 Index Fund Direct Growth"
+  },
+  "_benchmark_arb": {
+    "type": "benchmark",
+    "mfapi_code": "120364",
+    "search": "ICICI Prudential Arbitrage Fund Direct Growth"
+  }
 }
