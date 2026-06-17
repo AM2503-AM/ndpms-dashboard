@@ -26,6 +26,21 @@
   .strategy-section.active{display:block}
 
   .benchmark-line{text-align:center;margin-bottom:18px;font-size:13px;background:linear-gradient(90deg,#EAF1F8,#f0f5fb);border:1px solid #c5d8ec;border-radius:8px;padding:10px 18px;color:var(--primary);font-weight:600;letter-spacing:.1px}
+  .actions-box{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:16px 18px;margin-bottom:20px}
+  .actions-box .section-title{margin:0 0 10px}
+  .actions-input-row{display:flex;gap:8px;margin-bottom:10px}
+  .actions-input-row input{flex:1;border:1px solid var(--border);border-radius:6px;padding:7px 11px;font-size:13px;background:var(--bg);color:var(--text);outline:none}
+  .actions-input-row input:focus{border-color:var(--primary)}
+  .actions-input-row button{background:var(--primary);color:#fff;border:none;border-radius:6px;padding:7px 14px;font-size:13px;cursor:pointer;white-space:nowrap}
+  .actions-input-row button:hover{opacity:.88}
+  .actions-list{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:6px}
+  .actions-list li{display:flex;align-items:center;gap:8px;font-size:13px;padding:5px 2px}
+  .actions-list li.done span.action-text{text-decoration:line-through;color:var(--muted)}
+  .actions-list li input[type=checkbox]{width:15px;height:15px;cursor:pointer;accent-color:var(--primary)}
+  .actions-list li .action-text{flex:1}
+  .actions-list li .del-btn{background:none;border:none;color:var(--muted);cursor:pointer;font-size:15px;line-height:1;padding:0 2px}
+  .actions-list li .del-btn:hover{color:var(--red)}
+  .actions-empty{color:var(--muted);font-size:13px;font-style:italic}
   .kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin-bottom:24px}
   .kpi{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:16px 18px;text-align:center;box-shadow:0 1px 2px rgba(0,0,0,.03)}
   .kpi-label{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
@@ -8150,9 +8165,19 @@ function showClient(strategyIdx, clientIdx) {
     <div class="section-title">Performance Summary</div>
     ${perfTable}
     ${ipsCard}
+    <div class="actions-box">
+      <div class="section-title">Pending Actions</div>
+      <div class="actions-input-row">
+        <input id="action-input" type="text" placeholder="Add a pending action…"
+          onkeydown="if(event.key==='Enter')addAction('${c.ndas}')">
+        <button onclick="addAction('${c.ndas}')">+ Add</button>
+      </div>
+      <ul class="actions-list" id="actions-list"></ul>
+    </div>
     <div class="section-title">Holdings (${c.holdings.length} securities)</div>
     ${holdingsTable}
   `;
+  renderActions('${c.ndas}');
 
   // Build client-specific charts
   clearCharts('client-');
@@ -8337,6 +8362,60 @@ function askRefresh() {
 }
 
 renderMainView();
+
+// ── Pending Actions (localStorage) ──────────────────────────────────────────
+function actionsKey(ndas) { return 'ndpms_actions_' + ndas; }
+
+function loadActions(ndas) {
+  try { return JSON.parse(localStorage.getItem(actionsKey(ndas))) || []; }
+  catch(e) { return []; }
+}
+
+function saveActions(ndas, items) {
+  localStorage.setItem(actionsKey(ndas), JSON.stringify(items));
+}
+
+function renderActions(ndas) {
+  var items = loadActions(ndas);
+  var list = document.getElementById('actions-list');
+  if (!list) return;
+  if (!items.length) {
+    list.innerHTML = '<li class="actions-empty">No pending actions</li>';
+    return;
+  }
+  list.innerHTML = items.map(function(item, i) {
+    return '<li class="' + (item.done ? 'done' : '') + '">' +
+      '<input type="checkbox" ' + (item.done ? 'checked' : '') + ' onchange="toggleAction(\'' + ndas + '\',' + i + ')">' +
+      '<span class="action-text">' + item.text.replace(/</g,'&lt;') + '</span>' +
+      '<button class="del-btn" onclick="deleteAction(\'' + ndas + '\',' + i + ')" title="Remove">&#10005;</button>' +
+      '</li>';
+  }).join('');
+}
+
+function addAction(ndas) {
+  var inp = document.getElementById('action-input');
+  var text = inp.value.trim();
+  if (!text) return;
+  var items = loadActions(ndas);
+  items.push({text: text, done: false});
+  saveActions(ndas, items);
+  inp.value = '';
+  renderActions(ndas);
+}
+
+function toggleAction(ndas, idx) {
+  var items = loadActions(ndas);
+  if (items[idx]) items[idx].done = !items[idx].done;
+  saveActions(ndas, items);
+  renderActions(ndas);
+}
+
+function deleteAction(ndas, idx) {
+  var items = loadActions(ndas);
+  items.splice(idx, 1);
+  saveActions(ndas, items);
+  renderActions(ndas);
+}
 
 
 
