@@ -1,4 +1,4 @@
-﻿﻿﻿<!DOCTYPE html>
+﻿﻿﻿﻿<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
@@ -170,6 +170,7 @@ const STRATEGY_DATA = [
                             "avg_bench":  4.17
                         }
                     ],
+        "scheme_alloc": {"equity":56.83,"debt":28.40,"others":14.78,"large_cap":72.68,"mid_cap":24.99,"small_cap":2.34},
         "clients":  [
                         {
                             "account":  "100079",
@@ -1364,8 +1365,8 @@ const STRATEGY_DATA = [
                             "avg_bench":  0.78
                         }
                     ],
-        "scheme_alloc": {"equity":56.83,"debt":28.4,"others":14.78,"large_cap":72.68,"mid_cap":24.99,"small_cap":2.34},
-        "clients":  [
+                "scheme_alloc": {"equity":55.92,"debt":23.82,"others":20.26,"large_cap":64.37,"mid_cap":23.16,"small_cap":12.46},
+                "clients":  [
                         {
                             "account":  "100715",
                             "ndas":  "AONDLV0012",
@@ -1959,8 +1960,8 @@ const STRATEGY_DATA = [
                             "avg_bench":  3.24
                         }
                     ],
-        "scheme_alloc": {"equity":55.92,"debt":23.82,"others":20.26,"large_cap":64.37,"mid_cap":23.16,"small_cap":12.46},
-        "clients":  [
+                "scheme_alloc": {"equity":46.42,"debt":40.72,"others":12.87,"large_cap":67.41,"mid_cap":17.31,"small_cap":8.37},
+                "clients":  [
                         {
                             "account":  "100644",
                             "ndas":  "AONDCP0009",
@@ -2710,8 +2711,7 @@ const STRATEGY_DATA = [
 ];
 
     const IPS_DATA = {
-    "scheme_alloc": {"equity":46.42,"debt":40.72,"others":12.87,"large_cap":67.41,"mid_cap":17.31,"small_cap":8.37},
-    "clients":  [
+        "clients":  [
                     {
                         "label":  "Rajnish Kumar",
                         "aum":  366944884.69,
@@ -4089,7 +4089,12 @@ function toggleIPSView(){
 }
 
 function buildIPSSummary(){
-  var d=IPS_DATA, t=d.templates, pc=d.profile_counts;
+  var d=IPS_DATA, pc=d.profile_counts;
+  var t={
+    Aggressive:  {equity:{min:65,max:100},debt_alt:{min:0, max:35},amc:{max:25},scheme:{max:15},lc:{min:50},mc:{max:40},sc:{max:20},lockin:{max:20}},
+    Moderate:    {equity:{min:40,max:65}, debt_alt:{min:35,max:60},amc:{max:25},scheme:{max:15},lc:{min:50},mc:{max:30},sc:{max:20},lockin:{max:20}},
+    Conservative:{equity:{min:0, max:40}, debt_alt:{min:60,max:100},amc:{max:25},scheme:{max:15},lc:{min:50},mc:{max:30},sc:{max:20},lockin:{max:20}}
+  };
   var totalAll=d.clients.length+d.no_ips.length+2;
   var el=document.getElementById('ips-root');
   var s='';
