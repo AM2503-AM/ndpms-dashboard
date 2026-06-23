@@ -4023,27 +4023,70 @@ function buildClientCharts(c) {
     });
   }
 
-  // Monthly cumulative line
+  // Monthly cumulative line (or period bar chart fallback)
   const monthCtx = document.getElementById('monthlyLine');
-  if (monthCtx && c.monthly.length) {
-    CHART_INSTANCES['client-month'] = new Chart(monthCtx, {
-      type: 'line',
-      data: {
-        labels: c.monthly.map(m => m.label),
-        datasets: [
-          { label:'Portfolio (cumulative)', data:c.monthly.map(m => m.pc),
-            borderColor:'#1F4E78', backgroundColor:'rgba(31,78,120,.1)',
-            tension:.25, pointRadius:4, pointHoverRadius:6, borderWidth:2.5, fill:true },
-          { label:'Benchmark (cumulative)', data:c.monthly.map(m => m.bc),
-            borderColor:'#D9534F', backgroundColor:'rgba(217,83,79,.05)',
-            tension:.25, pointRadius:4, pointHoverRadius:6, borderWidth:2.5, borderDash:[6,4], fill:false },
-        ]
-      },
-      options: { responsive:true, maintainAspectRatio:false,
-        plugins:{ legend:{position:'bottom'},
-          tooltip:{callbacks:{label:ctx=>` ${ctx.dataset.label}: ${ctx.parsed.y.toFixed(2)}%`}}},
-        scales:{ y:{ticks:{callback:v=>v+'%'}}}}
-    });
+  if (monthCtx) {
+    if (c.monthly && c.monthly.length) {
+      CHART_INSTANCES['client-month'] = new Chart(monthCtx, {
+        type: 'line',
+        data: {
+          labels: c.monthly.map(m => m.label),
+          datasets: [
+            { label:'Portfolio (cumulative)', data:c.monthly.map(m => m.pc),
+              borderColor:'#1F4E78', backgroundColor:'rgba(31,78,120,.1)',
+              tension:.25, pointRadius:4, pointHoverRadius:6, borderWidth:2.5, fill:true },
+            { label:'Benchmark (cumulative)', data:c.monthly.map(m => m.bc),
+              borderColor:'#D9534F', backgroundColor:'rgba(217,83,79,.05)',
+              tension:.25, pointRadius:4, pointHoverRadius:6, borderWidth:2.5, borderDash:[6,4], fill:false },
+          ]
+        },
+        options: { responsive:true, maintainAspectRatio:false,
+          plugins:{ legend:{position:'bottom'},
+            tooltip:{callbacks:{label:ctx=>` ${ctx.dataset.label}: ${ctx.parsed.y.toFixed(2)}%`}}},
+          scales:{ y:{ticks:{callback:v=>v+'%'}}}}
+      });
+    } else {
+      // Fallback: grouped bar chart using p1m/b1m, p3m/b3m, p6m/b6m, psi/bsi
+      const rawPeriods = [
+        {label:'1M',  port:c.p1m,  bench:c.b1m},
+        {label:'3M',  port:c.p3m,  bench:c.b3m},
+        {label:'6M',  port:c.p6m,  bench:c.b6m},
+        {label:'SI',  port:c.psi,  bench:c.bsi},
+      ].filter(p => p.port != null || p.bench != null);
+      if (rawPeriods.length) {
+        const pLabels = rawPeriods.map(p => p.label);
+        const pData   = rawPeriods.map(p => p.port  != null ? +p.port.toFixed(2)  : null);
+        const bData   = rawPeriods.map(p => p.bench != null ? +p.bench.toFixed(2) : null);
+        const barColors = pData.map((v,i) => {
+          if (v == null || bData[i] == null) return '#B0B7BF';
+          return v >= bData[i] ? '#2EA260' : '#D9534F';
+        });
+        CHART_INSTANCES['client-month'] = new Chart(monthCtx, {
+          type: 'bar',
+          data: {
+            labels: pLabels,
+            datasets: [
+              { label:'Portfolio Return (%)', data: pData,
+                backgroundColor: barColors, borderRadius:5, maxBarThickness:60 },
+              { label:'Benchmark Return (%)', data: bData,
+                backgroundColor:'rgba(217,83,79,0.35)', borderRadius:5,
+                maxBarThickness:60, borderColor:'#D9534F', borderWidth:2 },
+            ]
+          },
+          options: {
+            responsive:true, maintainAspectRatio:false,
+            plugins:{
+              legend:{position:'bottom'},
+              tooltip:{callbacks:{label:ctx=>` ${ctx.dataset.label}: ${ctx.parsed.y != null ? ctx.parsed.y.toFixed(2)+'%' : 'N/A'}`}}
+            },
+            scales:{
+              y:{ticks:{callback:v=>v+'%'}, title:{display:true,text:'Return (%)'}},
+              x:{grid:{display:false}}
+            }
+          }
+        });
+      }
+    }
   }
 }
 
