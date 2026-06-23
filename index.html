@@ -75,7 +75,7 @@
 <div class="topbar">
   <div>
     <h1 id="topbar-title">NDPMS Strategies Outlook and Updates</h1>
-    <div class="meta" id="topbar-meta">Data as of <strong>31 May 2026</strong> &middot; covers Allocate Select, LVPMS &amp; CoPilot</div>
+    <div class="meta" id="topbar-meta">Data as of <strong>22 June 2026</strong> &middot; covers Allocate Select, LVPMS &amp; CoPilot</div>
   </div>
   <div id="topbar-actions" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
     <a class="refresh-btn" href="#" onclick="askRefresh();return false;">&#x21bb; &nbsp;Refresh Dashboard</a>
@@ -4022,7 +4022,7 @@ function showMainView() {
   document.getElementById('main-view').style.display = 'block';
   document.getElementById('topbar-title').textContent = 'NDPMS Strategies Outlook and Updates';
   document.getElementById('topbar-meta').innerHTML =
-    'Data as of <strong>31 May 2026</strong> &middot; covers Allocate Select, LVPMS &amp; CoPilot';
+    'Data as of <strong>22 June 2026</strong> &middot; covers Allocate Select, LVPMS &amp; CoPilot';
   document.getElementById('topbar-actions').innerHTML =
     '<a class="refresh-btn" href="#" onclick="askRefresh();return false;">&#x21bb; &nbsp;Refresh Dashboard</a>' +
     '<a class="refresh-btn" id="ips-btn" href="#" onclick="toggleIPSView();return false;" style="margin-left:8px">&#128203; IPS Review</a>' +
@@ -4073,7 +4073,7 @@ function toggleIPSView(){
   document.getElementById('checklist-view').style.display='none';
   document.getElementById('ips-view').style.display='';
   document.getElementById('topbar-title').textContent='IPS Review — All Clients';
-  document.getElementById('topbar-meta').innerHTML='Data as of <strong>31 May 2026</strong>';
+  document.getElementById('topbar-meta').innerHTML='Data as of <strong>22 June 2026</strong>';
   document.getElementById('topbar-actions').innerHTML=
     '<a class="refresh-btn" href="#" onclick="showMainView();return false;">&larr; Back to Dashboard</a>';
   buildIPSSummary();
@@ -4087,7 +4087,7 @@ function buildIPSSummary(){
 
   s+='<div style="margin-bottom:24px">';
   s+='<h2 style="color:#0E2841;margin:0 0 4px">Investment Policy Statement — All Clients</h2>';
-  s+='<div style="color:#888;font-size:13px">As of 31 May 2026 · '+totalAll+' total clients · '+d.clients.length+' IPS created · '+d.no_ips.length+' excluded</div></div>';
+  s+='<div style="color:#888;font-size:13px">As of 22 June 2026 · '+totalAll+' total clients · '+d.clients.length+' IPS created · '+d.no_ips.length+' excluded</div></div>';
 
   s+='<div style="display:flex;gap:12px;margin-bottom:24px;flex-wrap:wrap">';
   s+='<div style="flex:1;min-width:150px;background:#FFE0E0;border-radius:8px;padding:16px;text-align:center"><div style="font-size:28px;font-weight:800;color:#B71C1C">'+pc.Aggressive+'</div><div style="font-size:12px;font-weight:600;color:#B71C1C">AGGRESSIVE</div></div>';
@@ -4328,7 +4328,7 @@ function toggleChecklistView(){
   document.getElementById('ips-view').style.display='none';
   document.getElementById('checklist-view').style.display='';
   document.getElementById('topbar-title').textContent='Client Level Checklist';
-  document.getElementById('topbar-meta').innerHTML='Data as of <strong>31 May 2026</strong> · All NDPMS clients incl. unfunded';
+  document.getElementById('topbar-meta').innerHTML='Data as of <strong>22 June 2026</strong> · All NDPMS clients incl. unfunded';
   document.getElementById('topbar-actions').innerHTML=
     '<a class="refresh-btn" href="#" onclick="showMainView();return false;">&larr; Back to Dashboard</a>';
   buildChecklist();
@@ -4374,7 +4374,7 @@ function buildChecklist(){
   s+='<h2 style="color:#0E2841;margin:0 0 4px">Client Level Checklist</h2>';
   var totalBreaches=0;
   IPS_DATA.clients.forEach(function(c){ if(getBreaches(c).length>0) totalBreaches++; });
-  s+='<div style="color:#888;font-size:13px;margin-bottom:16px">As of 31 May 2026 &middot; '+
+  s+='<div style="color:#888;font-size:13px;margin-bottom:16px">As of 22 June 2026 &middot; '+
      IPS_DATA.clients.length+' funded clients with IPS &middot; '+
      (IPS_DATA.clients.length-totalBreaches)+' compliant &middot; '+totalBreaches+' with deviations &middot; '+
      IPS_DATA.no_ips.length+' no IPS &middot; '+UNFUNDED_DATA.length+' unfunded</div>';
