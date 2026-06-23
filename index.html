@@ -3781,7 +3781,12 @@ function showClient(strategyIdx, clientIdx) {
     if (!ipsClient) return '';
 
     const ic = ipsClient;
-    const tm = IPS_DATA.templates[ic.risk_profile];
+    const _TMPL={
+      Aggressive:  {equity:{min:65,max:100,label:"65–100%"},debt_alt:{min:0, max:35,label:"0–35%"}, amc:{max:25},scheme:{max:15},lc:{min:50},mc:{max:40},sc:{max:20},lockin:{max:20},commodity:{min:10,max:15},intl:{min:20,max:30}},
+      Moderate:    {equity:{min:40,max:65, label:"40–65%"},debt_alt:{min:35,max:60,label:"35–60%"},amc:{max:25},scheme:{max:15},lc:{min:50},mc:{max:30},sc:{max:20},lockin:{max:20},commodity:{min:10,max:15},intl:{min:20,max:30}},
+      Conservative:{equity:{min:0, max:40, label:"0–40%"}, debt_alt:{min:60,max:100,label:"60–100%"},amc:{max:25},scheme:{max:15},lc:{min:50},mc:{max:30},sc:{max:20},lockin:{max:20},commodity:{min:10,max:15},intl:{min:20,max:30}}
+    };
+    const tm = _TMPL[ic.risk_profile] || _TMPL.Aggressive;
     const profileColor = ic.risk_profile === 'Aggressive' ? 'var(--red)' : ic.risk_profile === 'Moderate' ? 'var(--primary)' : 'var(--green)';
 
     function chk(v,mn,mx){
@@ -4152,7 +4157,13 @@ function buildIPSSummary(){
 }
 
 function buildClientIPS(idx){
-  var c=IPS_DATA.clients[idx], tm=IPS_DATA.templates[c.risk_profile];
+  var c=IPS_DATA.clients[idx];
+  var TMPL2={
+    Aggressive:  {equity:{min:65,max:100,label:"65–100%"},debt_alt:{min:0, max:35,label:"0–35%"}, amc:{max:25},scheme:{max:15},lc:{min:50},mc:{max:40},sc:{max:20},lockin:{max:20},commodity:{min:10,max:15},intl:{min:20,max:30}},
+    Moderate:    {equity:{min:40,max:65, label:"40–65%"},debt_alt:{min:35,max:60,label:"35–60%"},amc:{max:25},scheme:{max:15},lc:{min:50},mc:{max:30},sc:{max:20},lockin:{max:20},commodity:{min:10,max:15},intl:{min:20,max:30}},
+    Conservative:{equity:{min:0, max:40, label:"0–40%"}, debt_alt:{min:60,max:100,label:"60–100%"},amc:{max:25},scheme:{max:15},lc:{min:50},mc:{max:30},sc:{max:20},lockin:{max:20},commodity:{min:10,max:15},intl:{min:20,max:30}}
+  };
+  var tm=TMPL2[c.risk_profile]||TMPL2.Aggressive;
   var el=document.getElementById('ips-root');
 
   function R(v,mn,mx){
@@ -4353,8 +4364,13 @@ function buildChecklist(){
   var ndasMap=buildNdasMap();
 
   // IPS breach check
+  var TMPL={
+    Aggressive:  {equity:{min:65,max:100,label:"65-100%"},debt_alt:{min:0, max:35,label:"0-35%"}, amc:{max:25},scheme:{max:15},lc:{min:50},mc:{max:40},sc:{max:20},lockin:{max:20}},
+    Moderate:    {equity:{min:40,max:65, label:"40-65%"},debt_alt:{min:35,max:60,label:"35-60%"},amc:{max:25},scheme:{max:15},lc:{min:50},mc:{max:30},sc:{max:20},lockin:{max:20}},
+    Conservative:{equity:{min:0, max:40, label:"0-40%"}, debt_alt:{min:60,max:100,label:"60-100%"},amc:{max:25},scheme:{max:15},lc:{min:50},mc:{max:30},sc:{max:20},lockin:{max:20}}
+  };
   function getBreaches(c){
-    var t=IPS_DATA.templates[c.risk_profile], b=[];
+    var t=TMPL[c.risk_profile]||TMPL.Aggressive, b=[];
     if(c.eq_pct<t.equity.min||c.eq_pct>t.equity.max)
       b.push('Equity '+c.eq_pct.toFixed(1)+'% vs '+t.equity.label);
     if(c.debt_alt_pct<t.debt_alt.min||c.debt_alt_pct>t.debt_alt.max)
