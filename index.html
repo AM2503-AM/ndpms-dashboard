@@ -3858,7 +3858,7 @@ function showClient(strategyIdx, clientIdx) {
     <div class="section-title">Holdings (${c.holdings.length} securities)</div>
     ${holdingsTable}
   `;
-  renderActions('${c.ndas}');
+  renderActions(c.ndas);
 
   // Build client-specific charts
   clearCharts('client-');
@@ -4048,12 +4048,18 @@ renderMainView();
 function renderActions(ndas) {
   var list = document.getElementById('actions-list');
   if (!list) return;
-  var items = (PENDING_ACTIONS[ndas] || []);
-  if (!items.length) {
+  // Pull action_items from MIS_DATA (newline-separated string) + any PENDING_ACTIONS overrides
+  var mis = (MIS_DATA[ndas] || {});
+  var misItems = mis.action_items ? mis.action_items.split('\n').map(function(t){ return t.trim(); }).filter(Boolean) : [];
+  var legacyItems = (PENDING_ACTIONS[ndas] || []);
+  // Merge: MIS items first, then any legacy items not already covered
+  var allItems = misItems.map(function(t){ return {text: t, done: false}; });
+  legacyItems.forEach(function(item){ if(allItems.every(function(a){ return a.text !== item.text; })) allItems.push(item); });
+  if (!allItems.length) {
     list.innerHTML = '<li class="actions-empty">No pending actions</li>';
     return;
   }
-  list.innerHTML = items.map(function(item) {
+  list.innerHTML = allItems.map(function(item) {
     return '<li class="' + (item.done ? 'done' : '') + '">' +
       '<span class="action-dot">' + (item.done ? '&#10003;' : '&#9679;') + '</span>' +
       '<span class="action-text">' + item.text.replace(/</g,'&lt;') + '</span>' +
