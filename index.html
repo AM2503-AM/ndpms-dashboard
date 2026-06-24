@@ -5415,8 +5415,10 @@ function showClient(strategyIdx, clientIdx) {
   // Holdings table (sorted by % assets desc within each class)
   const byClass = {};
   c.holdings.forEach(h => {
-    if (!byClass[h.asset_class]) byClass[h.asset_class] = [];
-    byClass[h.asset_class].push(h);
+    if ((h.market_value || 0) === 0) return;
+    const cls = h.asset_class === 'Accrued Income' ? 'Cash and Equivalent' : h.asset_class;
+    if (!byClass[cls]) byClass[cls] = [];
+    byClass[cls].push(h);
   });
   const classOrder = ['Equity','Hybrid','Fixed Income','Alternative Assets','Cash and Equivalent'];
   const sortedClasses = [
