@@ -3766,6 +3766,12 @@ function showClient(strategyIdx, clientIdx) {
     </table>` : '<div style="text-align:center;color:var(--muted);padding:24px">No holdings data available.</div>';
 
 
+  // Derive allocation from IPS_DATA if not embedded in client object
+  if (!c.allocation) {
+    const _ipsC = IPS_DATA.clients.find(ic => c.ndas && (ic.full_name || '').includes(c.ndas));
+    if (_ipsC) c.allocation = { equity: _ipsC.eq_pct, debt: _ipsC.debt_pct, others: _ipsC.oth_pct, large_cap: _ipsC.lc_pct, mid_cap: _ipsC.mc_pct, small_cap: _ipsC.sc_pct };
+  }
+
   // Asset class allocation chart + monthly chart canvases
   const allocCard = c.allocation ? `
     <div class="charts-grid">
