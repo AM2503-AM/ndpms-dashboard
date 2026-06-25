@@ -1,4 +1,4 @@
-﻿﻿﻿﻿﻿﻿<!DOCTYPE html>
+﻿﻿﻿﻿﻿﻿﻿<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
@@ -4722,34 +4722,7 @@ const STRATEGY_DATA = [
                                           ],
                         "full_name":  "Brinda Sankar - AONDCP0007"
                     },
-                    {
-                        "label":  "Sankar Subramaniam",
-                        "aum":  11812036.62,
-                        "aum_cr":  1.18,
-                        "eq_pct":  99.23,
-                        "debt_pct":  0.77,
-                        "oth_pct":  0,
-                        "debt_alt_pct":  0.77,
-                        "lc_pct":  68.13,
-                        "mc_pct":  31.87,
-                        "sc_pct":  0,
-                        "top_amc":  "Kotak MF",
-                        "top_amc_pct":  55.64,
-                        "top_scheme":  "Kotak Flexicap Direct-G",
-                        "top_scheme_pct":  55.64,
-                        "locked_pct":  0,
-                        "locked_names":  [
-
-                                         ],
-                        "commodity_pct":  0,
-                        "intl_eq_pct":  44.36,
-                        "risk_profile":  "Aggressive",
-                        "num_holdings":  4,
-                        "missing_isins":  [
-
-                                          ],
-                        "full_name":  "Sankar Subramaniam - AONDCP0008"
-                    },
+                    
                     {
                         "label":  "Harish Agarwal",
                         "aum":  19720561.7,
@@ -4808,6 +4781,10 @@ const STRATEGY_DATA = [
                     }
                 ],
     "no_ips":  [
+                    {
+                        "full_name":  "Sankar Subramaniam - AONDCP0008",
+                        "reason":  "IPS not required"
+                    },
                    {
                        "name":  "Rohit Garg",
                        "full_name":  "Rohit Garg - AONDCP0001",
@@ -5349,7 +5326,7 @@ function showClient(strategyIdx, clientIdx) {
   document.getElementById('bc-client').innerHTML = `<span>${c.name} (${c.ndas})</span>`;
   document.getElementById('topbar-title').textContent = `${c.name} — Client Detail`;
   document.getElementById('topbar-meta').innerHTML =
-    `${s.name} &middot; Account ${c.account} (${c.ndas}) &middot; Inception ${c.inception} &middot; Benchmark: <strong>${c.benchmark_name || '—'}</strong>`;
+    `${s.name} &middot; Account ${c.account} (${c.ndas}) &middot; Inception ${c.inception} &middot; Benchmark: <strong style="font-size:15px;color:#0E2841;font-weight:700;letter-spacing:0.3px">${c.benchmark_name || '—'}</strong>`;
   document.getElementById('topbar-actions').innerHTML =
     `<a class="back-btn" href="#" onclick="showMainView();return false;">&larr; Back to Dashboard</a>`;
 
