@@ -5303,7 +5303,7 @@ function showClient(strategyIdx, clientIdx) {
   document.getElementById('bc-client').innerHTML = `<span>${c.name} (${c.ndas})</span>`;
   document.getElementById('topbar-title').textContent = `${c.name} — Client Detail`;
   document.getElementById('topbar-meta').innerHTML =
-    `${s.name} &middot; Account ${c.account} (${c.ndas}) &middot; Inception ${c.inception}<br><span style="font-size:12px;opacity:0.85">Benchmark: <strong>${c.benchmark_name || '—'}</strong></span>`;
+    `${s.name} &middot; Account ${c.account} (${c.ndas}) &middot; Inception ${c.inception}<br><span style="font-size:14px;">Benchmark: <strong>${c.benchmark_name || '—'}</strong></span>`;
   document.getElementById('topbar-actions').innerHTML =
     `<a class="back-btn" href="#" onclick="showMainView();return false;">&larr; Back to Dashboard</a>`;
 
