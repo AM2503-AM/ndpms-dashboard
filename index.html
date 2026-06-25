@@ -5669,7 +5669,7 @@ function buildClientCharts(c) {
             { label:'Portfolio (cumulative)', data:c.monthly.map(m => m.pc),
               borderColor:'#1F4E78', backgroundColor:'rgba(31,78,120,.1)',
               tension:.25, pointRadius:4, pointHoverRadius:6, borderWidth:2.5, fill:true },
-            { label:'Benchmark (cumulative)', data:c.monthly.map(m => m.bc),
+            { label:(c.benchmark_name || 'Benchmark') + ' (cumulative)', data:c.monthly.map(m => m.bc),
               borderColor:'#D9534F', backgroundColor:'rgba(217,83,79,.05)',
               tension:.25, pointRadius:4, pointHoverRadius:6, borderWidth:2.5, borderDash:[6,4], fill:false },
           ]
@@ -5702,7 +5702,7 @@ function buildClientCharts(c) {
             datasets: [
               { label:'Portfolio Return (%)', data: pData,
                 backgroundColor: barColors, borderRadius:5, maxBarThickness:60 },
-              { label:'Benchmark Return (%)', data: bData,
+              { label:(c.benchmark_name || 'Benchmark') + ' Return (%)', data: bData,
                 backgroundColor:'rgba(217,83,79,0.35)', borderRadius:5,
                 maxBarThickness:60, borderColor:'#D9534F', borderWidth:2 },
             ]
