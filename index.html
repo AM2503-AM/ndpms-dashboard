@@ -4642,7 +4642,7 @@ const STRATEGY_DATA = [
                         "missing_isins":  [
 
                                           ],
-                        "full_name":  "Shah Family - NDAS0011/0012/0013"
+                        "full_name":  "Shah Family - NDAS0011/NDAS0012/NDAS0013"
                     }
                 ],
     "no_ips":  [
@@ -5293,12 +5293,31 @@ function showClient(strategyIdx, clientIdx) {
 
 
   // Asset class allocation chart + monthly chart canvases
+  // IPS fallback: derive allocation from IPS_DATA if not embedded in client object
+  if (!c.allocation) {
+    const _ipsC = IPS_DATA.clients.find(ic => c.ndas && ((ic.full_name && ic.full_name.includes(c.ndas)) || (ic.ndas_codes && ic.ndas_codes.includes(c.ndas))));
+    if (_ipsC) c.allocation = { equity: _ipsC.eq_pct, debt: _ipsC.debt_pct, others: _ipsC.oth_pct, large_cap: _ipsC.lc_pct, mid_cap: _ipsC.mc_pct, small_cap: _ipsC.sc_pct };
+  }
+  // Holdings fallback: compute allocation from live holdings for no-IPS clients
+  if (!c.allocation && c.holdings && c.holdings.length) {
+    const _totVal = c.holdings.reduce((s,h) => s + (h.market_value||0), 0);
+    if (_totVal > 0) {
+      const _byClass = {};
+      for (const h of c.holdings) _byClass[h.asset_class] = (_byClass[h.asset_class]||0) + (h.market_value||0);
+      c.allocation = {
+        equity:  Math.round((_byClass["Equity"]||0)/_totVal*1000)/10,
+        debt:    Math.round((_byClass["Fixed Income"]||0)/_totVal*1000)/10,
+        others:  Math.round(((_byClass["Hybrid"]||0)+(_byClass["Alternative Assets"]||0)+(_byClass["Cash and Equivalent"]||0))/_totVal*1000)/10,
+        large_cap: null, mid_cap: null, small_cap: null
+      };
+    }
+  }
   const allocCard = c.allocation ? `
     <div class="charts-grid">
       <div class="chart-card"><h3>Asset Allocation (% of Portfolio)</h3>
         <div class="chart-canvas-wrap"><canvas id="assetPie"></canvas></div></div>
-      <div class="chart-card"><h3>Equity Drill-down (% of Equity)</h3>
-        <div class="chart-canvas-wrap"><canvas id="capBar"></canvas></div></div>
+      ${c.allocation.large_cap != null ? `<div class="chart-card"><h3>Equity Drill-down (% of Equity)</h3>
+        <div class="chart-canvas-wrap"><canvas id="capBar"></canvas></div></div>` : `<div class="chart-card" style="display:flex;align-items:center;justify-content:center"><p style="color:var(--muted);font-size:13px;text-align:center;margin:0">Market-cap breakdown<br>not available<br><span style="font-size:11px">(computed from live holdings)</span></p></div>`}
       ${(c.allocation.instrument_mix && c.allocation.instrument_mix.length) ? `
       <div class="chart-card" style="grid-column:1/-1"><h3>Instrument Type Classification (% of Portfolio)</h3>
         <div class="chart-canvas-wrap"><canvas id="instrBar"></canvas></div></div>
