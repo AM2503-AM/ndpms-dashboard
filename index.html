@@ -1,4 +1,4 @@
-﻿﻿﻿﻿﻿﻿﻿<!DOCTYPE html>
+﻿﻿﻿﻿﻿﻿﻿﻿<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
@@ -5304,11 +5304,76 @@ function showClient(strategyIdx, clientIdx) {
     if (_totVal > 0) {
       const _byClass = {};
       for (const h of c.holdings) _byClass[h.asset_class] = (_byClass[h.asset_class]||0) + (h.market_value||0);
+      // Market-cap classification map: [lc%, mc%, sc%] per security (% of equity portion)
+      const _MM = {
+        "SBI ETF NIFTY 50":[100,0,0],"Nippon India Nifty 50 Value 20 Index Direct-G":[100,0,0],
+        "Bandhan Nifty100 Low Volatility 30 Index Direct-G":[100,0,0],"HDFC Large Cap Direct-G":[100,0,0],
+        "Nippon India Large Cap Direct-G":[100,0,0],"UTI Nifty200 Momentum 30 Index Direct-G":[82,18,0],
+        "MOTILAL OSWAL NIFTY 500 ETF":[70,15,15],"ICICI PRUDENTIAL NIFTY MIDCAP":[0,100,0],
+        "NIPPON INDIA ETF NIFTY MIDCAP":[0,100,0],"Motilal Oswal Nifty Midcap 150 Index Direct-G":[0,100,0],
+        "Mirae Asset Midcap Direct-G":[5,90,5],"Canara Robeco Mid Cap Direct-G":[5,90,5],
+        "Motilal Oswal Midcap Direct-G":[5,90,5],"HDFC NIFTY SMALLCAP 250 ETF":[0,0,100],
+        "Bandhan Small Cap Direct-G":[0,10,90],"DSP Small Cap Direct-G":[0,10,90],
+        "Invesco India Smallcap Direct-G":[0,10,90],"Quant Small Cap Direct-G":[0,10,90],
+        "Union Small Cap Direct-G":[0,10,90],"Aditya Birla SL Flexi Cap Direct-G":[62,24,14],
+        "HDFC Flexi Cap Direct-G":[70,20,10],"HDFC Focused Direct-G":[75,18,7],
+        "ICICI Pru Flexicap Direct-G":[60,27,13],"Invesco India Flexi Cap Direct-G":[65,22,13],
+        "Kotak Flexicap Direct-G":[63,23,14],"Motilal Oswal Flexi Cap Direct-G":[45,35,20],
+        "Parag Parikh Flexi Cap Direct-G":[55,20,10],"ICICI Pru Technology Direct-G":[72,23,5],
+        "ICICI PRUDENTIAL NIFTY METAL ETF":[55,35,10],"Motilal Oswal Nifty India Defence Index Direct-G":[40,40,20],
+        "Edelweiss Recently Listed IPO Direct- G":[25,40,35],"ICICI Pru India Opportunities Direct-G":[50,30,20],
+        "SageOne - Flagship Growth OE Fund -":[60,30,10],"Franklin Asian Equity Direct-G":[100,0,0],
+        "Franklin U.S. Opportunities Equity Active FoF Direct-G":[100,0,0],
+        "Axis Greater China Equity FoF Direct- G":[100,0,0],
+        "HDFC BANK LTD":[100,0,0],"RELIANCE INDUSTRIES LTD":[100,0,0],"ICICI BANK LTD":[100,0,0],
+        "ICICI BANK LTD %":[100,0,0],"STATE BANK OF INDIA":[100,0,0],"INFOSYS LTD":[100,0,0],
+        "LARSEN and TOUBRO LTD":[100,0,0],"MAHINDRA and MAHINDRA LTD":[100,0,0],
+        "GRASIM INDUSTRIES LTD":[100,0,0],"ULTRATECH CEMENT LTD %":[100,0,0],
+        "TECH MAHINDRA LTD":[100,0,0],"TATA POWER CO LTD":[100,0,0],"TRENT LTD":[100,0,0],
+        "JIO FINANCIAL SERVICES LTD":[100,0,0],"ETERNAL LIMITED":[100,0,0],
+        "POWER GRID CORPORATION OF INDIA LTD":[100,0,0],"NTPC LTD":[100,0,0],
+        "AMBUJA CEMENTS LTD":[100,0,0],"BAJAJ FINANCE LTD":[100,0,0],"BHARTI AIRTEL LTD":[100,0,0],
+        "SUN PHARMACEUTICAL INDUSTRIES LTD":[100,0,0],"ITC LTD":[100,0,0],
+        "HINDUSTAN AERONAUTICS LTD":[100,0,0],"DIVIS LABORATORIES LTD":[100,0,0],
+        "AXIS BANK LTD":[100,0,0],"ICICI LOMBARD GENERAL INSURANCE COMPANY LTD":[100,0,0],
+        "SAMVARDHANA MOTHERSON INTERNATIONAL LTD":[100,0,0],
+        "BOSCH LTD":[0,100,0],"PERSISTENT SYSTEMS LTD":[0,100,0],"FEDERAL BANK LTD":[0,100,0],
+        "AUROBINDO PHARMA LTD":[0,100,0],"BANDHAN BANK LTD":[0,100,0],"BIOCON LTD":[0,100,0],
+        "INDRAPRASTHA GAS LTD":[0,100,0],"JSW ENERGY LTD":[0,100,0],
+        "NARAYANA HRUDAYALAYA LTD":[0,100,0],"PETRONET LNG LTD":[0,100,0],
+        "IDFC FIRST BANK LTD":[0,100,0],"KPIT TECHNOLOGIES LTD":[0,100,0],
+        "SIEMENS ENERGY INDIA LTD":[0,100,0],"WAAREE ENERGIES LTD":[0,100,0],
+        "GARDEN REACH SHIPBUILDERS and ENGINEERS LTD":[0,100,0],
+        "ASTRA MICROWAVE PRODUCTS LTD":[0,0,100],"ALLIED BLENDERS and DISTILLERS LTD":[0,0,100],
+        "INTELLECT DESIGN ARENA LTD":[0,0,100],"KAYNES TECHNOLOGY INDIA LTD":[0,0,100],
+        "KEI INDUSTRIES LTD":[0,0,100],"KIRLOSKAR OIL ENGINES LTD":[0,0,100],
+        "NIIT LEARNING SYSTEMS LTD":[0,0,100],"UJJIVAN SMALL FINANCE BANK LTD":[0,0,100],
+        "VST TILLERS TRACTORS LTD":[0,0,100],"SANSTAR LTD":[0,0,100],
+        "SAGILITY INDIA LTD":[0,0,100],"INVENTURUS KNOWLEDGE SOLUTIONS LTD":[0,0,100],
+        "ENGINEERS INDIA LTD":[0,0,100],"Aditya Birla Real Estate Limited":[0,0,100]
+      };
+      function _mcapOf(sec){
+        if(_MM[sec]) return _MM[sec];
+        const s=sec.toLowerCase();
+        if(s.includes('small cap')||s.includes('smallcap')) return [0,10,90];
+        if(s.includes('mid cap')||s.includes('midcap')) return [5,90,5];
+        if(s.includes('large cap')||s.includes('largecap')) return [100,0,0];
+        if(s.includes('flexi cap')||s.includes('flexicap')) return [62,23,15];
+        if(s.includes('nifty 50')||s.includes('nifty50')) return [100,0,0];
+        if(s.includes('nifty 100')||s.includes('nifty100')) return [100,0,0];
+        return [65,25,10];
+      }
+      const _eqH = c.holdings.filter(h=>h.asset_class==='Equity');
+      const _eqVal = _eqH.reduce((s,h)=>s+(h.market_value||0),0);
+      let _lc=0,_mc=0,_sc=0;
+      if(_eqVal>0){for(const h of _eqH){const[lp,mp,sp]=_mcapOf(h.security);const w=(h.market_value||0)/_eqVal;_lc+=w*lp;_mc+=w*mp;_sc+=w*sp;}}
       c.allocation = {
         equity:  Math.round((_byClass["Equity"]||0)/_totVal*1000)/10,
         debt:    Math.round((_byClass["Fixed Income"]||0)/_totVal*1000)/10,
         others:  Math.round(((_byClass["Hybrid"]||0)+(_byClass["Alternative Assets"]||0)+(_byClass["Cash and Equivalent"]||0))/_totVal*1000)/10,
-        large_cap: null, mid_cap: null, small_cap: null
+        large_cap: _eqVal>0 ? Math.round(_lc*10)/10 : null,
+        mid_cap:   _eqVal>0 ? Math.round(_mc*10)/10 : null,
+        small_cap: _eqVal>0 ? Math.round(_sc*10)/10 : null
       };
     }
   }
