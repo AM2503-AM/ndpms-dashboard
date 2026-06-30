@@ -25,6 +25,12 @@
   .strategy-section{display:none}
   .strategy-section.active{display:block}
 
+  .inst-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(135px,1fr));gap:10px;margin-bottom:20px}
+  .inst-card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:12px 14px;text-align:center}
+  .inst-card .i-label{font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px}
+  .inst-card .i-pct{font-size:20px;font-weight:700;color:var(--primary)}
+  .inst-card .i-count{font-size:12px;color:var(--muted);margin-top:2px}
+  .inst-card .i-aum{font-size:11px;color:var(--muted)}
   .benchmark-line{text-align:center;margin-bottom:18px;font-size:13px;background:linear-gradient(90deg,#EAF1F8,#f0f5fb);border:1px solid #c5d8ec;border-radius:8px;padding:10px 18px;color:var(--primary);font-weight:600;letter-spacing:.1px}
   .actions-box{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:16px 18px;margin-bottom:20px}
   .actions-box .section-title{margin:0 0 10px}
@@ -5187,6 +5193,39 @@ function renderMainView() {
 }
 
 // ============ Client drill-down ============
+function instrBreakdown(holdings, totalAum) {
+  function classify(h) {
+    var s = h.security, ac = h.asset_class;
+    if (ac === 'Cash and Equivalent') return 'Cash';
+    var sl = s.toLowerCase();
+    if (sl.indexOf('etf') > -1 || sl.indexOf('bees') > -1) return 'ETFs';
+    if (sl.indexOf('invit') > -1 || sl.indexOf('reit') > -1 ||
+        sl.indexOf('embassy') > -1 || sl.indexOf('mindspace') > -1) return 'REITs/InvITs';
+    if (sl.indexOf('sageone') > -1 || sl.indexOf('altiva') > -1 ||
+        sl.indexOf('magnum hybrid') > -1) return 'AIFs';
+    if (/[Dd]irect.*[-\s][Gg]$|[Dd]irect.*[Gg]rowth/.test(s) || ac === 'Hybrid') return 'Mutual Funds';
+    if (s === s.toUpperCase() && s.length > 4) return 'Direct Equity';
+    return 'Mutual Funds';
+  }
+  var groups = {};
+  holdings.forEach(function(h) {
+    var tp = classify(h);
+    if (!groups[tp]) groups[tp] = {mv: 0, count: 0};
+    groups[tp].mv    += (h.market_value || 0);
+    groups[tp].count += 1;
+  });
+  var order = ['Direct Equity', 'Mutual Funds', 'ETFs', 'REITs/InvITs', 'AIFs', 'Cash'];
+  var cards = order.filter(function(k) { return groups[k]; }).map(function(k) {
+    var g = groups[k];
+    var pct = totalAum > 0 ? (g.mv / totalAum * 100).toFixed(1) : '0.0';
+    return '<div class="inst-card"><div class="i-label">' + k + '</div>' +
+      '<div class="i-pct">' + pct + '%</div>' +
+      '<div class="i-count">' + g.count + ' holding' + (g.count !== 1 ? 's' : '') + '</div>' +
+      '<div class="i-aum">' + fmtINR(g.mv) + '</div></div>';
+  }).join('');
+  return '<div class="section-title">Instrument Breakdown</div><div class="inst-grid">' + cards + '</div>';
+}
+
 function showClient(strategyIdx, clientIdx) {
   const s = STRATEGY_DATA[strategyIdx];
   const c = s.clients[clientIdx];
@@ -5444,7 +5483,8 @@ function showClient(strategyIdx, clientIdx) {
       <div class="section-title">Pending Actions</div>
       <ul class="actions-list" id="actions-list"></ul>
     </div>
-    <div class="section-title">Holdings (${c.holdings.length} securities)</div>
+    ${instrBreakdown(c.holdings, c.aum)}
+    <div class="section-title">Holdings (${c.holdings.length} securities)</div>${c.holdings.length} securities)</div>
     ${holdingsTable}
   `;
   renderActions(c.ndas);
