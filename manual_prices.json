@@ -1,17 +1,17 @@
 {
-  "SageOne - Flagship Growth OE Fund -": {
-    "price": null,
-    "as_of": null,
-    "note": "AIF Cat 3 — get NAV from SageOne monthly report"
+  "SageOne - Flagship Growth OE Fund - A1F3": {
+    "price": 1057.2066,
+    "as_of": "30-06-2026",
+    "note": "AIF Cat 3 — NAV per unit from 30-Jun-2026 custodian statement (held by Siddhant Jain, Rakesh Kumar Jain). Key previously mismatched (\"...Fund -\") and was never being picked up by update_prices.py — fixed to match holding name exactly."
   },
   "Altiva Hybrid Long Short Fund Direct Plan Growth": {
-    "price": null,
-    "as_of": null,
-    "note": "AIF — get NAV from Altiva monthly report"
+    "price": 10.8111,
+    "as_of": "30-06-2026",
+    "note": "AIF — NAV per unit from 30-Jun-2026 custodian statement (held by Alka Lifestyles, Jay/Ruchita/Nitin Shah, Siddhant Jain, Rakesh Kumar Jain, Jyoti Bhatia)"
   },
   "Magnum Hybrid Long Short Fund Direct Plan Growth": {
-    "price": null,
-    "as_of": null,
-    "note": "AIF — get NAV from Magnum monthly report"
+    "price": 10.4314,
+    "as_of": "30-06-2026",
+    "note": "AIF — NAV per unit from 30-Jun-2026 custodian statement (held by Siddhant Jain, Rakesh Kumar Jain)"
   }
 }
