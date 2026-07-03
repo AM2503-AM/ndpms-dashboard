@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>NDPMS Strategies Outlook and Updates</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
   :root{--primary:#1F4E78;--primary-light:#2E6FA3;--accent:#4A90D9;--bg:#F7F9FC;
         --card:#fff;--text:#1a1a1a;--muted:#595959;--border:#E0E5EB;
@@ -2105,7 +2106,8 @@ function showClient(strategyIdx, clientIdx) {
   document.getElementById('topbar-meta').innerHTML =
     `${s.name} &middot; Account ${c.account} (${c.ndas}) &middot; Inception ${c.inception}<br><span style="font-size:14px;">Benchmark: <strong>${c.benchmark_name || '—'}</strong></span>`;
   document.getElementById('topbar-actions').innerHTML =
-    `<a class="back-btn" href="#" onclick="showMainView();return false;">&larr; Back to Dashboard</a>`;
+    `<a class="back-btn" href="#" onclick="showMainView();return false;">&larr; Back to Dashboard</a>
+     <a class="back-btn" href="#" onclick="downloadClientExcel(${strategyIdx},${clientIdx});return false;">&#8681; Download Excel</a>`;
 
   // Info cards
   const infoCards = `
@@ -2377,6 +2379,91 @@ function showClient(strategyIdx, clientIdx) {
     setTimeout(() => attrRender(c.ndas), 30);
   }
   window.scrollTo({top: 0, behavior: 'instant'});
+}
+
+function downloadClientExcel(strategyIdx, clientIdx) {
+  const s = STRATEGY_DATA[strategyIdx];
+  const c = s.clients[clientIdx];
+  const wb = XLSX.utils.book_new();
+
+  // ── Sheet 1: IPS ── (same thresholds/rules as the on-page IPS card in showClient)
+  const ipsClient = IPS_DATA.clients.find(ic => c.ndas && ((ic.full_name && ic.full_name.includes(c.ndas)) || (ic.ndas_codes && ic.ndas_codes.includes(c.ndas))));
+  const noIps = IPS_DATA.no_ips.find(ni => ni.full_name && ni.full_name.includes(c.ndas));
+  const ipsAoa = [['Section', 'Parameter', 'Ideal', 'Current', 'Status']];
+  if (noIps) {
+    ipsAoa.push(['—', 'IPS not applicable', '—', '—', noIps.reason]);
+  } else if (ipsClient) {
+    const ic = ipsClient;
+    const _TMPL = {
+      Aggressive:  {equity:{min:65,max:100,label:"65-100%"},debt_alt:{min:0, max:35,label:"0-35%"},amc:{max:25},scheme:{max:15},lc:{min:50,label:">50%"},mc:{max:40,label:"<40%"},sc:{max:20,label:"<20%"},lockin:{max:20},commodity:{min:10,max:15,label:"10-15%"},intl_eq:{min:0,max:30,label:"Up to 30%"},dur:"1-6 yrs",credit:"No BBB- or below",review:"Yearly"},
+      Moderate:    {equity:{min:40,max:65, label:"40-65%"},debt_alt:{min:35,max:60,label:"35-60%"},amc:{max:25},scheme:{max:15},lc:{min:50,label:">50%"},mc:{max:30,label:"<30%"},sc:{max:20,label:"<20%"},lockin:{max:20},commodity:{min:10,max:15,label:"10-15%"},intl_eq:{min:0,max:30,label:"Up to 30%"},dur:"1-6 yrs",credit:"No BBB- or below",review:"Yearly"},
+      Conservative:{equity:{min:0, max:40, label:"0-40%"}, debt_alt:{min:60,max:100,label:"60-100%"},amc:{max:25},scheme:{max:15},lc:{min:50,label:">50%"},mc:{max:30,label:"<30%"},sc:{max:20,label:"<20%"},lockin:{max:20},commodity:{min:10,max:15,label:"10-15%"},intl_eq:{min:0,max:30,label:"Up to 30%"},dur:"1-6 yrs",credit:"No BBB- or below",review:"Yearly"}
+    };
+    const tm = _TMPL[ic.risk_profile] || _TMPL.Aggressive;
+    const chk = (v,mn,mx) => {
+      if (mn!==undefined && v<mn) return (mn-v)<=2 ? '⚠ Marginally below' : '✗ Out of range';
+      if (mx!==undefined && v>mx) return (v-mx)<=2 ? '⚠ Marginally above' : '✗ Out of range';
+      return '✓ Within range';
+    };
+    const chkMn = (v,mn) => v<mn ? ((mn-v)<=2 ? '⚠ Marginally below' : '✗ Below min') : '✓ OK';
+    const chkMx = (v,mx) => v>mx ? ((v-mx)<=2 ? '⚠ Marginally above' : '✗ Exceeds limit') : '✓ OK';
+
+    ipsAoa.push(['Equity Allocation', 'Equity', tm.equity.label, ic.eq_pct.toFixed(1)+'%', chk(ic.eq_pct, tm.equity.min, tm.equity.max)]);
+    ipsAoa.push(['Equity Allocation', 'Large Cap (% of Equity)', tm.lc.label, ic.lc_pct.toFixed(1)+'%', chkMn(ic.lc_pct, tm.lc.min)]);
+    ipsAoa.push(['Equity Allocation', 'Mid Cap (% of Equity)', tm.mc.label, ic.mc_pct.toFixed(1)+'%', chkMx(ic.mc_pct, tm.mc.max)]);
+    ipsAoa.push(['Equity Allocation', 'Small Cap (% of Equity)', tm.sc.label, ic.sc_pct.toFixed(1)+'%', chkMx(ic.sc_pct, tm.sc.max)]);
+    ipsAoa.push(['Equity Allocation', 'International Equity (% of Equity)', tm.intl_eq.label, ic.intl_eq_pct.toFixed(1)+'%', chk(ic.intl_eq_pct, tm.intl_eq.min, tm.intl_eq.max)]);
+    ipsAoa.push(['Debt & Alternates', 'Debt + Alternates', tm.debt_alt.label, ic.debt_alt_pct.toFixed(1)+'% (Debt '+ic.debt_pct.toFixed(1)+'% + Others '+ic.oth_pct.toFixed(1)+'%)', chk(ic.debt_alt_pct, tm.debt_alt.min, tm.debt_alt.max)]);
+    ipsAoa.push(['Debt & Alternates', 'Duration of Portfolio', tm.dur, ic.debt_pct>10 ? 'Review required' : 'N/A (minimal fixed income)', '—']);
+    ipsAoa.push(['Debt & Alternates', 'Credit Quality', tm.credit, ic.debt_pct>10 ? 'Review required' : 'N/A', '—']);
+    ipsAoa.push(['Portfolio Level', 'AMC Concentration (Max)', '≤'+tm.amc.max+'%', ic.top_amc_pct.toFixed(1)+'% ('+ic.top_amc+')', chkMx(ic.top_amc_pct, tm.amc.max)]);
+    ipsAoa.push(['Portfolio Level', 'Scheme Concentration (Max)', '≤'+tm.scheme.max+'%', ic.top_scheme_pct.toFixed(1)+'% ('+ic.top_scheme+')', chkMx(ic.top_scheme_pct, tm.scheme.max)]);
+    ipsAoa.push(['Portfolio Level', 'Commodities (% of Portfolio)', tm.commodity.label, ic.commodity_pct.toFixed(1)+'%', chk(ic.commodity_pct, tm.commodity.min, tm.commodity.max)]);
+    const lkStr = ic.locked_pct > 0 ? ic.locked_pct.toFixed(1)+'% ('+ic.locked_names.join(', ')+')' : '0.0%';
+    ipsAoa.push(['Portfolio Level', 'Products with Hard Lock-in (Max)', '≤'+tm.lockin.max+'%', lkStr, chkMx(ic.locked_pct, tm.lockin.max)]);
+    ipsAoa.push(['Portfolio Level', 'Frequency of IPS Review', tm.review, tm.review, '—']);
+  } else {
+    ipsAoa.push(['—', 'No IPS data available', '—', '—', '—']);
+  }
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(ipsAoa), 'IPS');
+
+  // ── Sheet 2: Top Movers ── (top 4 gainers + top 4 losers by unrealized gain/loss %)
+  const holdingsWithGl = (c.holdings || []).filter(h => h.gl_pct !== null && h.gl_pct !== undefined);
+  const gainers = [...holdingsWithGl].sort((a,b) => (b.gl_pct||0) - (a.gl_pct||0)).slice(0,4);
+  const losers  = [...holdingsWithGl].sort((a,b) => (a.gl_pct||0) - (b.gl_pct||0)).slice(0,4);
+  const moversAoa = [['Type', 'Instrument', 'Gain/Loss %', 'AUM (Market Value)', 'AUM %']];
+  gainers.forEach(h => moversAoa.push(['Gainer', h.security, +((h.gl_pct||0).toFixed(2)), Math.round(h.market_value||0), +((h.assets_pct||0).toFixed(2))]));
+  losers.forEach(h => moversAoa.push(['Loser', h.security, +((h.gl_pct||0).toFixed(2)), Math.round(h.market_value||0), +((h.assets_pct||0).toFixed(2))]));
+  if (moversAoa.length === 1) moversAoa.push(['—', 'No holdings with gain/loss data', '—', '—', '—']);
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(moversAoa), 'Top Movers');
+
+  // ── Sheet 3: Factor Exposure ── (auto-detected from fund name — only explicitly factor/smart-beta named funds)
+  const factorAoa = [['Factor', 'Fund Name', 'AUM %', 'AUM (Market Value)']];
+  (c.holdings || []).forEach(h => {
+    const name = h.security || '';
+    let factor = null;
+    if (/momentum/i.test(name)) factor = 'Momentum';
+    else if (/low\s*vol/i.test(name)) factor = 'Low Vol';
+    else if (/\bvalue\b/i.test(name)) factor = 'Value';
+    if (factor) factorAoa.push([factor, name, +((h.assets_pct||0).toFixed(2)), Math.round(h.market_value||0)]);
+  });
+  if (factorAoa.length === 1) factorAoa.push(['—', 'No Momentum / Value / Low Vol factor funds held', '—', '—']);
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(factorAoa), 'Factor Exposure');
+
+  // ── Sheet 4: Commodities — Gold vs Silver split ── (detected from fund name)
+  const commAoa = [['Metal', 'Fund Name', 'AUM (Market Value)', 'AUM %']];
+  (c.holdings || []).forEach(h => {
+    const name = h.security || '';
+    let metal = null;
+    if (/silver/i.test(name)) metal = 'Silver';
+    else if (/gold/i.test(name)) metal = 'Gold';
+    if (metal) commAoa.push([metal, name, Math.round(h.market_value||0), +((h.assets_pct||0).toFixed(2))]);
+  });
+  if (commAoa.length === 1) commAoa.push(['—', 'No gold/silver holdings', '—', '—']);
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(commAoa), 'Commodities');
+
+  const fname = `${(c.name||'client').replace(/[^a-z0-9]+/gi,'_')}_${c.ndas||c.account}_30Jun2026.xlsx`;
+  XLSX.writeFile(wb, fname);
 }
 
 function buildClientCharts(c) {
