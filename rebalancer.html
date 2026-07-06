@@ -225,277 +225,279 @@ table tr:hover td{background:#fafbff;}
 </div>
 
 <div class="tabs">
-  <button class="tab-btn active" data-view="view-single">Single-Client Editor</button>
-  <button class="tab-btn" data-view="view-solver">Target Solver</button>
-  <button class="tab-btn" data-view="view-queue">Stacked Commands</button>
-  <button class="tab-btn" data-view="view-bookwide">Book-Wide Mode</button>
+  <button class="tab-btn active" data-view="view-scope">1. Scope</button>
+  <button class="tab-btn" data-view="view-targets">2. Targets</button>
+  <button class="tab-btn" data-view="view-waterfall">3. Funding Waterfall</button>
+  <button class="tab-btn" data-view="view-run">4. Run</button>
+  <button class="tab-btn" data-view="view-results">5. Results</button>
   <button class="tab-btn" data-view="view-recon">Baseline Reconciliation</button>
   <button class="tab-btn" data-view="view-selftest">Self-Test</button>
 </div>
 
-<!-- ============ SINGLE CLIENT EDITOR ============ -->
-<div class="view active" id="view-single">
+<!-- ============ 1. SCOPE ============ -->
+<div class="view active" id="view-scope">
   <div class="card">
-    <h2>Client Picker</h2>
+    <h2>Scope — which clients does this call apply to?</h2>
+    <p class="muted small">Pick by name, by strategy, or everyone. Works identically whether you pick 1 client or all 24 — the same Run/Results stages scale naturally, no separate "book-wide mode."</p>
     <div class="row">
       <div class="field">
-        <label>Strategy</label>
-        <select id="sc-strategy"></select>
-      </div>
-      <div class="field" style="min-width:260px;">
-        <label>Client</label>
-        <select id="sc-client"></select>
+        <label>Quick pick</label>
+        <select id="scope-quick">
+          <option value="">— choose —</option>
+          <option value="all">Everyone (24 clients)</option>
+          <option value="strategy:Allocate Select">All of: Allocate Select</option>
+          <option value="strategy:LVPMS">All of: LVPMS</option>
+          <option value="strategy:CoPilot">All of: CoPilot</option>
+        </select>
       </div>
       <div class="field">
-        <button id="sc-load-btn">Load Client</button>
+        <button class="secondary" id="scope-apply-quick-btn">Apply Quick Pick</button>
       </div>
       <div class="field">
-        <button class="secondary" id="sc-reset-btn">Reset to Actual</button>
+        <button class="ghost" id="scope-clear-btn">Clear Selection</button>
       </div>
     </div>
-    <div id="sc-recon-banner" style="margin-top:12px;"></div>
-  </div>
-
-  <div id="sc-client-panel" style="display:none;">
-    <div class="card">
-      <h2 id="sc-client-title">Client</h2>
-      <div class="matrix-summary" id="sc-summary-stats"></div>
-    </div>
-
-    <div class="two-col">
-      <div class="card">
-        <h2>Holdings (Working Copy)</h2>
-        <div class="scroll-x">
-          <table id="sc-holdings-table">
-            <thead><tr>
-              <th>Security</th><th>ISIN</th><th>Category</th>
-              <th class="num">Value (₹)</th><th class="num">Weight %</th><th>Actions</th>
-            </tr></thead>
-            <tbody></tbody>
-          </table>
-        </div>
-        <div style="margin-top:12px; display:flex; gap:8px; flex-wrap:wrap;">
-          <button id="sc-add-holding-btn" class="secondary">+ Add Holding</button>
-        </div>
-      </div>
-
-      <div class="card">
-        <h2>IPS Snapshot (Working Copy, live)</h2>
-        <div id="sc-ips-table"></div>
+    <h3>Or select individual clients</h3>
+    <div class="row" style="margin-bottom:8px;">
+      <div class="field" style="min-width:240px;">
+        <label>Filter by name/account/strategy</label>
+        <input type="text" id="scope-filter" placeholder="type to filter…">
       </div>
     </div>
-
-    <div class="card">
-      <h2>Before / After View</h2>
-      <div id="sc-before-after"></div>
+    <div class="scroll-x" style="max-height:420px; overflow-y:auto; border:1px solid var(--border); border-radius:8px;">
+      <table id="scope-client-table">
+        <thead><tr><th style="width:34px;"></th><th>Client</th><th>Account</th><th>Strategy</th><th>IPS?</th><th class="num">AUM</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <div class="flex-between" style="margin-top:12px;">
+      <div class="small muted" id="scope-count-label">0 clients selected.</div>
+      <button id="scope-next-btn">Next: Define Targets →</button>
     </div>
   </div>
 </div>
 
-<!-- ============ TARGET SOLVER ============ -->
-<div class="view" id="view-solver">
+<!-- ============ 2. TARGETS ============ -->
+<div class="view" id="view-targets">
   <div class="card">
-    <h2>Target Solver — Single Instruction</h2>
-    <p class="muted small">Applies to the currently loaded client in the Single-Client Editor tab. Load a client there first.</p>
-    <div class="row">
-      <div class="field" style="min-width:220px;">
-        <label>Bucket / Holding</label>
-        <select id="ts-bucket">
-          <option value="domestic_equity">Domestic Equity (total)</option>
-          <option value="debt">Debt</option>
-          <option value="others">Others</option>
-          <option value="large_cap">Large Cap (of equity)</option>
-          <option value="mid_cap">Mid Cap (of equity)</option>
-          <option value="small_cap">Small Cap (of equity)</option>
-          <option value="gold">Gold</option>
-          <option value="silver">Silver</option>
-          <option value="commodities">Commodities (Gold+Silver)</option>
-          <option value="intl_equity">International Equity</option>
-          <option value="cash">Cash</option>
-          <option value="fund">Specific Fund (choose ISIN below)</option>
-        </select>
-      </div>
-      <div class="field" style="min-width:260px;">
-        <label>Fund ISIN (only if bucket = Specific Fund)</label>
-        <input type="text" id="ts-fund-isin" placeholder="e.g. INF109KC17V7">
-      </div>
+    <h2>Targets — build the instruction queue</h2>
+    <p class="muted small">Stack as many instructions as needed. They apply IN ORDER, per client — later instructions see the effects of earlier ones (same sequencing model as before, now generalized to every instruction type below).</p>
+    <div class="row" style="margin-bottom:4px;">
       <div class="field">
-        <label>Target Form</label>
-        <select id="ts-form">
-          <option value="absolute">Absolute level</option>
-          <option value="delta">Delta (+/-)</option>
-        </select>
-      </div>
-      <div class="field">
-        <label>Target Value (%)</label>
-        <input type="number" id="ts-value" step="0.1" placeholder="e.g. 5">
-      </div>
-      <div class="field">
-        <label>Basis</label>
-        <select id="ts-basis">
-          <option value="aum">% of Total AUM</option>
-          <option value="equity">% of Equity</option>
-        </select>
-      </div>
-      <div class="field">
-        <label>Funding Mode</label>
-        <select id="ts-funding">
-          <option value="rebalance">Rebalance (AUM-constant)</option>
-          <option value="add_cash">Add Cash</option>
-          <option value="withdraw_cash">Withdraw Cash</option>
+        <label>Instruction type</label>
+        <select id="tg-type">
+          <option value="simple">Simple target (bucket/fund → % of AUM, equity, or current level)</option>
+          <option value="ratio">Nested ratio (within a parent bucket, split two children by ratio)</option>
+          <option value="paired">Paired reallocation (sell X% of A, buy B with proceeds)</option>
+          <option value="newmoney">New-money-only rule (standing rule for future purchases into a category)</option>
         </select>
       </div>
     </div>
-    <div class="row" style="margin-top:10px;">
-      <div class="field" style="min-width:220px;">
-        <label>Fund Mapping (multi-fund buckets)</label>
-        <select id="ts-mapping">
-          <option value="pro_rata">Pro-rata across matching funds</option>
-          <option value="concentrate">Concentrate into one chosen fund</option>
-        </select>
-      </div>
-      <div class="field" style="min-width:260px;">
-        <label>Concentrate/New Fund ISIN (if applicable)</label>
-        <input type="text" id="ts-concentrate-isin" placeholder="ISIN to buy into">
-      </div>
-      <div class="field" style="min-width:260px;">
-        <label>Funding leg source (Rebalance mode)</label>
-        <select id="ts-funding-source">
-          <option value="cash_first">Cash first, then a chosen fund</option>
-          <option value="chosen_fund">A specific fund (choose ISIN below)</option>
-        </select>
-      </div>
-      <div class="field" style="min-width:220px;">
-        <label>Funding-leg fund ISIN (if chosen)</label>
-        <input type="text" id="ts-funding-fund-isin" placeholder="ISIN to sell">
-      </div>
-      <div class="field">
-        <button id="ts-solve-btn">Solve</button>
-      </div>
-    </div>
-  </div>
 
-  <div class="card" id="ts-result-card" style="display:none;">
-    <h2>Trade Ticket</h2>
-    <div id="ts-result"></div>
-  </div>
-</div>
-
-<!-- ============ STACKED COMMANDS ============ -->
-<div class="view" id="view-queue">
-  <div class="card">
-    <h2>Stacked Commands — Instruction Queue</h2>
-    <p class="muted small">Queue manual edits and/or target-solver instructions for the currently loaded client, then Apply All as one batch (later instructions see earlier effects).</p>
-    <div class="row">
-      <button id="q-add-current-solver" class="secondary">+ Add current Target Solver instruction to queue</button>
-      <button id="q-apply-btn">Apply All</button>
-      <button id="q-clear-btn" class="ghost">Clear Queue</button>
-      <button id="q-reset-actual-btn" class="ghost">Reset to Actual</button>
-    </div>
-    <div id="q-list" style="margin-top:14px;"></div>
-  </div>
-  <div class="card" id="q-result-card" style="display:none;">
-    <h2>Net Trade Ticket (Consolidated)</h2>
-    <div id="q-net-ticket"></div>
-    <h2 style="margin-top:16px;">Combined Before / After</h2>
-    <div id="q-before-after"></div>
-    <h2 style="margin-top:16px;">Conservation Checks</h2>
-    <div id="q-conservation"></div>
-  </div>
-</div>
-
-<!-- ============ BOOK-WIDE MODE ============ -->
-<div class="view" id="view-bookwide">
-  <div class="card">
-    <h2>Book-Wide Allocation Call</h2>
-    <p class="muted small">Define one allocation call keyed by a fund/ISIN/bucket, run it across every client independently, and see the resulting IPS status matrix. Motivating example: a new sector ETF becomes 5% of every client's portfolio.</p>
-    <div class="row">
-      <div class="field" style="min-width:220px;">
-        <label>New/Target holding — name</label>
-        <input type="text" id="bw-fund-name" placeholder="e.g. Nifty Financial Services ETF">
-      </div>
-      <div class="field" style="min-width:220px;">
-        <label>ISIN (leave blank if brand-new / not in lookup)</label>
-        <input type="text" id="bw-fund-isin" placeholder="e.g. INF336L01234">
-      </div>
-      <div class="field">
-        <button class="secondary" id="bw-classify-btn">Classify / Check Lookup</button>
-      </div>
-    </div>
-    <div id="bw-manual-classify" style="display:none; margin-top:10px; padding:12px; background:#fff8e6; border:1px solid var(--yellow); border-radius:8px;">
-      <h3 style="margin-top:0;">Manual Classification (ISIN not found in Advisory V2)</h3>
+    <!-- SIMPLE TARGET FORM -->
+    <div id="tg-form-simple" class="tg-form">
       <div class="row">
-        <div class="field"><label>AMC Name</label><input type="text" id="bw-mc-amc" value="Hypothetical AMC"></div>
-        <div class="field"><label>Category</label><input type="text" id="bw-mc-cat" value="Sector Fund - Financial Services"></div>
-        <div class="field"><label>Equity %</label><input type="number" id="bw-mc-eq" value="100"></div>
-        <div class="field"><label>Debt %</label><input type="number" id="bw-mc-debt" value="0"></div>
-        <div class="field"><label>Others %</label><input type="number" id="bw-mc-oth" value="0"></div>
-        <div class="field"><label>Large Cap %</label><input type="number" id="bw-mc-lc" value="100"></div>
-        <div class="field"><label>Mid Cap %</label><input type="number" id="bw-mc-mc" value="0"></div>
-        <div class="field"><label>Small Cap %</label><input type="number" id="bw-mc-sc" value="0"></div>
+        <div class="field" style="min-width:230px;">
+          <label>Bucket</label>
+          <select id="tg-s-bucket" class="bucket-select"></select>
+        </div>
+        <div class="field" style="min-width:220px;">
+          <label>Fund ISIN (only if bucket = Specific Fund)</label>
+          <input type="text" id="tg-s-fund-isin" placeholder="e.g. INF109KC17V7">
+        </div>
+        <div class="field">
+          <label>Basis</label>
+          <select id="tg-s-basis">
+            <option value="aum">% of Total AUM</option>
+            <option value="equity">% of Equity</option>
+            <option value="current_bucket">% of CURRENT bucket level (e.g. "reduce by 50% from current")</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Form (ignored if basis = current level)</label>
+          <select id="tg-s-form">
+            <option value="absolute">Absolute level</option>
+            <option value="delta">Delta (+/-)</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Value (%)</label>
+          <input type="number" id="tg-s-value" step="0.1" placeholder="e.g. 75, or 50 for half-of-current">
+        </div>
+      </div>
+      <div class="row" style="margin-top:8px;">
+        <div class="field" style="min-width:220px;">
+          <label>Fund mapping (multi-fund buckets)</label>
+          <select id="tg-s-mapping">
+            <option value="pro_rata">Pro-rata across matching funds</option>
+            <option value="concentrate">Concentrate into one chosen fund</option>
+          </select>
+        </div>
+        <div class="field" style="min-width:230px;">
+          <label>Concentrate/destination ISIN (if applicable)</label>
+          <input type="text" id="tg-s-concentrate-isin" placeholder="ISIN to buy into">
+        </div>
+      </div>
+      <div class="hint">Example: bucket=Domestic Equity, basis=%AUM, form=Delta, value=+10 → "Domestic equity +10%". Example: bucket=Factor:Value, basis=Current bucket level, value=50 → "reduce Value by 50% from current levels".</div>
+    </div>
+
+    <!-- RATIO FORM -->
+    <div id="tg-form-ratio" class="tg-form" style="display:none;">
+      <div class="row">
+        <div class="field" style="min-width:220px;"><label>Parent bucket (total held fixed)</label><select id="tg-r-parent" class="bucket-select"></select></div>
+        <div class="field" style="min-width:220px;"><label>Child A</label><select id="tg-r-childA" class="bucket-select"></select></div>
+        <div class="field"><label>Ratio A</label><input type="number" id="tg-r-ratioA" value="60"></div>
+        <div class="field" style="min-width:220px;"><label>Child B</label><select id="tg-r-childB" class="bucket-select"></select></div>
+        <div class="field"><label>Ratio B</label><input type="number" id="tg-r-ratioB" value="40"></div>
+      </div>
+      <div class="row" style="margin-top:8px;">
+        <div class="field" style="min-width:220px;"><label>Fund ISIN for Child A buys (optional)</label><input type="text" id="tg-r-fundA" placeholder="leave blank = purest existing fund"></div>
+        <div class="field" style="min-width:220px;"><label>Fund ISIN for Child B buys (optional)</label><input type="text" id="tg-r-fundB" placeholder="leave blank = purest existing fund"></div>
+      </div>
+      <div class="hint">Example: parent=Domestic Equity, A=Large Cap / B=SMID, ratio 60:40 → "within domestic equity, 60:40 Large:SMID". Example: parent=Global Equity, A=dmEm:DM / B=dmEm:EM, ratio 60:40. Example: parent=Commodities, A=Gold / B=Silver, ratio 85:15.</div>
+    </div>
+
+    <!-- PAIRED REALLOCATION FORM -->
+    <div id="tg-form-paired" class="tg-form" style="display:none;">
+      <div class="row">
+        <div class="field" style="min-width:220px;"><label>Sell FROM (bucket)</label><select id="tg-p-frombucket" class="bucket-select"></select></div>
+        <div class="field" style="min-width:180px;"><label>Fund ISIN (if bucket=Specific Fund)</label><input type="text" id="tg-p-fromisin"></div>
+        <div class="field"><label>Sell form</label><select id="tg-p-fromform"><option value="pct">% of that bucket/fund</option><option value="abs">Absolute ₹</option></select></div>
+        <div class="field"><label>Sell value</label><input type="number" id="tg-p-fromvalue" placeholder="e.g. 50"></div>
+      </div>
+      <div class="row" style="margin-top:8px;">
+        <div class="field" style="min-width:220px;"><label>Buy INTO (bucket)</label><select id="tg-p-tobucket" class="bucket-select"></select></div>
+        <div class="field" style="min-width:220px;"><label>Fund ISIN (if bucket=Specific Fund, or to pin destination)</label><input type="text" id="tg-p-toisin"></div>
+      </div>
+      <div class="hint">Example: sell 50% of Factor:Value, buy into Factor:Momentum with the proceeds — one instruction, two legs, shown as one ticket.</div>
+    </div>
+
+    <!-- NEW MONEY RULE FORM -->
+    <div id="tg-form-newmoney" class="tg-form" style="display:none;">
+      <p class="small muted">Standing rule: whenever this run buys NEW money into the named category (e.g. as a funding destination or a simple-target buy leg), the money is split per this rule instead of landing in one lump fund. Existing holdings in the category are undisturbed.</p>
+      <div class="row">
+        <div class="field" style="min-width:220px;"><label>Category this rule governs</label><select id="tg-n-category" class="bucket-select"></select></div>
+      </div>
+      <div class="row" style="margin-top:8px;">
+        <div class="field" style="min-width:200px;"><label>Split 1 — bucket label</label><input type="text" id="tg-n-split1-label" placeholder="e.g. 3-5Y"></div>
+        <div class="field"><label>Ratio</label><input type="number" id="tg-n-split1-ratio" value="85"></div>
+        <div class="field" style="min-width:220px;"><label>Split 1 — destination fund ISIN</label><input type="text" id="tg-n-split1-isin" placeholder="required"></div>
+      </div>
+      <div class="row" style="margin-top:8px;">
+        <div class="field" style="min-width:200px;"><label>Split 2 — bucket label</label><input type="text" id="tg-n-split2-label" placeholder="e.g. 30Y+"></div>
+        <div class="field"><label>Ratio</label><input type="number" id="tg-n-split2-ratio" value="15"></div>
+        <div class="field" style="min-width:220px;"><label>Split 2 — destination fund ISIN</label><input type="text" id="tg-n-split2-isin" placeholder="required"></div>
+      </div>
+      <div class="hint">Example: category=Debt, Split1="3-5Y" ratio 85 → HDFC Banking &amp; PSU Debt Fund ISIN; Split2="30Y+" ratio 15 → HDFC Long Duration Debt Fund ISIN. This is the standing rule for "new Fixed Income purchases: 85:15 3-5Y:30Y+".</div>
+    </div>
+
+    <div class="row" style="margin-top:14px;">
+      <button id="tg-add-btn">+ Add to Queue</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Instruction Queue</h2>
+    <div id="tg-queue-list"></div>
+    <div class="row" style="margin-top:10px;">
+      <button class="ghost" id="tg-clear-btn">Clear Queue</button>
+    </div>
+    <div class="hint" style="margin-top:8px;">Standing new-money rules currently active: <span id="tg-nmr-summary">none</span></div>
+  </div>
+
+  <div class="flex-between">
+    <button class="ghost" id="tg-back-btn">← Back to Scope</button>
+    <button id="tg-next-btn">Next: Funding Waterfall →</button>
+  </div>
+</div>
+
+<!-- ============ 3. FUNDING WATERFALL ============ -->
+<div class="view" id="view-waterfall">
+  <div class="card">
+    <h2>Funding Waterfall</h2>
+    <p class="muted small">Define an ORDERED list of sources. When an instruction needs funding (Rebalance / AUM-constant mode), the solver drains source 1 until the target is met or exhausted, then moves to source 2, etc. — runs independently per client (each client's own IPS breaches, underperformers, and cash differ). This waterfall applies to the whole instruction queue for this run.</p>
+    <div class="row">
+      <div class="field">
+        <label>Funding mode for this run</label>
+        <select id="wf-mode">
+          <option value="rebalance">Rebalance (AUM-constant) — use the waterfall below</option>
+          <option value="add_cash">Add Cash (fresh external money, no funding needed)</option>
+        </select>
       </div>
     </div>
+    <div id="wf-source-list" style="margin-top:10px;"></div>
+    <div class="row" style="margin-top:10px;">
+      <div class="field" style="min-width:200px;">
+        <label>Add source</label>
+        <select id="wf-add-kind">
+          <option value="ips_breach">Auto: IPS-breaching holdings (worst breach first)</option>
+          <option value="underperformers">Auto: underperformers (worst gain/loss % first)</option>
+          <option value="named">Named fund(s)/ISIN(s)</option>
+          <option value="explicit_sell">Explicit sell list (security names)</option>
+          <option value="cash">Client's own Cash</option>
+        </select>
+      </div>
+      <div class="field" style="min-width:260px;">
+        <label>ISINs / names (comma-separated, if applicable)</label>
+        <input type="text" id="wf-add-detail" placeholder="e.g. INF109KC17V7, INF179K01YV8">
+      </div>
+      <div class="field"><button class="secondary" id="wf-add-btn">+ Add Source</button></div>
+    </div>
+  </div>
+  <div class="flex-between">
+    <button class="ghost" id="wf-back-btn">← Back to Targets</button>
+    <button id="wf-next-btn">Next: Run →</button>
+  </div>
+</div>
+
+<!-- ============ 4. RUN ============ -->
+<div class="view" id="view-run">
+  <div class="card">
+    <h2>Run</h2>
+    <p class="muted small">Solves independently for every client in scope. Baseline reconciliation runs first and gates the results — clients failing reconciliation are excluded and flagged, never silently acted on.</p>
+    <div id="run-summary-panel" class="small muted"></div>
     <div class="row" style="margin-top:12px;">
-      <div class="field">
-        <label>Target Level</label>
-        <input type="number" id="bw-target-pct" value="5" step="0.1">
-      </div>
-      <div class="field">
-        <label>Basis</label>
-        <select id="bw-basis">
-          <option value="aum">% of Total AUM</option>
-          <option value="equity">% of Equity</option>
-        </select>
-      </div>
-      <div class="field">
-        <label>Funding Mode</label>
-        <select id="bw-funding">
-          <option value="rebalance">Rebalance (AUM-constant)</option>
-        </select>
-      </div>
-      <div class="field">
-        <label>Funding Source</label>
-        <select id="bw-source">
-          <option value="pro_rata_equity">Pro-rata from existing equity holdings</option>
-          <option value="cash_first_then_equity">Cash first, then pro-rata equity</option>
-        </select>
-      </div>
-      <div class="field">
-        <button id="bw-run-btn">Run Baseline Reconciliation + Book-Wide Scenario</button>
+      <button id="run-execute-btn">Run for All Clients in Scope</button>
+    </div>
+    <div id="run-recon-fail-card" style="display:none; margin-top:14px;">
+      <div class="recon-fail">
+        <strong>Clients failing baseline reconciliation (excluded from results — DO NOT ACT ON THESE):</strong>
+        <div id="run-recon-fail-list"></div>
       </div>
     </div>
+    <div id="run-status" style="margin-top:14px;"></div>
   </div>
+</div>
 
-  <div class="card" id="bw-recon-fail-card" style="display:none;">
-    <h2>Clients Failing Baseline Reconciliation (excluded from matrix — DO NOT ACT ON THESE)</h2>
-    <div id="bw-recon-fail-list"></div>
-  </div>
-
-  <div class="card" id="bw-summary-card" style="display:none;">
+<!-- ============ 5. RESULTS ============ -->
+<div class="view" id="view-results">
+  <div class="card" id="results-summary-card" style="display:none;">
     <h2>Aggregate Summary</h2>
-    <div class="matrix-summary" id="bw-agg-stats"></div>
+    <div class="matrix-summary" id="results-agg-stats"></div>
   </div>
 
-  <div class="card" id="bw-matrix-card" style="display:none;">
+  <div class="card" id="results-matrix-card" style="display:none;">
     <div class="flex-between">
       <h2>Results Matrix</h2>
-      <button class="secondary" id="bw-export-csv">Export CSV</button>
+      <button class="secondary" id="results-export-csv">Export CSV</button>
     </div>
+    <p class="muted small">One row per client in scope. For a single-client scope this is a matrix of one row — drill in below for the full before/after (same view either way, nothing special-cased for "book-wide").</p>
     <div class="scroll-x">
-      <table id="bw-matrix-table">
+      <table id="results-matrix-table">
         <thead><tr>
-          <th>Client</th><th>Strategy</th><th>RM/SRM</th><th class="num">Current %</th><th class="num">Target %</th>
-          <th class="num">Trade (₹)</th><th class="num">Trade (%AUM)</th><th>Fund(s) Sold</th><th>Funding Source</th>
-          <th>Resulting IPS Status</th><th>Action Flag</th><th></th>
+          <th>Client</th><th>Strategy</th><th>RM/SRM</th>
+          <th>Per-instruction current→target</th>
+          <th>Trades required</th><th>Funding sources used</th>
+          <th>Resulting IPS Status</th><th></th>
         </tr></thead>
         <tbody></tbody>
       </table>
     </div>
   </div>
 
-  <div class="card" id="bw-drill-card" style="display:none;">
-    <h2 id="bw-drill-title">Drill-down</h2>
-    <div id="bw-drill-content"></div>
+  <div class="card" id="results-drill-card" style="display:none;">
+    <h2 id="results-drill-title">Drill-down</h2>
+    <div id="results-drill-content"></div>
   </div>
 </div>
 
@@ -26299,12 +26301,139 @@ function classifyHolding(h){
   // exactly; excluding only the literal "Cash" row gives 23.16%, which is wrong).
   const isSchemeCountable = (name !== 'Cash') && (astcls !== 'Cash and Equivalent');
 
-  return {
+  const base = {
     security: name, isin, advEntry, category, amcName,
     mval, eqAmt, debtAmt, othAmt, lcAmt, mcAmt, scAmt,
     isAif, isListed, isLocked, isIntlEq, isCommodity,
     isAmcCountable: isAmcCountableFinal, isSchemeCountable,
     isCashLine: (name === 'Cash')
+  };
+  // Additive best-effort classification dimensions (sector / DM-EM / FI duration / factor / gold-silver /
+  // domestic-vs-global). These NEVER alter eqAmt/debtAmt/othAmt/lcAmt/mcAmt/scAmt/isIntlEq/isCommodity or
+  // any other field already returned above — purely additive, so baseline reconciliation against
+  // IPS_DATA (which only checks the original fields) cannot regress from this extension.
+  Object.assign(base, extendClassification(base, h));
+  return base;
+}
+
+// ============================================================================
+// EXTENDED CLASSIFICATION — sector / DM-EM / FI-duration / factor tags
+// ============================================================================
+// All of this is BEST-EFFORT, name/category-heuristic driven, exactly as scoped in the build
+// brief. Nothing here is claimed to be precise. Every tag carries a `*Confidence` field
+// ('high'|'low') and a `*Reason` string so the UI can surface low-confidence tags rather than
+// hide them. MANUAL_TAGS (keyed by security name) lets a user override any of these per-holding;
+// checked FIRST, before any heuristic.
+const MANUAL_TAGS = {}; // security -> { sector, dmEm, fiDuration, factor }
+
+const SECTOR_RULES = [
+  // [regex over name+category combined, sector label]
+  [/\bmetal(s)?\b/i, 'Metals'],
+  [/banking\s*&?\s*financial services|banking and financial services|\bbanking\b|\bfinancial services\b|\bbank\b(?!ing and psu)/i, 'Financials'],
+  [/\bit\b|technology|digital india|\bdigital\b/i, 'IT'],
+  [/pharma|healthcare/i, 'Pharma/Healthcare'],
+  [/\bpsu\b/i, 'PSU'],
+  [/infrastructure|infra\b/i, 'Infrastructure'],
+  [/energy|power(?!\s*grid corp)/i, 'Energy'],
+  [/fmcg|consumption|consumer/i, 'FMCG/Consumption'],
+  [/auto(mobile)?|transportation and logistics/i, 'Auto'],
+  [/\bmnc\b/i, 'MNC'],
+  [/manufacturing|mfg\./i, 'Manufacturing'],
+  [/real estate|reit\b/i, 'Real Estate'],
+  [/commodit/i, 'Commodities (broad)'],
+  [/defence|defense/i, 'Defence'],
+];
+// Sector tagging applies to domestic-equity-flavoured holdings only (funds/ETFs/listed shares);
+// factor/index-only names (Momentum/Value/Low Vol/Quality/Alpha index trackers) are intentionally
+// left "Unclassified" for sector — they are broad-market factor sleeves, not sector bets, and
+// tagging them into a sector would be actively misleading, not just imprecise.
+const BROAD_INDEX_RX = /nifty\s*50\b|nifty\s*500\b|nifty\s*100\b(?!\s*low)|flexi\s*cap|multi\s*cap|large\s*&?\s*mid|focused|large\s*cap\s*fund|midcap\s*150|smallcap\s*250|flexicap/i;
+
+function tagSector(name, category){
+  if (MANUAL_TAGS[name] && MANUAL_TAGS[name].sector) {
+    return { sector: MANUAL_TAGS[name].sector, sectorConfidence: 'manual', sectorReason: 'User override' };
+  }
+  const hay = (name||'') + ' | ' + (category||'');
+  for (const [rx, label] of SECTOR_RULES) {
+    if (rx.test(hay)) return { sector: label, sectorConfidence: 'high', sectorReason: 'Matched "'+rx.source+'" in name/category' };
+  }
+  return { sector: 'Unclassified', sectorConfidence: 'low', sectorReason: 'No sector keyword matched name or category — treated as diversified/broad-market' };
+}
+
+// DM vs EM — best-effort from fund NAME only (scoped to isIntlEq holdings). Ambiguous names default
+// to DM per the build brief, flagged low-confidence.
+const EM_RX = /china|greater china|asia(n)?(?!\b.*us)|emerging market|\bem\b/i;
+const DM_RX = /u\.?s\.?\b|nasdaq|s&p|europe|japan|global|developed|world/i;
+function tagDmEm(name, isIntlEq){
+  if (!isIntlEq) return { dmEm: null, dmEmConfidence: null, dmEmReason: null };
+  if (MANUAL_TAGS[name] && MANUAL_TAGS[name].dmEm) {
+    return { dmEm: MANUAL_TAGS[name].dmEm, dmEmConfidence: 'manual', dmEmReason: 'User override' };
+  }
+  const isEm = EM_RX.test(name||'');
+  const isDm = DM_RX.test(name||'');
+  if (isEm && !isDm) return { dmEm: 'EM', dmEmConfidence: 'high', dmEmReason: 'Name references China/Asia/EM' };
+  if (isDm && !isEm) return { dmEm: 'DM', dmEmConfidence: 'high', dmEmReason: 'Name references US/Nasdaq/developed market' };
+  if (isEm && isDm) return { dmEm: 'DM', dmEmConfidence: 'low', dmEmReason: 'Name matched BOTH DM and EM keywords — defaulted to DM, needs manual review' };
+  return { dmEm: 'DM', dmEmConfidence: 'low', dmEmReason: 'International-equity holding with no clear DM/EM keyword in name — defaulted to DM per convention' };
+}
+
+// Fixed-income duration bucket — best-effort from name/category. Primary path is the manual tag
+// prompt at "new FI purchase" time (see applyNewMoneyFiRule); this heuristic covers EXISTING
+// holdings for display purposes only, per the build brief's explicit "don't over-invest" scope note.
+// Scoped to holdings that actually landed in the debtAmt bucket (astcls==='Fixed Income' AND NOT an
+// international-equity FoF that happens to carry the raw 'Fixed Income' asset_class tag — see the
+// documented isIntlEq quirk in classifyHolding: Edelweiss Greater China / Motilal Nasdaq 100 FOF are
+// tagged astcls 'Fixed Income' in the raw snapshot but are 100% intl-equity, debtAmt=0 for them).
+function tagFiDuration(name, category, astcls, isIntlEq, debtAmt){
+  if (astcls !== 'Fixed Income' || isIntlEq || !(debtAmt>0)) return { fiDuration: null, fiDurationConfidence: null, fiDurationReason: null };
+  if (MANUAL_TAGS[name] && MANUAL_TAGS[name].fiDuration) {
+    return { fiDuration: MANUAL_TAGS[name].fiDuration, fiDurationConfidence: 'manual', fiDurationReason: 'User override' };
+  }
+  const hay = (name||'') + ' | ' + (category||'');
+  if (/long duration|gilt.*20[3-6]\d|30\s*y|g-?sec.*long/i.test(hay)) {
+    return { fiDuration: '30Y+', fiDurationConfidence: 'high', fiDurationReason: 'Matched long-duration/long-dated gilt keyword' };
+  }
+  if (/banking and psu|banking & psu|short duration|medium duration|corporate bond|money market|low duration|ultra short|liquid|overnight/i.test(hay)) {
+    return { fiDuration: '3-5Y', fiDurationConfidence: 'high', fiDurationReason: 'Matched short/medium-duration category keyword' };
+  }
+  if (/dynamic bond|medium to long|credit risk/i.test(hay)) {
+    return { fiDuration: '3-5Y', fiDurationConfidence: 'low', fiDurationReason: 'Dynamic/flexible-duration category — defaulted to 3-5Y bucket, actual duration may vary and should be manually confirmed' };
+  }
+  return { fiDuration: '3-5Y', fiDurationConfidence: 'low', fiDurationReason: 'No duration keyword matched — defaulted to 3-5Y bucket pending manual confirmation' };
+}
+
+// Factor tags (Momentum / Value / Low Vol / Quality / Alpha) — name-driven, domestic equity only.
+const FACTOR_RULES = [
+  [/momentum/i, 'Momentum'],
+  [/\bvalue\b/i, 'Value'],
+  [/low\s*vol(atility)?/i, 'Low Vol'],
+  [/\bquality\b/i, 'Quality'],
+  [/\balpha\b/i, 'Alpha'],
+];
+function tagFactor(name){
+  if (MANUAL_TAGS[name] && MANUAL_TAGS[name].factor) {
+    return { factor: MANUAL_TAGS[name].factor, factorConfidence: 'manual', factorReason: 'User override' };
+  }
+  for (const [rx, label] of FACTOR_RULES) {
+    if (rx.test(name||'')) return { factor: label, factorConfidence: 'high', factorReason: 'Matched "'+rx.source+'" in fund name' };
+  }
+  return { factor: null, factorConfidence: null, factorReason: null };
+}
+
+function extendClassification(c, h){
+  const name = c.security, category = c.category, astcls = h.asset_class;
+  const domesticGlobal = c.isListed ? 'Domestic' : (c.eqAmt>0 ? (c.isIntlEq ? 'Global' : 'Domestic') : null);
+  const isBroadIndex = BROAD_INDEX_RX.test(name||'') && !SECTOR_RULES.some(([rx])=>rx.test(name||''));
+  const sectorTag = (c.eqAmt>0 && !c.isIntlEq && !isBroadIndex) ? tagSector(name, category) : { sector: null, sectorConfidence: null, sectorReason: null };
+  const dmEmTag = tagDmEm(name, c.isIntlEq);
+  const fiTag = tagFiDuration(name, category, astcls, c.isIntlEq, c.debtAmt);
+  const factorTag = (c.eqAmt>0 && !c.isIntlEq) ? tagFactor(name) : { factor: null, factorConfidence: null, factorReason: null };
+  // SMID = mid+small combined, only meaningful for domestic equity (intl/FoF already carry
+  // lc=mc=sc=0 per classifyHolding, so no extra filtering needed — see build brief).
+  const smidAmt = c.mcAmt + c.scAmt;
+  return {
+    domesticGlobal, smidAmt,
+    ...sectorTag, ...dmEmTag, ...fiTag, ...factorTag
   };
 }
 
@@ -26322,6 +26451,16 @@ function computeClientMetrics(holdings, aumOverride){
   let schemeDenom = 0;
   const lockedNamesSet = new Set();
   const missingIsins = [];
+
+  // Additive aggregates for the extended classification dimensions (never feed back into the
+  // original eq/debt/oth/lc/mc/sc/intl/commodity totals above).
+  let domesticEqAmt=0, globalEqAmt=0, smidAmt=0;
+  let goldAmt=0, silverAmt=0;
+  const sectorTotals = {}; // sector label -> amount (domestic equity only)
+  const dmEmTotals = { DM:0, EM:0 }; // global equity only
+  const factorTotals = {}; // factor label -> amount
+  const fiDurationTotals = {}; // '3-5Y' | '30Y+' -> amount (existing FI holdings, best-effort)
+  const lowConfidenceTags = []; // {security, dimension, value, reason}
 
   classified.forEach(c=>{
     eqAmt += c.eqAmt; debtAmt += c.debtAmt; othAmt += c.othAmt;
@@ -26343,6 +26482,31 @@ function computeClientMetrics(holdings, aumOverride){
     }
     if (!c.isCashLine && !c.advEntry && !c.isListed) {
       missingIsins.push(c.security);
+    }
+
+    // ---- extended dimensions ----
+    if (c.eqAmt>0) {
+      if (c.domesticGlobal === 'Global') globalEqAmt += c.eqAmt;
+      else domesticEqAmt += c.eqAmt;
+    }
+    smidAmt += (c.smidAmt||0);
+    if (/gold/i.test(c.security)) goldAmt += c.mval;
+    if (/silver/i.test(c.security)) silverAmt += c.mval;
+    if (c.sector) {
+      sectorTotals[c.sector] = (sectorTotals[c.sector]||0) + c.eqAmt;
+      if (c.sectorConfidence === 'low') lowConfidenceTags.push({security:c.security, dimension:'sector', value:c.sector, reason:c.sectorReason});
+    }
+    if (c.dmEm) {
+      dmEmTotals[c.dmEm] = (dmEmTotals[c.dmEm]||0) + c.eqAmt;
+      if (c.dmEmConfidence === 'low') lowConfidenceTags.push({security:c.security, dimension:'DM/EM', value:c.dmEm, reason:c.dmEmReason});
+    }
+    if (c.factor) {
+      factorTotals[c.factor] = (factorTotals[c.factor]||0) + c.eqAmt;
+      if (c.factorConfidence === 'low') lowConfidenceTags.push({security:c.security, dimension:'factor', value:c.factor, reason:c.factorReason});
+    }
+    if (c.fiDuration) {
+      fiDurationTotals[c.fiDuration] = (fiDurationTotals[c.fiDuration]||0) + c.debtAmt;
+      if (c.fiDurationConfidence === 'low') lowConfidenceTags.push({security:c.security, dimension:'FI duration', value:c.fiDuration, reason:c.fiDurationReason});
     }
   });
 
@@ -26372,13 +26536,34 @@ function computeClientMetrics(holdings, aumOverride){
 
   const riskProfile = eqPct>=65 ? 'Aggressive' : (eqPct>=40 ? 'Moderate' : 'Conservative');
 
+  // ---- extended dimension percentages (all additive, none feed back into the checks above) ----
+  const domesticEqPct = eqAmt>0 ? domesticEqAmt/eqAmt*100 : 0; // domestic equity as % of total equity
+  const globalEqPct = eqAmt>0 ? globalEqAmt/eqAmt*100 : 0;
+  // LC:SMID ratio computed only from domestic equity's own lc/mc/sc (intl/FoF already carry 0s)
+  const lcSmidDenom = lcAmt + smidAmt;
+  const lcOfDomPct = lcSmidDenom>0 ? lcAmt/lcSmidDenom*100 : 0;
+  const smidOfDomPct = lcSmidDenom>0 ? smidAmt/lcSmidDenom*100 : 0;
+  const dmOfGlobalPct = globalEqAmt>0 ? dmEmTotals.DM/globalEqAmt*100 : 0;
+  const emOfGlobalPct = globalEqAmt>0 ? dmEmTotals.EM/globalEqAmt*100 : 0;
+  const goldOfCommodityPct = (goldAmt+silverAmt)>0 ? goldAmt/(goldAmt+silverAmt)*100 : 0;
+  const silverOfCommodityPct = (goldAmt+silverAmt)>0 ? silverAmt/(goldAmt+silverAmt)*100 : 0;
+  const valueAmt = factorTotals['Value']||0;
+  const momentumAmt = factorTotals['Momentum']||0;
+
   return {
     aum, eqAmt, debtAmt, othAmt, eqPct, debtPct, othPct, debtAltPct,
     lcAmt, mcAmt, scAmt, lcPct, mcPct, scPct,
     topAmc, topAmcPct, topScheme, topSchemePct,
     lockedPct, lockedNames: Array.from(lockedNamesSet), commodityPct, intlEqPct,
     riskProfile, numHoldings: holdings.length, missingIsins,
-    classified
+    classified,
+    // extended (additive-only) fields:
+    domesticEqAmt, globalEqAmt, domesticEqPct, globalEqPct,
+    smidAmt, lcOfDomPct, smidOfDomPct,
+    goldAmt, silverAmt, goldOfCommodityPct, silverOfCommodityPct,
+    sectorTotals, dmEmTotals, dmOfGlobalPct, emOfGlobalPct,
+    factorTotals, valueAmt, momentumAmt,
+    fiDurationTotals, lowConfidenceTags
   };
 }
 
@@ -26693,47 +26878,93 @@ function withdrawCashAmount(holdings, amount){
 //          commodities, intl_equity, cash, fund (specific ISIN)
 // ============================================================================
 
+// bucket is either one of the ORIGINAL literal tokens (unchanged), or one of the new
+// "dimension:value" tokens added for the redesign: 'sector:<Label>', 'dmEm:DM'/'dmEm:EM',
+// 'factor:<Label>', 'fiDuration:3-5Y'/'fiDuration:30Y+', 'smid' (mc+sc combined), 'global_equity'.
+function parseBucketToken(bucket){
+  const i = bucket.indexOf(':');
+  if (i===-1) return { dim:null, val:null };
+  return { dim: bucket.slice(0,i), val: bucket.slice(i+1) };
+}
 function bucketAmountForClassified(classified, bucket){
+  const { dim, val } = parseBucketToken(bucket);
+  if (dim==='sector') return classified.reduce((s,c)=> s + (c.sector===val? c.eqAmt:0), 0);
+  if (dim==='dmEm') return classified.reduce((s,c)=> s + (c.dmEm===val? c.eqAmt:0), 0);
+  if (dim==='factor') return classified.reduce((s,c)=> s + (c.factor===val? c.eqAmt:0), 0);
+  if (dim==='fiDuration') return classified.reduce((s,c)=> s + (c.fiDuration===val? c.debtAmt:0), 0);
   switch(bucket){
     case 'domestic_equity': return classified.reduce((s,c)=> s + (c.eqAmt - (c.isIntlEq? c.eqAmt:0)), 0);
+    case 'global_equity': return classified.reduce((s,c)=> s + (c.isIntlEq? c.eqAmt:0), 0); // alias of intl_equity, clearer naming for the new UI
     case 'debt': return classified.reduce((s,c)=> s + c.debtAmt, 0);
     case 'others': return classified.reduce((s,c)=> s + c.othAmt, 0);
     case 'large_cap': return classified.reduce((s,c)=> s + c.lcAmt, 0);
     case 'mid_cap': return classified.reduce((s,c)=> s + c.mcAmt, 0);
     case 'small_cap': return classified.reduce((s,c)=> s + c.scAmt, 0);
+    case 'smid': return classified.reduce((s,c)=> s + (c.smidAmt||0), 0);
     case 'gold': return classified.reduce((s,c)=> s + (/gold/i.test(c.security)? c.mval:0), 0);
     case 'silver': return classified.reduce((s,c)=> s + (/silver/i.test(c.security)? c.mval:0), 0);
     case 'commodities': return classified.reduce((s,c)=> s + (c.isCommodity? c.mval:0), 0);
     case 'intl_equity': return classified.reduce((s,c)=> s + (c.isIntlEq? c.eqAmt:0), 0);
     case 'cash': return classified.reduce((s,c)=> s + (c.isCashLine? c.mval:0), 0);
+    case 'equity_total': return classified.reduce((s,c)=> s + c.eqAmt, 0);
+    case 'non_equity': return classified.reduce((s,c)=> s + c.debtAmt + c.othAmt, 0);
     default: return 0;
   }
 }
 
 function matchingHoldingsForBucket(holdings, classified, bucket, fundIsin){
   const out = [];
+  const { dim, val } = parseBucketToken(bucket);
   classified.forEach((c,i)=>{
     let match = false;
-    switch(bucket){
+    if (dim==='sector') match = c.sector===val;
+    else if (dim==='dmEm') match = c.dmEm===val;
+    else if (dim==='factor') match = c.factor===val;
+    else if (dim==='fiDuration') match = c.fiDuration===val;
+    else switch(bucket){
       case 'domestic_equity': match = c.eqAmt>0 && !c.isIntlEq; break;
+      case 'global_equity': match = c.eqAmt>0 && c.isIntlEq; break;
       case 'debt': match = c.debtAmt>0; break;
       case 'others': match = c.othAmt>0; break;
       case 'large_cap': match = c.lcAmt>0; break;
       case 'mid_cap': match = c.mcAmt>0; break;
       case 'small_cap': match = c.scAmt>0; break;
+      case 'smid': match = (c.smidAmt||0)>0; break;
       case 'gold': match = /gold/i.test(c.security); break;
       case 'silver': match = /silver/i.test(c.security); break;
       case 'commodities': match = c.isCommodity; break;
       case 'intl_equity': match = c.isIntlEq; break;
       case 'cash': match = c.isCashLine; break;
       case 'fund': match = c.isin === fundIsin; break;
+      case 'equity_total': match = c.eqAmt>0; break;
+      case 'non_equity': match = (c.debtAmt+c.othAmt)>0; break;
     }
     if (match) out.push({ idx:i, c, holding: holdings[i] });
   });
   return out;
 }
 
+// Human-readable label for any bucket token, used across the new UI.
+function bucketLabel(bucket){
+  const { dim, val } = parseBucketToken(bucket);
+  if (dim==='sector') return 'Sector: '+val;
+  if (dim==='dmEm') return val;
+  if (dim==='factor') return 'Factor: '+val;
+  if (dim==='fiDuration') return 'FI Duration: '+val;
+  const LABELS = {
+    domestic_equity:'Domestic Equity', global_equity:'Global Equity', debt:'Debt', others:'Others',
+    large_cap:'Large Cap', mid_cap:'Mid Cap', small_cap:'Small Cap', smid:'SMID (Mid+Small)',
+    gold:'Gold', silver:'Silver', commodities:'Commodities', intl_equity:'International Equity',
+    cash:'Cash', fund:'Specific Fund', equity_total:'Total Equity', non_equity:'Non-Equity (Debt+Others)'
+  };
+  return LABELS[bucket] || bucket;
+}
+
 // Solve one instruction against a given holdings+aum state. Returns a plan (not yet applied).
+// `instr.basis`: 'aum' | 'equity' | 'current_bucket' (NEW — "% of current bucket" per the build
+// brief, e.g. "reduce Value by 50% FROM CURRENT LEVELS" = basis:'current_bucket', form:'absolute',
+// value:50 => targetAmt = 0.5 * currentAmt, regardless of instr.form's usual delta/absolute meaning
+// over %AUM/%equity).
 function solveTargetInstruction(holdings, aum, instr){
   const metrics = computeClientMetrics(holdings, aum);
   const classified = metrics.classified;
@@ -26748,19 +26979,302 @@ function solveTargetInstruction(holdings, aum, instr){
   currentPctAum = aum>0 ? currentAmt/aum*100 : 0;
   currentPctEquity = metrics.eqAmt>0 ? currentAmt/metrics.eqAmt*100 : 0;
 
-  const basisDenom = instr.basis === 'equity' ? metrics.eqAmt : aum;
-  let targetPctOnBasis;
-  const currentPctOnBasis = instr.basis === 'equity' ? currentPctEquity : currentPctAum;
-  if (instr.form === 'absolute') targetPctOnBasis = instr.value;
-  else targetPctOnBasis = currentPctOnBasis + instr.value;
-
-  const targetAmt = basisDenom * targetPctOnBasis/100;
+  let targetAmt, targetPctOnBasis, basisDenom;
+  if (instr.basis === 'current_bucket') {
+    // instr.value is interpreted as "% of CURRENT bucket amount" (e.g. 50 = keep 50%, i.e. halve it).
+    // instr.form is ignored for this basis — value is always a multiplier on the bucket's own current level.
+    basisDenom = currentAmt;
+    targetAmt = currentAmt * (instr.value/100);
+    targetPctOnBasis = instr.value; // "% of current" for display
+  } else {
+    basisDenom = instr.basis === 'equity' ? metrics.eqAmt : aum;
+    const currentPctOnBasis = instr.basis === 'equity' ? currentPctEquity : currentPctAum;
+    if (instr.form === 'absolute') targetPctOnBasis = instr.value;
+    else targetPctOnBasis = currentPctOnBasis + instr.value;
+    targetAmt = basisDenom * targetPctOnBasis/100;
+  }
   const deltaAmt = targetAmt - currentAmt; // positive = buy, negative = sell
 
   return {
     instr, metrics, classified, currentAmt, currentPctAum, currentPctEquity,
     targetAmt, targetPctOnBasis, deltaAmt, aum, basisDenom
   };
+}
+
+// ============================================================================
+// NESTED / RATIO INSTRUCTION SOLVER — "within Domestic Equity, LC:SMID = 60:40" style
+// ============================================================================
+// Generalized: parentBucket's OWN total is held fixed (unless a separate instruction earlier in the
+// queue already changed it — the caller always re-derives the parent's current total from the LIVE
+// holdings state, so stacked-queue sequencing already gives "apply in sequence" for free, exactly as
+// the build brief specifies). Within that fixed parent total, solve for the buy/sell legs on the two
+// named child buckets that hit the requested ratio.
+function solveRatioInstruction(holdings, aum, instr){
+  // instr = { type:'ratio', parentBucket, childA, childB, ratioA, ratioB, fundIsinA, fundIsinB }
+  const metrics = computeClientMetrics(holdings, aum);
+  const classified = metrics.classified;
+  const parentAmt = bucketAmountForClassified(classified, instr.parentBucket);
+  const aAmt = bucketAmountForClassified(classified, instr.childA);
+  const bAmt = bucketAmountForClassified(classified, instr.childB);
+  const otherAmt = parentAmt - aAmt - bAmt; // anything else inside the parent bucket not in A or B (kept as-is)
+  const ratioSum = instr.ratioA + instr.ratioB;
+  const poolForAB = aAmt + bAmt; // we only redistribute what's currently in A+B, parent total unchanged
+  const targetA = poolForAB * (instr.ratioA/ratioSum);
+  const targetB = poolForAB * (instr.ratioB/ratioSum);
+  const deltaA = targetA - aAmt;
+  const deltaB = targetB - bAmt;
+  return {
+    instr, metrics, classified, parentAmt, aAmt, bAmt, otherAmt,
+    targetA, targetB, deltaA, deltaB, aum
+  };
+}
+
+// Find the "purest" existing holding for a bucket — i.e. the fund whose OWN market value is most
+// concentrated in that single bucket (fewest other-bucket amounts mixed in). Used as the default BUY
+// destination for ratio/nested instructions, because real multi-cap/blended funds cannot be
+// decomposed into their LC/MC/SC (etc.) sleeves for trading — only whole funds can be bought or sold.
+// Buying back into the SAME blended funds that were just trimmed pro-rata would recreate the original
+// blend and barely move the ratio at all (confirmed empirically — see build notes). Falls back to the
+// largest existing holding in the bucket if no reasonably pure candidate exists, and flags that
+// fallback via `impure:true` so the caller can surface a "no pure fund available" note rather than
+// silently pretending the trade precisely hit the target ratio.
+function findPurestHoldingForBucket(holdings, classified, bucket){
+  const rows = matchingHoldingsForBucket(holdings, classified, bucket);
+  if (!rows.length) return null;
+  const purityOf = (c)=>{
+    const total = c.eqAmt || (c.debtAmt+c.othAmt) || c.mval;
+    const inBucket = bucketRowAmount(c, bucket);
+    return total>0 ? inBucket/total : 0; // 1.0 = fund is 100% this bucket
+  };
+  const sorted = rows.slice().sort((a,b)=> purityOf(b.c) - purityOf(a.c));
+  const best = sorted[0];
+  const purity = purityOf(best.c);
+  return { security: best.c.security, isin: best.c.isin, purity, impure: purity < 0.95 };
+}
+function bucketRowAmount(c, bucket){
+  const { dim, val } = parseBucketToken(bucket);
+  if (dim==='sector') return c.sector===val ? c.eqAmt : 0;
+  if (dim==='dmEm') return c.dmEm===val ? c.eqAmt : 0;
+  if (dim==='factor') return c.factor===val ? c.eqAmt : 0;
+  if (dim==='fiDuration') return c.fiDuration===val ? c.debtAmt : 0;
+  switch(bucket){
+    case 'large_cap': return c.lcAmt;
+    case 'mid_cap': return c.mcAmt;
+    case 'small_cap': return c.scAmt;
+    case 'smid': return c.smidAmt||0;
+    case 'domestic_equity': return c.isIntlEq?0:c.eqAmt;
+    case 'global_equity': case 'intl_equity': return c.isIntlEq?c.eqAmt:0;
+    case 'debt': return c.debtAmt;
+    case 'others': return c.othAmt;
+    case 'gold': return /gold/i.test(c.security)?c.mval:0;
+    case 'silver': return /silver/i.test(c.security)?c.mval:0;
+    case 'commodities': return c.isCommodity?c.mval:0;
+    default: return 0;
+  }
+}
+
+// Fallback destination funds for common ratio buckets when a client holds NOTHING at all in that
+// bucket (so findPurestHoldingForBucket has nothing to return) and the caller didn't pin an explicit
+// ISIN either. Without this, a ratio instruction like Gold:Silver 85:15 or DM:EM 60:40 would throw
+// mid-batch for any client who happens to hold zero of one side today — confirmed empirically: Rakesh
+// Kumar Jain (LVPMS) holds Gold but no Silver at all, and Dinanath Ramchandra Thakar (CoPilot) holds
+// DM global equity but no EM at all. These are real, not edge-case-only, so a sensible book default
+// (matching the instruments already used elsewhere in this book) is needed rather than a hard failure.
+const DEFAULT_BUCKET_ISINS = {
+  'gold': 'INF109KC1NT3',   // ICICI PRUDENTIAL GOLD ETF — already the most widely held gold ETF in this book
+  'silver': 'INF109KC1Y56', // ICICI Pru Silver ETF
+  'dmEm:EM': 'INF846K01Y39', // Axis Greater China Equity FoF — already held by Rajnish Kumar
+  'dmEm:DM': 'INF090I01JR0', // Franklin U.S. Opportunities Equity Active FoF — already held by Rajnish Kumar
+};
+
+// Apply a solved ratio plan: two paired legs. Parent bucket's TOTAL ₹ value is preserved (this is an
+// internal reallocation, never needs an external funding leg) — but because real holdings are
+// blended multi-cap/multi-sector funds, trimming "X of large_cap exposure" out of a blended fund
+// necessarily also carries away some of that fund's OTHER exposure (see applyTargetPlan's SELL-leg
+// gross-up), so the ACTUAL whole-fund cash freed by the sell leg(s) is generally MORE than the
+// nominal bucket-amount being moved. That actual freed cash (tracked from the real ticket amounts,
+// not the nominal delta) is what gets reinvested into the growing bucket — this is what keeps AUM
+// and total holding weights exactly conserved. Sell legs trim pro-rata across the shrinking bucket's
+// current holdings; buy legs default to the purest available existing fund for the growing bucket
+// (see findPurestHoldingForBucket), then DEFAULT_BUCKET_ISINS if the client holds none at all, unless
+// the caller pinned an explicit fundIsinA/fundIsinB. If a client's SELL leg throws (e.g. the shrinking
+// bucket doesn't exist for them either), the whole instruction is skipped for that client with a note
+// rather than leaving a half-applied, conservation-broken state (sell already executed, buy failed).
+function applyRatioPlan(holdings, aum, plan){
+  const { instr } = plan;
+  const tickets = [];
+  const impureWarnings = [];
+
+  function sellLeg(bucket, bucketAmtToRemove){
+    if (bucketAmtToRemove < 1e-6) return 0;
+    const cls = computeClientMetrics(holdings, aum).classified;
+    const subInstr = { bucket, mapping:'pro_rata' };
+    const fakePlan = { instr: subInstr, deltaAmt: -bucketAmtToRemove, classified: cls };
+    const ts = applyTargetPlan(holdings, aum, fakePlan);
+    tickets.push(...ts);
+    return ts.reduce((s,t)=> s + (t.side==='SELL'? t.amount:0), 0); // actual whole-fund cash freed
+  }
+  function buyLeg(bucket, cashToInvest, fundIsinExplicit){
+    if (cashToInvest < 1e-6) return;
+    let fundIsin = fundIsinExplicit;
+    const cls = computeClientMetrics(holdings, aum).classified;
+    if (!fundIsin) {
+      const purest = findPurestHoldingForBucket(holdings, cls, bucket);
+      if (purest) {
+        fundIsin = purest.isin || null;
+        if (purest.impure) impureWarnings.push('No highly-pure existing fund found for "'+bucketLabel(bucket)+'" — bought into best available: '+purest.security+' (only '+(purest.purity*100).toFixed(0)+'% pure). Consider adding a dedicated fund via ISIN.');
+      }
+      if (!fundIsin && DEFAULT_BUCKET_ISINS[bucket]) {
+        fundIsin = DEFAULT_BUCKET_ISINS[bucket];
+        impureWarnings.push('Client holds NO existing fund at all for "'+bucketLabel(bucket)+'" — opened a new position via book default: '+(ADVISORY_V2[fundIsin]?ADVISORY_V2[fundIsin][0]:fundIsin)+'. Confirm this is the desired instrument.');
+      }
+    }
+    const subInstr = { bucket, fundIsin, mapping: fundIsin?'concentrate':'pro_rata', concentrateIsin: fundIsin };
+    const fakePlan = { instr: subInstr, deltaAmt: cashToInvest, classified: cls };
+    tickets.push(...applyTargetPlan(holdings, aum, fakePlan));
+  }
+
+  // Sell whichever child is shrinking (by its BUCKET amount, i.e. plan.deltaA/deltaB — those are
+  // exact bucket-exposure deltas from solveRatioInstruction), capture the REAL cash freed, then buy
+  // that real cash into whichever child is growing. This keeps total ₹ exactly conserved even though
+  // the sell leg's whole-fund cash freed != the nominal bucket delta for blended funds.
+  let freedCash = 0;
+  if (plan.deltaA < 0) freedCash += sellLeg(instr.childA, -plan.deltaA);
+  if (plan.deltaB < 0) freedCash += sellLeg(instr.childB, -plan.deltaB);
+  if (plan.deltaA > 0) buyLeg(instr.childA, freedCash, instr.fundIsinA);
+  else if (plan.deltaB > 0) buyLeg(instr.childB, freedCash, instr.fundIsinB);
+  tickets.impureWarnings = impureWarnings;
+  return tickets;
+}
+
+// ============================================================================
+// N-WAY RATIO — generalizes the 2-way ratio above to any number of children within one parent bucket
+// (e.g. "Momentum 50% / Low Vol 25% / Value 25%" — a real IC instruction that a 2-way split can't
+// express). Same pool-preservation rule as the 2-way case: only what's CURRENTLY in the named children
+// gets redistributed; the parent's total (and anything else inside it) is untouched.
+// ============================================================================
+function solveMultiRatioInstruction(holdings, aum, instr){
+  // instr = { type:'multiway_ratio', parentBucket, children: [{bucket, ratio, fundIsin?}, ...] }
+  const metrics = computeClientMetrics(holdings, aum);
+  const classified = metrics.classified;
+  const amounts = instr.children.map(c => bucketAmountForClassified(classified, c.bucket));
+  const poolTotal = amounts.reduce((s,a)=>s+a, 0);
+  const ratioSum = instr.children.reduce((s,c)=>s+c.ratio, 0);
+  const targets = instr.children.map((c,i)=> poolTotal * (c.ratio/ratioSum));
+  const deltas = targets.map((t,i)=> t - amounts[i]);
+  return { instr, metrics, classified, amounts, poolTotal, targets, deltas, aum };
+}
+function applyMultiRatioPlan(holdings, aum, plan){
+  const { instr, deltas } = plan;
+  const tickets = [];
+  const impureWarnings = [];
+  function sellLeg(bucket, bucketAmtToRemove){
+    if (bucketAmtToRemove < 1e-6) return 0;
+    const cls = computeClientMetrics(holdings, aum).classified;
+    const fakePlan = { instr: { bucket, mapping:'pro_rata' }, deltaAmt: -bucketAmtToRemove, classified: cls };
+    const ts = applyTargetPlan(holdings, aum, fakePlan);
+    tickets.push(...ts);
+    return ts.reduce((s,t)=> s + (t.side==='SELL'? t.amount:0), 0);
+  }
+  function buyLeg(bucket, cashToInvest, fundIsinExplicit){
+    if (cashToInvest < 1e-6) return;
+    let fundIsin = fundIsinExplicit;
+    const cls = computeClientMetrics(holdings, aum).classified;
+    if (!fundIsin) {
+      const purest = findPurestHoldingForBucket(holdings, cls, bucket);
+      if (purest) {
+        fundIsin = purest.isin || null;
+        if (purest.impure) impureWarnings.push('No highly-pure existing fund found for "'+bucketLabel(bucket)+'" — bought into best available: '+purest.security+' (only '+(purest.purity*100).toFixed(0)+'% pure).');
+      }
+      if (!fundIsin && DEFAULT_BUCKET_ISINS[bucket]) {
+        fundIsin = DEFAULT_BUCKET_ISINS[bucket];
+        impureWarnings.push('Client holds NO existing fund at all for "'+bucketLabel(bucket)+'" — opened a new position via book default: '+(ADVISORY_V2[fundIsin]?ADVISORY_V2[fundIsin][0]:fundIsin)+'. Confirm this is the desired instrument.');
+      }
+    }
+    const fakePlan = { instr: { bucket, fundIsin, mapping: fundIsin?'concentrate':'pro_rata', concentrateIsin: fundIsin }, deltaAmt: cashToInvest, classified: cls };
+    tickets.push(...applyTargetPlan(holdings, aum, fakePlan));
+  }
+  // Sell every shrinking child first (pool-preservation: total freed cash across all shrinking
+  // children funds all growing children — never touches anything outside the named pool), THEN
+  // distribute the real freed cash pro-rata across growing children by their delta magnitude (not
+  // the nominal delta itself, matching the 2-way case's "use actual cash freed" approach so blended
+  // funds' gross-up never breaks conservation).
+  let freedCash = 0;
+  instr.children.forEach((c,i)=>{ if (deltas[i] < 0) freedCash += sellLeg(c.bucket, -deltas[i]); });
+  const growing = instr.children.map((c,i)=>({c,i})).filter(({i})=> deltas[i] > 1e-6);
+  const growingTotal = growing.reduce((s,{i})=> s+deltas[i], 0);
+  growing.forEach(({c,i})=>{
+    const share = growingTotal>0 ? freedCash * (deltas[i]/growingTotal) : 0;
+    buyLeg(c.bucket, share, c.fundIsin);
+  });
+  tickets.impureWarnings = impureWarnings;
+  return tickets;
+}
+
+// ============================================================================
+// PAIRED REALLOCATION — "sell X% of bucket/fund A, buy bucket/fund B with the proceeds" as ONE instruction
+// ============================================================================
+function solvePairedReallocation(holdings, aum, instr){
+  // instr = { type:'paired', fromBucket, fromFundIsin, fromForm:'pct'|'abs', fromValue, toBucket, toFundIsin }
+  const metrics = computeClientMetrics(holdings, aum);
+  const classified = metrics.classified;
+  const fromAmt = instr.fromBucket==='fund'
+    ? matchingHoldingsForBucket(holdings, classified, 'fund', instr.fromFundIsin).reduce((s,r)=>s+r.c.mval,0)
+    : bucketAmountForClassified(classified, instr.fromBucket);
+  const sellAmt = instr.fromForm === 'pct' ? fromAmt * (instr.fromValue/100) : instr.fromValue;
+  return { instr, metrics, classified, fromAmt, sellAmt, aum };
+}
+function applyPairedReallocation(holdings, aum, plan){
+  const { instr, sellAmt, classified } = plan;
+  const tickets = [];
+  // SELL leg
+  const sellPlan = { instr: { bucket: instr.fromBucket, fundIsin: instr.fromFundIsin, mapping: instr.fromFundIsin?'concentrate':'pro_rata', concentrateIsin: instr.fromFundIsin }, deltaAmt: -sellAmt, classified };
+  tickets.push(...applyTargetPlan(holdings, aum, sellPlan));
+  // BUY leg — proceeds go straight into the destination, no cash/funding-source detour
+  const cls2 = computeClientMetrics(holdings, aum).classified;
+  const buyPlan = { instr: { bucket: instr.toBucket, fundIsin: instr.toFundIsin, mapping: instr.toFundIsin?'concentrate':'pro_rata', concentrateIsin: instr.toFundIsin }, deltaAmt: sellAmt, classified: cls2 };
+  tickets.push(...applyTargetPlan(holdings, aum, buyPlan));
+  return tickets;
+}
+
+// ============================================================================
+// NEW-MONEY-ONLY RULES — standing rules applied automatically whenever the workflow buys INTO the
+// named category as a funding destination (e.g. "new Fixed Income purchases: 85:15 3-5Y:30Y+").
+// ============================================================================
+let NEW_MONEY_RULES = []; // [{ id, category /* bucket token this rule governs, e.g. 'debt' */, splits: [{bucket, ratio, fundIsin, label}] }]
+
+function addNewMoneyRule(category, splits){
+  const rule = { id: 'nmr_'+Date.now()+'_'+Math.floor(Math.random()*1000), category, splits };
+  NEW_MONEY_RULES.push(rule);
+  return rule;
+}
+function removeNewMoneyRule(id){ NEW_MONEY_RULES = NEW_MONEY_RULES.filter(r=>r.id!==id); }
+
+// When `amount` of NEW money is being bought into `category` (a bucket token, e.g. 'debt'), split it
+// per any matching standing new-money rule instead of buying a single lump. Returns tickets and true
+// if a rule applied (so the caller can skip its normal single-fund buy path).
+function applyNewMoneyRuleIfAny(holdings, aum, category, amount){
+  const rule = NEW_MONEY_RULES.find(r=>r.category===category);
+  if (!rule || amount <= 1e-6) return { applied:false, tickets:[] };
+  const ratioSum = rule.splits.reduce((s,sp)=>s+sp.ratio,0);
+  const tickets = [];
+  rule.splits.forEach(sp=>{
+    const amt = amount * (sp.ratio/ratioSum);
+    if (amt<=1e-6) return;
+    const isin = sp.fundIsin;
+    let security = isin ? holdings.find(h=>(ISIN_MAP[h.security]||'')===isin)?.security : null;
+    if (!security && isin && ADVISORY_V2[isin]) security = ADVISORY_V2[isin][0];
+    if (!security) security = sp.label || (bucketLabel(sp.bucket)+' (new money)');
+    const existingIdx = findHoldingIndexBySecurity(holdings, security);
+    if (existingIdx!==-1) { holdings[existingIdx].market_value += amt; holdings[existingIdx].cost += amt; }
+    else {
+      let ac = 'Fixed Income';
+      if (isin && ADVISORY_V2[isin]) ac = ADVISORY_V2[isin][3]>=95?'Equity':(ADVISORY_V2[isin][4]>=95?'Fixed Income':'Hybrid');
+      holdings.push({ asset_class: ac, security, quantity:null, unit_cost:null, cost:amt, price:null, market_value:amt, gain_loss:0, gl_pct:0, assets_pct:0 });
+    }
+    tickets.push({ fund: security, side:'BUY', amount: amt, note: 'New-money rule: '+bucketLabel(category) });
+  });
+  return { applied:true, tickets };
 }
 
 // Apply a solved plan to holdings (mutates in place). Returns trade ticket lines.
@@ -26772,11 +27286,29 @@ function applyTargetPlan(holdings, aum, plan){
   function bucketRows(){ return matchingHoldingsForBucket(holdings, computeClientMetrics(holdings,aum).classified, bucket, instr.fundIsin); }
 
   if (deltaAmt > 1e-6) {
+    // NEW-MONEY RULE CHECK: if this buy leg is targeting a bucket that has a standing new-money
+    // rule AND the caller didn't pin an explicit fund/ISIN (an explicit choice always overrides the
+    // standing rule), split the buy per the rule instead of picking one lump-sum destination fund.
+    const explicitFund = instr.fundIsin || instr.concentrateIsin;
+    if (!explicitFund) {
+      const nmr = applyNewMoneyRuleIfAny(holdings, aum, bucket, deltaAmt);
+      if (nmr.applied) { tickets.push(...nmr.tickets); return tickets; }
+    }
     // BUY leg: into the bucket
     let buyIsin = instr.fundIsin || instr.concentrateIsin;
     let buySecurity = null;
     if (bucket === 'fund') {
       buySecurity = holdings.find(h=> ISIN_MAP[h.security]===instr.fundIsin || h.security===instr.fundIsin)?.security;
+    }
+    // IMPORTANT: if the target ISIN is ALREADY held (under whatever exact security-name string the
+    // client's holdings array uses), always match that EXISTING string first — never fall through to
+    // ADVISORY_V2's canonical scheme name, which can differ only in capitalisation/punctuation from
+    // the name actually used in this book (confirmed: ISIN_MAP has "NIPPON INDIA ETF NIFTY MIDCAP
+    // 150" all-caps, while ADVISORY_V2[isin][0] is "Nippon India ETF Nifty Midcap 150" title-case —
+    // using the ADVISORY_V2 name here silently created a SECOND, duplicate holding for the same fund
+    // instead of adding to the existing position).
+    if (!buySecurity && buyIsin) {
+      buySecurity = holdings.find(h => (ISIN_MAP[h.security]||'') === buyIsin)?.security || null;
     }
     if (!buySecurity && buyIsin && ADVISORY_V2[buyIsin]) buySecurity = ADVISORY_V2[buyIsin][0];
     if (!buySecurity) {
@@ -26814,25 +27346,44 @@ function applyTargetPlan(holdings, aum, plan){
       tickets.push({ fund: buySecurity, side:'BUY', amount: deltaAmt });
     }
   } else if (deltaAmt < -1e-6) {
-    // SELL leg: trim pro-rata (or from concentrate fund) within the bucket
+    // SELL leg: trim pro-rata (or from concentrate fund) within the bucket.
+    // IMPORTANT: for bucket types that represent a FRACTION of a fund's own value (large_cap,
+    // mid_cap, small_cap, smid, sector:*, factor:*, dmEm:*, fiDuration:* — any bucket where
+    // bucketRowAmount(c,bucket) can be less than c.mval), pro-rata weighting AND the ₹ amount
+    // trimmed from each whole fund must be scaled by that fund's OWN bucket-specific amount
+    // (bucketRowAmount), not by its total market value — otherwise trimming "X from large_cap"
+    // removes less than X of actual large-cap exposure (it also bleeds into the fund's other
+    // sleeves) whenever holdings are blended multi-cap/multi-sector funds. Confirmed empirically:
+    // weighting by whole-fund mval on a blended-fund book removed <55% of the intended bucket
+    // amount. Weighting by bucketRowAmount and grossing up the per-fund trim by
+    // (fundTotalValue/fundBucketAmount) removes exactly `sellAmtTotal` of the bucket's amount.
     const sellAmtTotal = -deltaAmt;
     const rows = matchingHoldingsForBucket(holdings, classified, bucket, instr.fundIsin);
     if (instr.mapping === 'concentrate' && instr.concentrateIsin) {
       const targetSecurity = holdings.find(h => (ISIN_MAP[h.security]||'') === instr.concentrateIsin)?.security;
       const row = rows.find(r=>r.c.security===targetSecurity) || rows[0];
       if (row) {
-        const sold = trimHolding(holdings, row.c.security, 'abs', sellAmtTotal);
+        const bucketAmtInRow = bucketRowAmount(row.c, bucket);
+        const grossUp = (bucketAmtInRow>1e-9 && bucketAmtInRow < row.c.mval) ? row.c.mval/bucketAmtInRow : 1;
+        const wholeFundAmtNeeded = Math.min(row.c.mval, sellAmtTotal * grossUp);
+        const sold = trimHolding(holdings, row.c.security, 'abs', wholeFundAmtNeeded);
         tickets.push({ fund: row.c.security, side:'SELL', amount: sold });
       }
     } else {
-      const totalBase = rows.reduce((s,r)=>s+r.c.mval,0);
-      if (totalBase > 0) {
-        // snapshot names+fractions before mutating (indices shift on trim-to-zero splices)
-        const plan2 = rows.map(r=>({ security: r.c.security, frac: r.c.mval/totalBase }));
+      const totalBucketBase = rows.reduce((s,r)=> s + bucketRowAmount(r.c, bucket), 0);
+      if (totalBucketBase > 0) {
+        // snapshot names+bucket-fractions+gross-up factors before mutating (indices shift on trim-to-zero splices)
+        const plan2 = rows.map(r=>{
+          const bucketAmtInRow = bucketRowAmount(r.c, bucket);
+          const frac = bucketAmtInRow/totalBucketBase; // this fund's share of the BUCKET amount, not its own total value
+          const grossUp = (bucketAmtInRow>1e-9 && bucketAmtInRow < r.c.mval) ? r.c.mval/bucketAmtInRow : 1;
+          return { security: r.c.security, frac, grossUp, mval: r.c.mval };
+        });
         plan2.forEach(p=>{
-          const amt = sellAmtTotal * p.frac;
-          if (amt > 1e-6) {
-            const sold = trimHolding(holdings, p.security, 'abs', amt);
+          const bucketAmtToRemove = sellAmtTotal * p.frac; // how much of the BUCKET amount to remove from this fund
+          const wholeFundAmt = Math.min(p.mval, bucketAmtToRemove * p.grossUp); // whole-fund ₹ that carries that much bucket exposure
+          if (wholeFundAmt > 1e-6) {
+            const sold = trimHolding(holdings, p.security, 'abs', wholeFundAmt);
             tickets.push({ fund: p.security, side:'SELL', amount: sold });
           }
         });
@@ -26894,6 +27445,116 @@ function applyFundingLeg(holdings, aum, primaryDeltaAmt, fundingSource, fundingF
 }
 
 // ============================================================================
+// FUNDING WATERFALL — ordered list of sources, drained in order until the target amount is raised
+// (or supplied a sell destination for a net-sell instruction). Replaces the single-funding-leg
+// concept for the new unified UI. Each source is one of:
+//   { kind:'named',      isins:[...] }                — explicit list of fund ISINs, drained in order given
+//   { kind:'ips_breach' }                              — auto: holdings contributing to an IPS band breach for
+//                                                         THIS client, sorted by how much they breach by (desc)
+//   { kind:'underperformers' }                         — auto: holdings sorted by worst gl_pct first
+//   { kind:'explicit_sell', names:[...] }              — user-named securities (by exact security string)
+//   { kind:'cash' }                                    — the client's own Cash line
+// Runs independently per client — call once per client with that client's own live holdings/aum.
+// ============================================================================
+
+// Rank this client's OWN holdings by "how much they're contributing to an IPS breach", worst first.
+// Heuristic: for every breaching metric, holdings that are members of the OVER-weight side of that
+// metric's bucket are ranked by their own ₹ size within that bucket (bigger contributor = sell first).
+// This is necessarily a heuristic — evaluateIps() operates on portfolio-level %s, not a per-holding
+// attribution model — so it is documented here as best-effort, consistent with the rest of the
+// extended-classification work being explicitly best-effort throughout this build.
+function rankIpsBreachContributors(holdings, aum){
+  const metrics = computeClientMetrics(holdings, aum);
+  const ev = evaluateIps(metrics);
+  const breachBucketMap = {
+    equity: metrics.eqPct > (_TMPL[metrics.riskProfile].equity.max||100) ? 'equity_total' : null,
+    mc: 'mid_cap', sc: 'small_cap',
+    debt_alt: metrics.debtAltPct < (_TMPL[metrics.riskProfile].debt_alt.min||0) ? null : 'non_equity',
+    commodity: 'commodities', lockin: null, amc: null, scheme: null, intl_eq: 'intl_equity'
+  };
+  const contributorAmts = {}; // security -> score (sum of breach-bucket ₹ it holds, only for breaching metrics)
+  Object.entries(ev.results).forEach(([key, r])=>{
+    if (!r.check[0]) return; // not breaching
+    const bucket = breachBucketMap[key];
+    if (!bucket) return;
+    matchingHoldingsForBucket(holdings, metrics.classified, bucket).forEach(row=>{
+      contributorAmts[row.c.security] = (contributorAmts[row.c.security]||0) + row.c.mval;
+    });
+  });
+  return Object.entries(contributorAmts)
+    .map(([security, score])=>({ security, score }))
+    .sort((a,b)=>b.score-a.score);
+}
+
+// Rank this client's own holdings by worst gl_pct first ("the ones that aren't good"), excluding Cash.
+function rankUnderperformers(holdings){
+  return holdings.filter(h=>h.security!=='Cash' && h.gl_pct!=null)
+    .slice().sort((a,b)=>a.gl_pct-b.gl_pct)
+    .map(h=>({ security: h.security, gl_pct: h.gl_pct, market_value: h.market_value }));
+}
+
+// Drain `need` (₹ to raise, always >=0 here — caller handles the sign) from the ordered waterfall.
+// Returns { tickets, raised, shortfall } — shortfall>0 means every source was exhausted before the
+// full amount could be raised (surfaced to the user rather than silently under-funding the trade).
+function runFundingWaterfall(holdings, aum, need, sources){
+  const tickets = [];
+  let remaining = need;
+  const usedSources = [];
+  for (const src of sources) {
+    if (remaining <= 1e-6) break;
+    let candidateSecurities = [];
+    if (src.kind === 'named') {
+      candidateSecurities = (src.isins||[]).map(isin=> holdings.find(h=>(ISIN_MAP[h.security]||'')===isin)?.security).filter(Boolean);
+    } else if (src.kind === 'explicit_sell') {
+      candidateSecurities = (src.names||[]).filter(n=> holdings.some(h=>h.security===n));
+    } else if (src.kind === 'ips_breach') {
+      candidateSecurities = rankIpsBreachContributors(holdings, aum).map(r=>r.security);
+    } else if (src.kind === 'underperformers') {
+      candidateSecurities = rankUnderperformers(holdings).map(r=>r.security);
+    } else if (src.kind === 'cash') {
+      const cashIdx = holdings.findIndex(h=>h.security==='Cash');
+      const avail = cashIdx!==-1 ? Math.max(holdings[cashIdx].market_value,0) : 0;
+      const draw = Math.min(remaining, avail);
+      if (draw > 1e-6) {
+        holdings[cashIdx].market_value -= draw; holdings[cashIdx].cost -= draw;
+        tickets.push({ fund:'Cash', side:'SELL', amount: draw, note:'Funding waterfall: Cash' });
+        remaining -= draw;
+        usedSources.push({ kind:'cash', drew: draw });
+      }
+      continue;
+    }
+    let drewFromThisSource = 0;
+    for (const security of candidateSecurities) {
+      if (remaining <= 1e-6) break;
+      const h = holdings.find(x=>x.security===security);
+      if (!h || h.market_value<=1e-6) continue;
+      const draw = Math.min(remaining, h.market_value);
+      const sold = trimHolding(holdings, security, 'abs', draw);
+      tickets.push({ fund: security, side:'SELL', amount: sold, note: 'Funding waterfall: '+src.kind });
+      remaining -= sold;
+      drewFromThisSource += sold;
+    }
+    if (drewFromThisSource>1e-6) usedSources.push({ kind: src.kind, drew: drewFromThisSource });
+  }
+  return { tickets, raised: need-remaining, shortfall: Math.max(0,remaining), usedSources };
+}
+
+// Route `need` (positive = must RAISE ₹ from the waterfall; negative = SURPLUS ₹ flows TO cash) using
+// the ordered source list. This is the drop-in replacement for applyFundingLeg() for the new unified
+// flow's Rebalance mode.
+function applyFundingWaterfall(holdings, aum, need, sources){
+  if (Math.abs(need) < 1e-6) return { tickets:[], raised:0, shortfall:0, usedSources:[] };
+  if (need < 0) {
+    // net sell upstream -> proceeds go to cash (same convention as applyFundingLeg's cash_first path)
+    const cashIdx = findOrCreateCashLine(holdings);
+    holdings[cashIdx].market_value += (-need);
+    holdings[cashIdx].cost += (-need);
+    return { tickets:[{ fund:'Cash', side:'BUY', amount:-need, note:'Waterfall surplus to Cash' }], raised:-need, shortfall:0, usedSources:[{kind:'cash-surplus', drew:-need}] };
+  }
+  return runFundingWaterfall(holdings, aum, need, sources);
+}
+
+// ============================================================================
 // CONSERVATION CHECKS
 // ============================================================================
 function checkConservation(preAum, postHoldings, postAum, mode, cashDelta){
@@ -26938,221 +27599,7 @@ document.querySelectorAll('.tab-btn').forEach(btn=>{
 });
 
 // ============================================================================
-// SINGLE-CLIENT EDITOR
-// ============================================================================
-let ACTIVE_STRATEGY_IDX = null;
-let ACTIVE_CLIENT_IDX = null;
-
-function populateStrategyPicker(){
-  const sel = document.getElementById('sc-strategy');
-  sel.innerHTML = STRATEGY_DATA.map((s,i)=>`<option value="${i}">${esc(s.name)}</option>`).join('');
-  sel.addEventListener('change', populateClientPicker);
-  populateClientPicker();
-}
-function populateClientPicker(){
-  const si = +document.getElementById('sc-strategy').value;
-  const sel = document.getElementById('sc-client');
-  sel.innerHTML = STRATEGY_DATA[si].clients.map((c,i)=>`<option value="${i}">${esc(c.name)} (${esc(c.account)})</option>`).join('');
-}
-
-function loadClientIntoEditor(strategyIdx, clientIdx){
-  ACTIVE_STRATEGY_IDX = strategyIdx;
-  ACTIVE_CLIENT_IDX = clientIdx;
-  openClientWorkingCopy(strategyIdx, clientIdx);
-  renderSingleClientPanel();
-}
-
-function currentClient(){
-  return findClientEntry(ACTIVE_STRATEGY_IDX, ACTIVE_CLIENT_IDX).client;
-}
-function currentWorkingCopy(){
-  return getWorkingCopy(ACTIVE_STRATEGY_IDX, ACTIVE_CLIENT_IDX);
-}
-
-function renderSingleClientPanel(){
-  const client = currentClient();
-  const wc = currentWorkingCopy();
-  document.getElementById('sc-client-panel').style.display = '';
-  document.getElementById('sc-client-title').textContent = client.name + ' — ' + client.account + ' (' + client.ndas + ')';
-
-  // Reconciliation banner for this specific client (only meaningful if it has an IPS entry)
-  const ic = findIpsEntryForClient(client);
-  const banner = document.getElementById('sc-recon-banner');
-  if (ic) {
-    const originalMetrics = computeClientMetrics(cloneHoldings(client.holdings), client.aum);
-    const mism = [];
-    RECON_FIELDS.forEach(f=>{
-      const ipsVal = f.ips(ic);
-      if (ipsVal == null) return;
-      const engVal = f.eng(originalMetrics);
-      const diff = pctDiff(engVal, ipsVal, f.tolType);
-      if (diff > 0.1) mism.push({field:f.label, ips:ipsVal, engine:engVal, delta:diff});
-    });
-    if (mism.length) {
-      banner.innerHTML = `<div class="recon-fail"><strong>⚠ Baseline reconciliation FAILED for this client — edits are still allowed but numbers below may not match the dashboard's own methodology exactly.</strong>
-        <table><thead><tr><th>Field</th><th>IPS_DATA</th><th>Engine</th><th>Δ</th></tr></thead><tbody>
-        ${mism.map(m=>`<tr><td>${esc(m.field)}</td><td>${m.ips.toFixed(2)}</td><td>${m.engine.toFixed(2)}</td><td>${m.delta.toFixed(2)}pp</td></tr>`).join('')}
-        </tbody></table></div>`;
-    } else {
-      banner.innerHTML = `<div class="recon-ok">✓ Baseline reconciliation PASSED for this client (engine matches dashboard IPS_DATA within ±0.1%).</div>`;
-    }
-  } else {
-    const noIps = findNoIpsEntryForClient(client);
-    banner.innerHTML = `<div class="muted small">${noIps? 'No IPS entry for this client — reason: '+esc(noIps.reason) : 'No IPS entry found for this client.'}</div>`;
-  }
-
-  renderSummaryStats(wc);
-  renderHoldingsTable(wc);
-  renderIpsTable(wc);
-  renderBeforeAfter('sc-before-after', client.holdings, client.aum, wc.holdings, wc.aum);
-}
-
-function renderSummaryStats(wc){
-  const m = computeClientMetrics(wc.holdings, wc.aum);
-  const el = document.getElementById('sc-summary-stats');
-  el.innerHTML = `
-    <div class="stat"><div class="val" title="${wc.aum}">${fmtCr(wc.aum)}</div><div class="lbl">AUM</div></div>
-    <div class="stat"><div class="val" title="${m.eqPct}">${m.eqPct.toFixed(1)}%</div><div class="lbl">Equity</div></div>
-    <div class="stat"><div class="val" title="${m.debtAltPct}">${m.debtAltPct.toFixed(1)}%</div><div class="lbl">Debt+Alt</div></div>
-    <div class="stat"><div class="val">${m.riskProfile}</div><div class="lbl">Risk Profile</div></div>
-    <div class="stat"><div class="val" title="${m.lcPct}">${m.lcPct.toFixed(1)}/${m.mcPct.toFixed(1)}/${m.scPct.toFixed(1)}</div><div class="lbl">LC/MC/SC</div></div>
-  `;
-}
-
-function renderHoldingsTable(wc){
-  const m = computeClientMetrics(wc.holdings, wc.aum);
-  const tbody = document.querySelector('#sc-holdings-table tbody');
-  const rows = wc.holdings.slice().sort((a,b)=>b.market_value-a.market_value);
-  tbody.innerHTML = rows.map(h=>{
-    const c = classifyHolding(h);
-    const isin = c.isin || (h.security==='Cash'?'—':'unknown');
-    const weight = wc.aum>0 ? h.market_value/wc.aum*100 : 0;
-    return `<tr>
-      <td>${esc(h.security)}</td>
-      <td class="mono small">${esc(isin)}</td>
-      <td class="small">${esc(c.category)}</td>
-      <td class="num" title="${h.market_value}">${fmtRs(h.market_value)}</td>
-      <td class="num" title="${weight}">${weight.toFixed(2)}%</td>
-      <td>
-        <button class="ghost small" style="padding:4px 8px;font-size:11px;" onclick="uiTrimHolding('${esc(h.security).replace(/'/g,"\\'")}')">Trim</button>
-        <button class="ghost small" style="padding:4px 8px;font-size:11px;" onclick="uiDeleteHolding('${esc(h.security).replace(/'/g,"\\'")}')">Delete</button>
-      </td>
-    </tr>`;
-  }).join('');
-}
-
-function uiTrimHolding(security){
-  const pctStr = prompt('Trim "'+security+'" — enter % to sell (e.g. 33) or prefix with ₹ for absolute amount (e.g. ₹500000):');
-  if (!pctStr) return;
-  const wc = currentWorkingCopy();
-  try {
-    let freed;
-    if (pctStr.trim().startsWith('₹')) {
-      freed = trimHolding(wc.holdings, security, 'abs', parseFloat(pctStr.replace('₹','').replace(/,/g,'')));
-    } else {
-      freed = trimHolding(wc.holdings, security, 'pct', parseFloat(pctStr));
-    }
-    const dest = confirm('Freed ₹'+freed.toFixed(2)+'. Click OK to hold as Cash, or Cancel to reallocate to a chosen ISIN.');
-    if (dest) {
-      addCashAmount(wc.holdings, freed);
-    } else {
-      const isin = prompt('Enter ISIN to reallocate the freed cash into:');
-      if (isin) addHoldingByIsinInteractive(wc.holdings, isin, freed);
-      else addCashAmount(wc.holdings, freed);
-    }
-    recomputeWeights(wc.holdings, wc.aum);
-    renderSingleClientPanel();
-  } catch(e){ alert('Error: '+e.message); }
-}
-function uiDeleteHolding(security){
-  if (!confirm('Delete holding "'+security+'"? Proceeds will be moved to Cash.')) return;
-  const wc = currentWorkingCopy();
-  try {
-    const freed = deleteHolding(wc.holdings, security);
-    addCashAmount(wc.holdings, freed);
-    recomputeWeights(wc.holdings, wc.aum);
-    renderSingleClientPanel();
-  } catch(e){ alert('Error: '+e.message); }
-}
-function addHoldingByIsinInteractive(holdings, isin, amount){
-  if (!ADVISORY_V2[isin]) {
-    const name = prompt('ISIN '+isin+' not found in Advisory V2. Enter a name for this new instrument:') || isin;
-    const eq = parseFloat(prompt('Equity % (0-100):','100')||'100');
-    const debt = parseFloat(prompt('Debt % (0-100):','0')||'0');
-    const oth = parseFloat(prompt('Others % (0-100):', String(Math.max(0,100-eq-debt)))||'0');
-    const lc = parseFloat(prompt('Large Cap % (of equity):','100')||'100');
-    const mc = parseFloat(prompt('Mid Cap % (of equity):','0')||'0');
-    const sc = parseFloat(prompt('Small Cap % (of equity):','0')||'0');
-    const amc = prompt('AMC name:','Unknown AMC')||'Unknown AMC';
-    const cat = prompt('Category:','Manual Entry')||'Manual Entry';
-    addHoldingByIsin(holdings, isin, amount, name, {name, eq, debt, oth, lc, mc, sc, amc, cat});
-  } else {
-    addHoldingByIsin(holdings, isin, amount);
-  }
-}
-function uiAddHolding(){
-  const isin = prompt('Enter ISIN of the fund/security to add:');
-  if (!isin) return;
-  const amtStr = prompt('Enter ₹ amount to invest:');
-  if (!amtStr) return;
-  const amount = parseFloat(amtStr.replace(/,/g,''));
-  const wc = currentWorkingCopy();
-  try {
-    addHoldingByIsinInteractive(wc.holdings, isin, amount);
-    const src = confirm('Where does this money come from? OK = add fresh cash (Add Cash mode). Cancel = fund it by selling something else (specify next).');
-    if (!src) {
-      const sellIsin = prompt('Enter ISIN or exact security name to sell from to fund this purchase:');
-      if (sellIsin) {
-        const security = wc.holdings.find(h=>h.security===sellIsin || (ISIN_MAP[h.security]||'')===sellIsin)?.security;
-        if (security) trimHolding(wc.holdings, security, 'abs', amount);
-      }
-    }
-    recomputeWeights(wc.holdings, wc.aum);
-    renderSingleClientPanel();
-  } catch(e){ alert('Error: '+e.message); }
-}
-document.getElementById('sc-add-holding-btn').addEventListener('click', uiAddHolding);
-
-function renderIpsTable(wc){
-  const client = currentClient();
-  const el = document.getElementById('sc-ips-table');
-  const noIps = findNoIpsEntryForClient(client);
-  if (noIps) {
-    el.innerHTML = `<div class="muted">IPS not applicable — ${esc(noIps.reason)}</div>`;
-    return;
-  }
-  const m = computeClientMetrics(wc.holdings, wc.aum);
-  const ev = evaluateIps(m);
-  el.innerHTML = `
-    <div class="small muted" style="margin-bottom:8px;">Risk Profile: <strong>${m.riskProfile}</strong></div>
-    <table>
-      <thead><tr><th>Parameter</th><th>Band</th><th class="num">Current</th><th>Status</th></tr></thead>
-      <tbody>
-        <tr><td>Equity</td><td>${ev.tm.equity.label}</td><td class="num" title="${m.eqPct}">${m.eqPct.toFixed(1)}%</td><td>${statusPill(ev.results.equity.check)}</td></tr>
-        <tr><td>Large Cap (of equity)</td><td>${ev.tm.lc.label}</td><td class="num" title="${m.lcPct}">${m.lcPct.toFixed(1)}%</td><td>${statusPill(ev.results.lc.check)}</td></tr>
-        <tr><td>Mid Cap (of equity)</td><td>${ev.tm.mc.label}</td><td class="num" title="${m.mcPct}">${m.mcPct.toFixed(1)}%</td><td>${statusPill(ev.results.mc.check)}</td></tr>
-        <tr><td>Small Cap (of equity)</td><td>${ev.tm.sc.label}</td><td class="num" title="${m.scPct}">${m.scPct.toFixed(1)}%</td><td>${statusPill(ev.results.sc.check)}</td></tr>
-        <tr><td>Intl Equity (of equity)</td><td>${ev.tm.intl_eq.label}</td><td class="num" title="${m.intlEqPct}">${m.intlEqPct.toFixed(1)}%</td><td>${statusPill(ev.results.intl_eq.check)}</td></tr>
-        <tr><td>Debt + Alternates</td><td>${ev.tm.debt_alt.label}</td><td class="num" title="${m.debtAltPct}">${m.debtAltPct.toFixed(1)}%</td><td>${statusPill(ev.results.debt_alt.check)}</td></tr>
-        <tr><td>AMC Concentration</td><td>≤${ev.tm.amc.max}%</td><td class="num" title="${m.topAmcPct}">${m.topAmcPct.toFixed(1)}% (${esc(m.topAmc||'—')})</td><td>${statusPill(ev.results.amc.check)}</td></tr>
-        <tr><td>Scheme Concentration</td><td>≤${ev.tm.scheme.max}%</td><td class="num" title="${m.topSchemePct}">${m.topSchemePct.toFixed(1)}% (${esc((m.topScheme||'—').substring(0,30))})</td><td>${statusPill(ev.results.scheme.check)}</td></tr>
-        <tr><td>Commodities</td><td>${ev.tm.commodity.label}</td><td class="num" title="${m.commodityPct}">${m.commodityPct.toFixed(1)}%</td><td>${statusPill(ev.results.commodity.check)}</td></tr>
-        <tr><td>Lock-in</td><td>≤${ev.tm.lockin.max}%</td><td class="num" title="${m.lockedPct}">${m.lockedPct.toFixed(1)}%</td><td>${statusPill(ev.results.lockin.check)}</td></tr>
-      </tbody>
-    </table>`;
-}
-
-document.getElementById('sc-load-btn').addEventListener('click', ()=>{
-  loadClientIntoEditor(+document.getElementById('sc-strategy').value, +document.getElementById('sc-client').value);
-});
-document.getElementById('sc-reset-btn').addEventListener('click', ()=>{
-  if (ACTIVE_STRATEGY_IDX==null) return;
-  resetToActual(ACTIVE_STRATEGY_IDX, ACTIVE_CLIENT_IDX);
-  renderSingleClientPanel();
-});
-
-// ============================================================================
-// BEFORE / AFTER VIEW (reused by single-client and book-wide drill-down)
+// BEFORE / AFTER VIEW (reused across drill-downs)
 // ============================================================================
 function renderBeforeAfter(containerId, beforeHoldings, beforeAum, afterHoldings, afterAum){
   const mb = computeClientMetrics(beforeHoldings, beforeAum);
@@ -27170,14 +27617,21 @@ function renderBeforeAfter(containerId, beforeHoldings, beforeAum, afterHoldings
     ['Debt %', v=>v.debtPct.toFixed(2)+'%', mb, ma, null],
     ['Others %', v=>v.othPct.toFixed(2)+'%', mb, ma, null],
     ['Debt+Alt %', v=>v.debtAltPct.toFixed(2)+'%', mb, ma, 'debt_alt'],
+    ['— Domestic Equity % (of equity)', v=>v.domesticEqPct.toFixed(2)+'%', mb, ma, null],
+    ['— Global Equity % (of equity)', v=>v.globalEqPct.toFixed(2)+'%', mb, ma, null],
     ['Large Cap % (eq)', v=>v.lcPct.toFixed(2)+'%', mb, ma, 'lc'],
     ['Mid Cap % (eq)', v=>v.mcPct.toFixed(2)+'%', mb, ma, 'mc'],
     ['Small Cap % (eq)', v=>v.scPct.toFixed(2)+'%', mb, ma, 'sc'],
+    ['— Large:SMID ratio (domestic eq. own lc/mc/sc)', v=>v.lcOfDomPct.toFixed(1)+':'+v.smidOfDomPct.toFixed(1), mb, ma, null],
     ['Intl Equity % (eq)', v=>v.intlEqPct.toFixed(2)+'%', mb, ma, 'intl_eq'],
+    ['— DM:EM ratio (of global equity)', v=>v.dmOfGlobalPct.toFixed(1)+':'+v.emOfGlobalPct.toFixed(1), mb, ma, null],
     ['AMC Conc. %', v=>v.topAmcPct.toFixed(2)+'%', mb, ma, 'amc'],
     ['Scheme Conc. %', v=>v.topSchemePct.toFixed(2)+'%', mb, ma, 'scheme'],
     ['Lock-in %', v=>v.lockedPct.toFixed(2)+'%', mb, ma, 'lockin'],
     ['Commodities %', v=>v.commodityPct.toFixed(2)+'%', mb, ma, 'commodity'],
+    ['— Gold:Silver ratio (of commodities)', v=>v.goldOfCommodityPct.toFixed(1)+':'+v.silverOfCommodityPct.toFixed(1), mb, ma, null],
+    ['— Value factor (₹)', v=>fmtRs(v.valueAmt), mb, ma, null],
+    ['— Momentum factor (₹)', v=>fmtRs(v.momentumAmt), mb, ma, null],
     ['Risk Profile', v=>v.riskProfile, mb, ma, null],
   ];
   const html = `<div class="scroll-x"><table>
@@ -27185,9 +27639,18 @@ function renderBeforeAfter(containerId, beforeHoldings, beforeAum, afterHoldings
     <tbody>
     ${rowsDef.map(([label, fmt, before, after, checkKey])=>{
       const bv = fmt(before), av = fmt(after);
+      const isRatioRow = /ratio/i.test(label);
+      const isCurrencyRow = /\(₹\)/.test(label);
       let deltaCell = '—';
-      if (label==='AUM') deltaCell = deltaSpan(before.aum, after.aum, 0);
-      else if (label!=='Risk Profile') {
+      if (label==='AUM' || isCurrencyRow) {
+        // ₹ rows: fmt() already applied fmtRs() to a raw amount — re-derive the raw numbers directly
+        // rather than re-parsing the formatted "₹1,29,979"-style string (parseFloat on a string with
+        // a leading ₹ and Indian-style comma grouping silently truncates at the first comma, which
+        // previously produced NaN deltas here).
+        const rawB = label==='AUM' ? before.aum : (label.includes('Value')? before.valueAmt : before.momentumAmt);
+        const rawA = label==='AUM' ? after.aum : (label.includes('Value')? after.valueAmt : after.momentumAmt);
+        deltaCell = deltaSpan(rawB, rawA, 0);
+      } else if (label!=='Risk Profile' && !isRatioRow) {
         const numB = parseFloat(bv), numA = parseFloat(av);
         deltaCell = deltaSpan(numB, numA, 2);
       }
@@ -27199,420 +27662,474 @@ function renderBeforeAfter(containerId, beforeHoldings, beforeAum, afterHoldings
 }
 
 // ============================================================================
-// TARGET SOLVER UI
+// SHARED BUCKET PICKER OPTIONS — populates every .bucket-select in the new Targets/Waterfall UI
 // ============================================================================
-function readSolverForm(){
+function bucketSelectOptionsHtml(){
+  const groups = [
+    { label:'Broad', opts:['domestic_equity','global_equity','intl_equity','debt','others','non_equity','equity_total','cash'] },
+    { label:'Market Cap', opts:['large_cap','mid_cap','small_cap','smid'] },
+    { label:'Commodities', opts:['commodities','gold','silver'] },
+    { label:'Sector (best-effort)', opts: Object.keys(SECTOR_TAG_LABELS()).map(s=>'sector:'+s) },
+    { label:'Factor', opts:['factor:Momentum','factor:Value','factor:Low Vol','factor:Quality','factor:Alpha'] },
+    { label:'DM/EM (Global Equity)', opts:['dmEm:DM','dmEm:EM'] },
+    { label:'FI Duration', opts:['fiDuration:3-5Y','fiDuration:30Y+'] },
+    { label:'Specific Fund', opts:['fund'] },
+  ];
+  return groups.map(g=>`<optgroup label="${esc(g.label)}">${g.opts.map(b=>`<option value="${esc(b)}">${esc(bucketLabel(b))}</option>`).join('')}</optgroup>`).join('');
+}
+function SECTOR_TAG_LABELS(){
+  const out = {};
+  SECTOR_RULES.forEach(([rx,label])=>{ out[label]=true; });
+  out['Unclassified']=true;
+  return out;
+}
+function populateAllBucketSelects(){
+  document.querySelectorAll('select.bucket-select').forEach(sel=>{
+    sel.innerHTML = bucketSelectOptionsHtml();
+  });
+}
+
+// ============================================================================
+// STAGE 1 — SCOPE
+// ============================================================================
+let SCOPE_SELECTED = new Set(); // Set of "strategyIdx:clientIdx" keys
+
+function renderScopeTable(){
+  const filterText = (document.getElementById('scope-filter').value||'').toLowerCase();
+  const tbody = document.querySelector('#scope-client-table tbody');
+  const rows = CLIENT_INDEX.filter(e=>{
+    if (!filterText) return true;
+    const hay = (e.client.name+' '+e.client.account+' '+e.strategyName).toLowerCase();
+    return hay.includes(filterText);
+  });
+  tbody.innerHTML = rows.map(e=>{
+    const key = keyFor(e.strategyIdx, e.clientIdx);
+    const checked = SCOPE_SELECTED.has(key) ? 'checked' : '';
+    const hasIps = findIpsEntryForClient(e.client) ? 'Yes' : (findNoIpsEntryForClient(e.client) ? 'No' : '—');
+    return `<tr>
+      <td><input type="checkbox" data-key="${key}" ${checked} onchange="toggleScopeClient('${key}')"></td>
+      <td>${esc(e.client.name)}</td>
+      <td class="small mono">${esc(e.client.account)} (${esc(e.client.ndas)})</td>
+      <td><span class="badge-strategy">${esc(e.strategyName)}</span></td>
+      <td class="small">${hasIps}</td>
+      <td class="num" title="${e.client.aum}">${fmtRs(e.client.aum)}</td>
+    </tr>`;
+  }).join('');
+  updateScopeCountLabel();
+}
+function toggleScopeClient(key){
+  if (SCOPE_SELECTED.has(key)) SCOPE_SELECTED.delete(key); else SCOPE_SELECTED.add(key);
+  updateScopeCountLabel();
+}
+function updateScopeCountLabel(){
+  document.getElementById('scope-count-label').textContent = SCOPE_SELECTED.size + ' client(s) selected.';
+}
+document.getElementById('scope-filter').addEventListener('input', renderScopeTable);
+document.getElementById('scope-apply-quick-btn').addEventListener('click', ()=>{
+  const v = document.getElementById('scope-quick').value;
+  if (!v) return;
+  if (v === 'all') {
+    CLIENT_INDEX.forEach(e=>SCOPE_SELECTED.add(keyFor(e.strategyIdx,e.clientIdx)));
+  } else if (v.startsWith('strategy:')) {
+    const sname = v.slice('strategy:'.length);
+    CLIENT_INDEX.filter(e=>e.strategyName===sname).forEach(e=>SCOPE_SELECTED.add(keyFor(e.strategyIdx,e.clientIdx)));
+  }
+  renderScopeTable();
+});
+document.getElementById('scope-clear-btn').addEventListener('click', ()=>{ SCOPE_SELECTED.clear(); renderScopeTable(); });
+document.getElementById('scope-next-btn').addEventListener('click', ()=>{
+  if (!SCOPE_SELECTED.size) { alert('Select at least one client first.'); return; }
+  switchToView('view-targets');
+});
+function switchToView(viewId){
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  const btn = Array.from(document.querySelectorAll('.tab-btn')).find(b=>b.dataset.view===viewId);
+  if (btn) btn.classList.add('active');
+  document.getElementById(viewId).classList.add('active');
+}
+function scopeEntries(){
+  return CLIENT_INDEX.filter(e=>SCOPE_SELECTED.has(keyFor(e.strategyIdx,e.clientIdx)));
+}
+
+// ============================================================================
+// STAGE 2 — TARGETS (instruction queue, generalized across all 4 instruction types)
+// ============================================================================
+let INSTRUCTION_QUEUE = []; // [{type:'simple'|'ratio'|'paired'|'newmoney', ...formFields}]
+
+document.getElementById('tg-type').addEventListener('change', ()=>{
+  const t = document.getElementById('tg-type').value;
+  ['simple','ratio','paired','newmoney'].forEach(k=>{
+    document.getElementById('tg-form-'+k).style.display = (k===t)?'':'none';
+  });
+});
+
+function readTargetForm(){
+  const type = document.getElementById('tg-type').value;
+  if (type === 'simple') {
+    return { type, bucket: document.getElementById('tg-s-bucket').value,
+      fundIsin: document.getElementById('tg-s-fund-isin').value.trim()||null,
+      basis: document.getElementById('tg-s-basis').value,
+      form: document.getElementById('tg-s-form').value,
+      value: parseFloat(document.getElementById('tg-s-value').value),
+      mapping: document.getElementById('tg-s-mapping').value,
+      concentrateIsin: document.getElementById('tg-s-concentrate-isin').value.trim()||null };
+  }
+  if (type === 'ratio') {
+    return { type, parentBucket: document.getElementById('tg-r-parent').value,
+      childA: document.getElementById('tg-r-childA').value, ratioA: parseFloat(document.getElementById('tg-r-ratioA').value),
+      childB: document.getElementById('tg-r-childB').value, ratioB: parseFloat(document.getElementById('tg-r-ratioB').value),
+      fundIsinA: document.getElementById('tg-r-fundA').value.trim()||null,
+      fundIsinB: document.getElementById('tg-r-fundB').value.trim()||null };
+  }
+  if (type === 'paired') {
+    return { type, fromBucket: document.getElementById('tg-p-frombucket').value,
+      fromFundIsin: document.getElementById('tg-p-fromisin').value.trim()||null,
+      fromForm: document.getElementById('tg-p-fromform').value, fromValue: parseFloat(document.getElementById('tg-p-fromvalue').value),
+      toBucket: document.getElementById('tg-p-tobucket').value, toFundIsin: document.getElementById('tg-p-toisin').value.trim()||null };
+  }
+  // newmoney
+  return { type, category: document.getElementById('tg-n-category').value,
+    splits: [
+      { bucket: document.getElementById('tg-n-split1-label').value.trim()||'Split 1', ratio: parseFloat(document.getElementById('tg-n-split1-ratio').value), fundIsin: document.getElementById('tg-n-split1-isin').value.trim() },
+      { bucket: document.getElementById('tg-n-split2-label').value.trim()||'Split 2', ratio: parseFloat(document.getElementById('tg-n-split2-ratio').value), fundIsin: document.getElementById('tg-n-split2-isin').value.trim() },
+    ] };
+}
+function describeQueueInstruction(instr){
+  if (instr.type==='simple') {
+    const basisLbl = instr.basis==='current_bucket' ? 'of CURRENT level' : (instr.basis==='equity'?'of equity':'of AUM');
+    return `Simple: ${bucketLabel(instr.bucket)}${instr.fundIsin?(' ('+instr.fundIsin+')'):''} → ${instr.form==='absolute'||instr.basis==='current_bucket'?'=':'Δ'} ${instr.value}% ${basisLbl}`;
+  }
+  if (instr.type==='ratio') return `Ratio: within ${bucketLabel(instr.parentBucket)}, ${bucketLabel(instr.childA)}:${bucketLabel(instr.childB)} = ${instr.ratioA}:${instr.ratioB}`;
+  if (instr.type==='multiway_ratio') return `N-way ratio: within ${bucketLabel(instr.parentBucket)}, ${instr.children.map(c=>bucketLabel(c.bucket)+' '+c.ratio+'%').join(' : ')}`;
+  if (instr.type==='paired') return `Paired: sell ${instr.fromValue}${instr.fromForm==='pct'?'%':' ₹'} of ${bucketLabel(instr.fromBucket)} → buy ${bucketLabel(instr.toBucket)}`;
+  if (instr.type==='newmoney') return `New-money rule: ${bucketLabel(instr.category)} future purchases split ${instr.splits.map(s=>s.bucket+' '+s.ratio+'%').join(' : ')}`;
+  return JSON.stringify(instr);
+}
+function renderInstructionQueue(){
+  const el = document.getElementById('tg-queue-list');
+  if (!INSTRUCTION_QUEUE.length) { el.innerHTML = '<div class="muted small">Queue is empty.</div>'; }
+  else {
+    el.innerHTML = INSTRUCTION_QUEUE.map((instr,i)=>`
+      <div class="queue-item">
+        <div class="qtext"><span class="qidx">#${i+1}</span>${esc(describeQueueInstruction(instr))}</div>
+        <button class="ghost small" style="padding:4px 8px;font-size:11px;" onclick="removeQueueInstruction(${i})">Remove</button>
+      </div>`).join('');
+  }
+  document.getElementById('tg-nmr-summary').textContent = NEW_MONEY_RULES.length
+    ? NEW_MONEY_RULES.map(r=>bucketLabel(r.category)+' ('+r.splits.map(s=>s.bucket+' '+s.ratio+'%').join(':')+')').join('; ')
+    : 'none';
+}
+function removeQueueInstruction(i){ INSTRUCTION_QUEUE.splice(i,1); renderInstructionQueue(); }
+document.getElementById('tg-add-btn').addEventListener('click', ()=>{
+  const instr = readTargetForm();
+  if (instr.type==='newmoney') {
+    if (!instr.splits[0].fundIsin || !instr.splits[1].fundIsin) { alert('Both split destination ISINs are required for a new-money rule.'); return; }
+    addNewMoneyRule(instr.category, instr.splits);
+  } else {
+    INSTRUCTION_QUEUE.push(instr);
+  }
+  renderInstructionQueue();
+});
+document.getElementById('tg-clear-btn').addEventListener('click', ()=>{ INSTRUCTION_QUEUE=[]; NEW_MONEY_RULES=[]; renderInstructionQueue(); });
+document.getElementById('tg-back-btn').addEventListener('click', ()=> switchToView('view-scope'));
+document.getElementById('tg-next-btn').addEventListener('click', ()=>{
+  if (!INSTRUCTION_QUEUE.length && !NEW_MONEY_RULES.length) { alert('Add at least one instruction (or a new-money rule) first.'); return; }
+  switchToView('view-waterfall');
+});
+
+// ============================================================================
+// STAGE 3 — FUNDING WATERFALL
+// ============================================================================
+let WATERFALL_SOURCES = [];
+function renderWaterfallList(){
+  const el = document.getElementById('wf-source-list');
+  if (!WATERFALL_SOURCES.length) { el.innerHTML = '<div class="muted small">No sources added — Rebalance mode needs at least one, or the run will report a shortfall for any net-buy instruction.</div>'; return; }
+  el.innerHTML = WATERFALL_SOURCES.map((s,i)=>`
+    <div class="queue-item">
+      <div class="qtext"><span class="qidx">${i+1}</span>${esc(describeWaterfallSource(s))}</div>
+      <button class="ghost small" style="padding:4px 8px;font-size:11px;" onclick="removeWaterfallSource(${i})">Remove</button>
+    </div>`).join('');
+}
+function describeWaterfallSource(s){
+  if (s.kind==='named') return 'Named fund(s): '+(s.isins||[]).join(', ');
+  if (s.kind==='explicit_sell') return 'Explicit sell list: '+(s.names||[]).join(', ');
+  if (s.kind==='ips_breach') return 'Auto: IPS-breaching holdings (worst breach first)';
+  if (s.kind==='underperformers') return 'Auto: underperformers (worst gain/loss % first)';
+  if (s.kind==='cash') return "Client's own Cash";
+  return s.kind;
+}
+function removeWaterfallSource(i){ WATERFALL_SOURCES.splice(i,1); renderWaterfallList(); }
+document.getElementById('wf-add-btn').addEventListener('click', ()=>{
+  const kind = document.getElementById('wf-add-kind').value;
+  const detail = document.getElementById('wf-add-detail').value.trim();
+  if (kind==='named') WATERFALL_SOURCES.push({kind, isins: detail.split(',').map(s=>s.trim()).filter(Boolean)});
+  else if (kind==='explicit_sell') WATERFALL_SOURCES.push({kind, names: detail.split(',').map(s=>s.trim()).filter(Boolean)});
+  else WATERFALL_SOURCES.push({kind});
+  document.getElementById('wf-add-detail').value='';
+  renderWaterfallList();
+});
+document.getElementById('wf-back-btn').addEventListener('click', ()=> switchToView('view-targets'));
+document.getElementById('wf-next-btn').addEventListener('click', ()=> switchToView('view-run'));
+
+// ============================================================================
+// STAGE 4 — RUN (solves independently per client in scope)
+// ============================================================================
+let RUN_RESULTS = [];
+let RUN_RECON_FAILING_CODES = new Set();
+
+function applyOneInstruction(holdings, aum, instr, wfMode){
+  // Returns { tickets, newAum } — applies the instruction (and, in rebalance mode, its funding leg)
+  // to `holdings` in place, per the instruction's type. Any funding need is drained through
+  // WATERFALL_SOURCES via applyFundingWaterfall (rebalance mode only).
+  let tickets = [];
+  if (instr.type === 'simple') {
+    const plan = solveTargetInstruction(holdings, aum, instr);
+    tickets = applyTargetPlan(holdings, aum, plan);
+    if (wfMode === 'rebalance') {
+      const primaryDelta = tickets.reduce((s,t)=> s + (t.side==='BUY'?t.amount:-t.amount), 0);
+      const wf = applyFundingWaterfall(holdings, aum, primaryDelta, WATERFALL_SOURCES);
+      tickets.push(...wf.tickets);
+      if (wf.shortfall > 1) tickets.push({ fund:'(SHORTFALL)', side:'NOTE', amount: wf.shortfall, note:'Funding waterfall exhausted — could not raise the full amount needed' });
+    }
+  } else if (instr.type === 'ratio') {
+    const plan = solveRatioInstruction(holdings, aum, instr);
+    tickets = applyRatioPlan(holdings, aum, plan); // self-funding by construction, no waterfall needed
+    (tickets.impureWarnings||[]).forEach(w=> tickets.push({ fund:'(NOTE)', side:'NOTE', amount:0, note:w }));
+  } else if (instr.type === 'multiway_ratio') {
+    const plan = solveMultiRatioInstruction(holdings, aum, instr);
+    tickets = applyMultiRatioPlan(holdings, aum, plan); // self-funding by construction, no waterfall needed
+    (tickets.impureWarnings||[]).forEach(w=> tickets.push({ fund:'(NOTE)', side:'NOTE', amount:0, note:w }));
+  } else if (instr.type === 'paired') {
+    const plan = solvePairedReallocation(holdings, aum, instr);
+    tickets = applyPairedReallocation(holdings, aum, plan); // self-funding by construction
+  }
+  const newAum = holdings.reduce((s,h)=>s+h.market_value,0);
+  return { tickets, newAum };
+}
+
+function runForOneClient(client, wfMode){
+  const beforeHoldings = cloneHoldings(client.holdings);
+  const beforeAum = holdingsSum(beforeHoldings);
+  let workHoldings = cloneHoldings(client.holdings);
+  let workAum = beforeAum;
+  const allTickets = [];
+  const perInstructionSnapshots = [];
+  const skippedInstructions = [];
+  // Each instruction is applied against a SNAPSHOT of workHoldings; if it throws (e.g. a bucket this
+  // particular client holds nothing in, and no book default exists either), that snapshot is
+  // discarded and we continue with the PRE-instruction state — one instruction failing for one
+  // client never leaves that client's holdings half-mutated (sell-without-buy) or aborts the rest of
+  // the queue for them. This is deliberately per-client, per-instruction: another client with a
+  // holding in that bucket sails through untouched.
+  INSTRUCTION_QUEUE.forEach((instr,i)=>{
+    const metricsBefore = computeClientMetrics(workHoldings, workAum);
+    const attemptHoldings = cloneHoldings(workHoldings);
+    try {
+      const { tickets, newAum } = applyOneInstruction(attemptHoldings, workAum, instr, wfMode);
+      workHoldings = attemptHoldings;
+      workAum = newAum;
+      allTickets.push(...tickets);
+      recomputeWeights(workHoldings, workAum);
+      const metricsAfter = computeClientMetrics(workHoldings, workAum);
+      perInstructionSnapshots.push({ instr, metricsBefore, metricsAfter });
+    } catch(e) {
+      skippedInstructions.push({ instr, reason: e.message });
+      perInstructionSnapshots.push({ instr, metricsBefore, metricsAfter: metricsBefore, skipped:true, reason:e.message });
+    }
+  });
+  recomputeWeights(workHoldings, workAum);
+  const cons = checkConservation(beforeAum, workHoldings, workAum, 'rebalance', 0);
+  const evAfter = evaluateIps(computeClientMetrics(workHoldings, workAum));
+  const breachEntries = Object.entries(evAfter.results).filter(([k,r])=>r.check[0]);
+  const runError = null;
+  const shortfallTicket = allTickets.find(t=>t.fund==='(SHORTFALL)');
+  // Status shown in the matrix: a CONSERVATION failure (funding waterfall couldn't fully fund a buy,
+  // so AUM drifted) is always red — it means the trade ticket itself doesn't balance, which is more
+  // serious than an IPS band breach and must never be shown as green/OK. IPS breach severity is next;
+  // if there's no breach/conservation issue but some instruction(s) were skipped for this client,
+  // still flag amber rather than a clean green so the skip isn't missed.
+  const ipsStatus = !cons.ok ? 'red' : (evAfter.overallStatus !== 'green' ? evAfter.overallStatus : (skippedInstructions.length ? 'amber' : 'green'));
   return {
-    bucket: document.getElementById('ts-bucket').value,
-    fundIsin: document.getElementById('ts-fund-isin').value.trim() || null,
-    form: document.getElementById('ts-form').value,
-    value: parseFloat(document.getElementById('ts-value').value),
-    basis: document.getElementById('ts-basis').value,
-    fundingMode: document.getElementById('ts-funding').value,
-    mapping: document.getElementById('ts-mapping').value,
-    concentrateIsin: document.getElementById('ts-concentrate-isin').value.trim() || null,
-    fundingSource: document.getElementById('ts-funding-source').value,
-    fundingFundIsin: document.getElementById('ts-funding-fund-isin').value.trim() || null,
+    client, beforeHoldings, beforeAum, afterHoldings: workHoldings, afterAum: workAum,
+    tickets: allTickets, perInstructionSnapshots, skippedInstructions, runError, cons,
+    ipsStatus,
+    ipsDetail: (!cons.ok ? ('FUNDING SHORTFALL — trade does not balance ('+cons.errors.join('; ')+'). ') : '') +
+      (skippedInstructions.length ? (skippedInstructions.length+' instruction(s) skipped for this client (no matching holding/default fund) — see drill-down. ') : '') +
+      (breachEntries.length ? 'Would breach: '+breachEntries.map(([k,r])=>k+' ('+r.check[2]+')').join(', ') : 'OK — within all IPS bands'),
+    fundingSourcesUsed: allTickets.filter(t=>t.note && t.note.startsWith('Funding waterfall')).map(t=>t.note.replace('Funding waterfall: ','')).filter((v,i,a)=>a.indexOf(v)===i),
+    shortfallAmt: shortfallTicket ? shortfallTicket.amount : 0,
   };
 }
 
-function renderTradeTicket(tickets, fundingTickets){
-  const all = tickets.concat(fundingTickets||[]);
-  const netByFund = {};
-  all.forEach(t=>{
-    const signed = t.side==='BUY'? t.amount : -t.amount;
-    netByFund[t.fund] = (netByFund[t.fund]||0) + signed;
-  });
-  const netSum = Object.values(netByFund).reduce((s,v)=>s+v,0);
-  let html = `<div class="scroll-x"><table><thead><tr><th>Fund</th><th>Side</th><th class="num">₹ Amount</th></tr></thead><tbody>`;
-  all.forEach(t=>{
-    html += `<tr><td>${esc(t.fund)}</td><td>${t.side==='BUY'?'<span class="pill pill-green">BUY</span>':'<span class="pill pill-red">SELL</span>'}</td><td class="num" title="${t.amount}">${fmtRs(t.amount)}</td></tr>`;
-  });
-  html += `</tbody></table></div>
-  <div class="small muted" style="margin-top:8px;">Net of all legs: <strong title="${netSum}">${fmtRs(Math.abs(netSum))}</strong> ${Math.abs(netSum)<1?'(nets to zero ✓)':'<span style="color:var(--dred)">— does NOT net to zero, check inputs</span>'}</div>`;
-  return html;
-}
-
-document.getElementById('ts-solve-btn').addEventListener('click', ()=>{
-  if (ACTIVE_STRATEGY_IDX==null) { alert('Load a client in the Single-Client Editor tab first.'); return; }
-  const form = readSolverForm();
-  if (isNaN(form.value)) { alert('Enter a target value.'); return; }
-  const wc = currentWorkingCopy();
-  try {
-    const testHoldings = cloneHoldings(wc.holdings);
-    const plan = solveTargetInstruction(testHoldings, wc.aum, form);
-    const tickets = applyTargetPlan(testHoldings, wc.aum, plan);
-    let fundingTickets = [];
-    if (form.fundingMode === 'rebalance') {
-      const primaryDelta = tickets.reduce((s,t)=> s + (t.side==='BUY'?t.amount:-t.amount), 0);
-      fundingTickets = applyFundingLeg(testHoldings, wc.aum, primaryDelta, form.fundingSource, form.fundingFundIsin);
-    } else if (form.fundingMode === 'add_cash') {
-      // buy leg funded by fresh external cash: no offsetting sell required
-    } else if (form.fundingMode === 'withdraw_cash') {
-      // treat as withdrawing the freed amount rather than reallocating
-    }
-    recomputeWeights(testHoldings, form.fundingMode==='rebalance'?wc.aum: testHoldings.reduce((s,h)=>s+h.market_value,0));
-
-    const postAum = testHoldings.reduce((s,h)=>s+h.market_value,0);
-    const cons = checkConservation(wc.aum, testHoldings, postAum, form.fundingMode==='rebalance'?'rebalance':(form.fundingMode==='add_cash'?'add_cash':'withdraw_cash'),
-      form.fundingMode==='add_cash' ? (postAum-wc.aum) : (form.fundingMode==='withdraw_cash' ? (postAum-wc.aum) : 0));
-
-    document.getElementById('ts-result-card').style.display='';
-    let breachNote = '';
-    const evAfter = evaluateIps(computeClientMetrics(testHoldings, postAum));
-    const breaches = Object.entries(evAfter.results).filter(([k,r])=>r.check[0]);
-    if (breaches.length) {
-      breachNote = `<div class="pill-red" style="display:inline-block;padding:6px 10px;border-radius:6px;margin-top:8px;">⚠ This target would breach: ${breaches.map(([k,r])=>k).join(', ')} (shown, not blocked)</div>`;
-    }
-    document.getElementById('ts-result').innerHTML = `
-      <div class="small muted">Current: ${fmtRs(plan.currentAmt)} (${plan.currentPctAum.toFixed(2)}% AUM / ${plan.currentPctEquity.toFixed(2)}% equity) &rarr;
-      Target: ${fmtRs(plan.targetAmt)} (${plan.targetPctOnBasis.toFixed(2)}% of ${form.basis==='equity'?'equity':'AUM'})</div>
-      <h3>Trade Ticket</h3>
-      ${renderTradeTicket(tickets, fundingTickets)}
-      <h3>Conservation Check</h3>
-      ${cons.ok ? '<div class="recon-ok">✓ Conservation checks passed.</div>' : '<div class="recon-fail">✗ '+cons.errors.join('; ')+'</div>'}
-      ${breachNote}
-      <h3>Before / After</h3>
-      <div id="ts-before-after-inline"></div>
-    `;
-    renderBeforeAfter('ts-before-after-inline', wc.holdings, wc.aum, testHoldings, postAum);
-    window._lastSolverPlan = { form, testHoldings, postAum };
-  } catch(e){
-    document.getElementById('ts-result-card').style.display='';
-    document.getElementById('ts-result').innerHTML = `<div class="recon-fail">Error: ${esc(e.message)}</div>`;
-  }
-});
-
-// ============================================================================
-// STACKED COMMANDS (QUEUE)
-// ============================================================================
-let COMMAND_QUEUE = [];
-
-document.getElementById('q-add-current-solver').addEventListener('click', ()=>{
-  const form = readSolverForm();
-  if (isNaN(form.value)) { alert('Set up a target in the Target Solver tab first.'); return; }
-  COMMAND_QUEUE.push({ type:'target', form });
-  renderQueue();
-});
-document.getElementById('q-clear-btn').addEventListener('click', ()=>{ COMMAND_QUEUE = []; renderQueue(); document.getElementById('q-result-card').style.display='none'; });
-document.getElementById('q-reset-actual-btn').addEventListener('click', ()=>{
-  if (ACTIVE_STRATEGY_IDX==null) return;
-  resetToActual(ACTIVE_STRATEGY_IDX, ACTIVE_CLIENT_IDX);
-  COMMAND_QUEUE = [];
-  renderQueue();
-  renderSingleClientPanel();
-  document.getElementById('q-result-card').style.display='none';
-});
-
-function describeInstruction(cmd){
-  const f = cmd.form;
-  return `Target "${f.bucket}"${f.bucket==='fund'?(' ('+f.fundIsin+')'):''} ${f.form==='absolute'?'=':'delta'} ${f.value}% of ${f.basis==='equity'?'equity':'AUM'} — funding: ${f.fundingMode}`;
-}
-function renderQueue(){
-  const el = document.getElementById('q-list');
-  if (!COMMAND_QUEUE.length) { el.innerHTML = '<div class="muted small">Queue is empty.</div>'; return; }
-  el.innerHTML = COMMAND_QUEUE.map((cmd,i)=>`
-    <div class="queue-item">
-      <div class="qtext"><span class="qidx">#${i+1}</span>${esc(describeInstruction(cmd))}</div>
-      <button class="ghost small" style="padding:4px 8px;font-size:11px;" onclick="removeQueueItem(${i})">Remove</button>
-    </div>`).join('');
-}
-function removeQueueItem(i){ COMMAND_QUEUE.splice(i,1); renderQueue(); }
-
-document.getElementById('q-apply-btn').addEventListener('click', ()=>{
-  if (ACTIVE_STRATEGY_IDX==null) { alert('Load a client in the Single-Client Editor tab first.'); return; }
-  if (!COMMAND_QUEUE.length) { alert('Queue is empty.'); return; }
-  const wc = currentWorkingCopy();
-  const beforeHoldings = cloneHoldings(wc.holdings);
-  const beforeAum = wc.aum;
-  let workHoldings = cloneHoldings(wc.holdings);
-  let workAum = wc.aum;
-  const allTickets = [];
-  try {
-    COMMAND_QUEUE.forEach(cmd=>{
-      const plan = solveTargetInstruction(workHoldings, workAum, cmd.form);
-      const tickets = applyTargetPlan(workHoldings, workAum, plan);
-      allTickets.push(...tickets);
-      if (cmd.form.fundingMode === 'rebalance') {
-        const primaryDelta = tickets.reduce((s,t)=> s + (t.side==='BUY'?t.amount:-t.amount), 0);
-        const fundingTickets = applyFundingLeg(workHoldings, workAum, primaryDelta, cmd.form.fundingSource, cmd.form.fundingFundIsin);
-        allTickets.push(...fundingTickets);
-      }
-      workAum = workHoldings.reduce((s,h)=>s+h.market_value,0);
-    });
-    recomputeWeights(workHoldings, workAum);
-
-    // Consolidate net ticket (offsetting trades cancel)
-    const netByFund = {};
-    allTickets.forEach(t=>{
-      const signed = t.side==='BUY'? t.amount : -t.amount;
-      netByFund[t.fund] = (netByFund[t.fund]||0) + signed;
-    });
-    const netTickets = Object.entries(netByFund).filter(([f,v])=>Math.abs(v)>1).map(([f,v])=>({fund:f, side: v>0?'BUY':'SELL', amount: Math.abs(v)}));
-
-    const cons = checkConservation(beforeAum, workHoldings, workAum, 'rebalance', 0);
-
-    // commit to working copy
-    wc.holdings = workHoldings;
-    wc.aum = workAum;
-
-    document.getElementById('q-result-card').style.display='';
-    document.getElementById('q-net-ticket').innerHTML = renderTradeTicket(netTickets, []);
-    renderBeforeAfter('q-before-after', beforeHoldings, beforeAum, workHoldings, workAum);
-    document.getElementById('q-conservation').innerHTML = cons.ok ? '<div class="recon-ok">✓ All conservation checks passed after batch.</div>' : '<div class="recon-fail">✗ '+cons.errors.join('; ')+'</div>';
-
-    renderSingleClientPanel();
-  } catch(e){
-    document.getElementById('q-result-card').style.display='';
-    document.getElementById('q-net-ticket').innerHTML = `<div class="recon-fail">Batch failed: ${esc(e.message)}. No changes were committed.</div>`;
-  }
-});
-
-// ============================================================================
-// BOOK-WIDE MODE
-// ============================================================================
-let BW_NEW_ISIN = null;
-let BW_MATRIX_ROWS = [];
-
-document.getElementById('bw-classify-btn').addEventListener('click', ()=>{
-  const isin = document.getElementById('bw-fund-isin').value.trim();
-  const box = document.getElementById('bw-manual-classify');
-  if (isin && ADVISORY_V2[isin]) {
-    box.style.display = 'none';
-    alert('Found in Advisory V2: '+ADVISORY_V2[isin][0]+' ('+ADVISORY_V2[isin][2]+'), Equity '+ADVISORY_V2[isin][3]+'%');
-  } else {
-    box.style.display = '';
-  }
-});
-
-function getOrRegisterBookWideFund(){
-  const name = document.getElementById('bw-fund-name').value.trim() || 'New Financials Sector ETF';
-  let isin = document.getElementById('bw-fund-isin').value.trim();
-  if (isin && ADVISORY_V2[isin]) return { isin, name: ADVISORY_V2[isin][0] };
-  // Manual classification path (also used for the hypothetical ETF in the worked scenario)
-  if (!isin) isin = 'HYP-' + name.replace(/\s+/g,'').toUpperCase().substring(0,20);
-  const eq = parseFloat(document.getElementById('bw-mc-eq').value)||0;
-  const debt = parseFloat(document.getElementById('bw-mc-debt').value)||0;
-  const oth = parseFloat(document.getElementById('bw-mc-oth').value)||0;
-  const lc = parseFloat(document.getElementById('bw-mc-lc').value)||0;
-  const mc = parseFloat(document.getElementById('bw-mc-mc').value)||0;
-  const sc = parseFloat(document.getElementById('bw-mc-sc').value)||0;
-  const amc = document.getElementById('bw-mc-amc').value || 'Hypothetical AMC';
-  const cat = document.getElementById('bw-mc-cat').value || 'Sector Fund - Financial Services';
-  ADVISORY_V2[isin] = [name, amc, cat, eq, debt, oth, lc, mc, sc];
-  if (!ISIN_MAP[name]) ISIN_MAP[name] = isin;
-  return { isin, name };
-}
-
-document.getElementById('bw-run-btn').addEventListener('click', ()=>{
-  runBookWideScenario();
-});
-
-function runBookWideScenario(){
-  // Step 1: baseline reconciliation for every IPS client, BEFORE showing the matrix.
+document.getElementById('run-execute-btn').addEventListener('click', ()=>{
+  const wfMode = document.getElementById('wf-mode').value;
+  // Step 1: baseline reconciliation gate — runs first, always, before any client's numbers are trusted.
   const reconReport = runBaselineReconciliation();
   const failing = reconReport.filter(r=>r.status==='fail' || r.status==='error');
-  const failCard = document.getElementById('bw-recon-fail-card');
-  const failList = document.getElementById('bw-recon-fail-list');
+  RUN_RECON_FAILING_CODES = new Set();
+  failing.forEach(r=> (r.codes||[]).forEach(c=>RUN_RECON_FAILING_CODES.add(c)));
+  const failCard = document.getElementById('run-recon-fail-card');
   if (failing.length) {
     failCard.style.display='';
-    failList.innerHTML = failing.map(r=>{
-      if (r.status==='error') return `<div class="recon-fail"><strong>${esc(r.full_name)}</strong>: ${esc(r.error)}</div>`;
-      return `<div class="recon-fail"><strong>${esc(r.full_name)}</strong>
-        <table><thead><tr><th>Field</th><th>IPS_DATA</th><th>Engine</th><th>Δ</th></tr></thead><tbody>
-        ${r.mismatches.map(m=>`<tr><td>${esc(m.field)}</td><td>${m.ips.toFixed(2)}</td><td>${m.engine.toFixed(2)}</td><td>${m.delta.toFixed(2)}pp</td></tr>`).join('')}
-        </tbody></table></div>`;
+    document.getElementById('run-recon-fail-list').innerHTML = failing.map(r=>{
+      if (r.status==='error') return `<div><strong>${esc(r.full_name)}</strong>: ${esc(r.error)}</div>`;
+      return `<div><strong>${esc(r.full_name)}</strong> — ${r.mismatches.map(m=>esc(m.field)+': Δ'+m.delta.toFixed(2)).join(', ')}</div>`;
     }).join('');
   } else {
     failCard.style.display='none';
   }
-  const failingCodes = new Set();
-  failing.forEach(r=>{ (r.codes||[]).forEach(c=>failingCodes.add(c)); });
 
-  const { isin: newIsin, name: newName } = getOrRegisterBookWideFund();
-  BW_NEW_ISIN = newIsin;
-  const targetPct = parseFloat(document.getElementById('bw-target-pct').value);
-  const basis = document.getElementById('bw-basis').value;
-  const source = document.getElementById('bw-source').value;
-
-  const rows = [];
-  let totalRs = 0, clientsAffected = 0;
-  const byStrategy = {};
-
-  CLIENT_INDEX.forEach(entry=>{
-    const client = entry.client;
-    if (failingCodes.has(client.ndas)) return; // excluded per reconciliation gate
-
+  const entries = scopeEntries();
+  const results = [];
+  entries.forEach(e=>{
+    const client = e.client;
+    if (RUN_RECON_FAILING_CODES.has(client.ndas)) {
+      results.push({ client, strategyName: e.strategyName, excluded:true, reason:'Failed baseline reconciliation' });
+      return;
+    }
     const noIps = findNoIpsEntryForClient(client);
-    const ic = findIpsEntryForClient(client);
-    const holdings = cloneHoldings(client.holdings);
-    const aum = client.aum;
-    const metricsBefore = computeClientMetrics(holdings, aum);
-    const currentAmt = holdings.filter(h=>ISIN_MAP[h.security]===newIsin || h.security===newName).reduce((s,h)=>s+h.market_value,0);
-    const currentPct = basis==='equity' ? (metricsBefore.eqAmt>0?currentAmt/metricsBefore.eqAmt*100:0) : (aum>0?currentAmt/aum*100:0);
-
-    let actionFlag = 'Trade needed';
-    let rmName = (PARKING_DATA[client.ndas]||{}).rm || '—';
-    let srmName = (PARKING_DATA[client.ndas]||{}).srm || '—';
-
-    if (noIps) {
-      rows.push({
-        client, strategy: entry.strategyName, rm: rmName+' / '+srmName,
-        currentPct: currentPct, targetPct, tradeRs: 0, tradeAumPct: 0,
-        fundsSold: '—', fundingSource: '—', ipsStatus: 'na', ipsDetail: 'No IPS (client excluded: '+noIps.reason+')',
-        actionFlag: 'Not applicable', beforeHoldings: holdings, beforeAum: aum, afterHoldings: holdings, afterAum: aum
-      });
-      return;
-    }
-
-    if (Math.abs(currentPct - targetPct) < 0.05) {
-      rows.push({
-        client, strategy: entry.strategyName, rm: rmName+' / '+srmName,
-        currentPct, targetPct, tradeRs:0, tradeAumPct:0,
-        fundsSold:'—', fundingSource:'—', ipsStatus:'green', ipsDetail:'Already at target',
-        actionFlag:'Already compliant', beforeHoldings: holdings, beforeAum: aum, afterHoldings: holdings, afterAum: aum
-      });
-      return;
-    }
-
-    // Solve: target = targetPct of basis, funding = rebalance (AUM-constant)
-    const basisDenom = basis==='equity' ? metricsBefore.eqAmt : aum;
-    const targetAmt = basisDenom * targetPct/100;
-    const deltaAmt = targetAmt - currentAmt;
-
-    const afterHoldings = cloneHoldings(holdings);
-    let fundsSoldDesc = '—', fundingSourceDesc = '—';
-    let tradeError = null;
-    try {
-      // BUY leg: into the new fund
-      const existingIdx = findHoldingIndexBySecurity(afterHoldings, newName);
-      let ac = 'Equity';
-      if (ADVISORY_V2[newIsin]) ac = ADVISORY_V2[newIsin][3]>=95?'Equity':(ADVISORY_V2[newIsin][4]>=95?'Fixed Income':'Hybrid');
-      if (existingIdx!==-1) { afterHoldings[existingIdx].market_value += deltaAmt; afterHoldings[existingIdx].cost += deltaAmt; }
-      else afterHoldings.push({asset_class:ac, security:newName, quantity:null, unit_cost:null, cost:deltaAmt, price:null, market_value:deltaAmt, gain_loss:0, gl_pct:0, assets_pct:0});
-
-      // FUNDING leg: default documented source
-      if (source === 'cash_first_then_equity') {
-        const cashIdx = findOrCreateCashLine(afterHoldings);
-        const cashAvail = Math.max(afterHoldings[cashIdx].market_value,0);
-        const fromCash = Math.min(deltaAmt, cashAvail);
-        if (fromCash>1e-6){ afterHoldings[cashIdx].market_value -= fromCash; afterHoldings[cashIdx].cost -= fromCash; }
-        const remain = deltaAmt - fromCash;
-        if (remain > 1e-6) {
-          const cBefore = computeClientMetrics(afterHoldings, aum).classified;
-          const eqRows = cBefore.filter(c=>c.eqAmt>0 && c.security!==newName);
-          const totalEq = eqRows.reduce((s,r)=>s+r.mval,0);
-          if (totalEq>0) {
-            eqRows.forEach(r=>{
-              const share = remain*(r.mval/totalEq);
-              trimHolding(afterHoldings, r.security, 'abs', share);
-            });
-          }
-        }
-        fundsSoldDesc = fromCash>1e-6 ? ('Cash ('+fmtRs(fromCash)+')'+(remain>1e-6?' + pro-rata equity':'')) : 'Pro-rata equity holdings';
-        fundingSourceDesc = 'Cash first, then equity';
-      } else {
-        // pro_rata_equity (default, documented)
-        const cBefore = computeClientMetrics(holdings, aum).classified;
-        const eqRows = cBefore.filter(c=>c.eqAmt>0);
-        const totalEq = eqRows.reduce((s,r)=>s+r.mval,0);
-        if (totalEq > 0) {
-          eqRows.forEach(r=>{
-            const share = deltaAmt*(r.mval/totalEq);
-            trimHolding(afterHoldings, r.security, 'abs', share);
-          });
-        } else {
-          tradeError = 'No existing equity holdings to fund the buy pro-rata';
-        }
-        fundsSoldDesc = 'Pro-rata across all equity holdings';
-        fundingSourceDesc = 'Pro-rata equity';
-      }
-    } catch(e){ tradeError = e.message; }
-
-    const afterAum = afterHoldings.reduce((s,h)=>s+h.market_value,0);
-    recomputeWeights(afterHoldings, afterAum);
-    const metricsAfter = computeClientMetrics(afterHoldings, afterAum);
-    const evAfter = evaluateIps(metricsAfter);
-    const breachEntries = Object.entries(evAfter.results).filter(([k,r])=>r.check[0]);
-    const worstColor = evAfter.overallStatus;
-    const ipsDetail = breachEntries.length ? ('Would breach: '+breachEntries.map(([k,r])=>k+' ('+r.check[2]+')').join(', ')) : 'OK — within all IPS bands';
-
-    totalRs += Math.abs(deltaAmt);
-    clientsAffected++;
-    byStrategy[entry.strategyName] = (byStrategy[entry.strategyName]||0) + Math.abs(deltaAmt);
-
-    rows.push({
-      client, strategy: entry.strategyName, rm: rmName+' / '+srmName,
-      currentPct, targetPct, tradeRs: deltaAmt, tradeAumPct: aum>0?deltaAmt/aum*100:0,
-      fundsSold: fundsSoldDesc, fundingSource: fundingSourceDesc,
-      ipsStatus: tradeError ? 'red' : worstColor, ipsDetail: tradeError ? ('ERROR: '+tradeError) : ipsDetail,
-      actionFlag: tradeError ? 'Trade needed (error)' : 'Trade needed',
-      beforeHoldings: holdings, beforeAum: aum, afterHoldings, afterAum
-    });
+    const r = runForOneClient(client, wfMode);
+    r.strategyName = e.strategyName;
+    r.noIpsReason = noIps ? noIps.reason : null;
+    results.push(r);
   });
+  RUN_RESULTS = results;
+  document.getElementById('run-status').innerHTML = `<div class="recon-ok">Run complete: ${results.filter(r=>!r.excluded).length} client(s) processed, ${results.filter(r=>r.excluded).length} excluded (reconciliation gate).</div>`;
+  renderResultsMatrix();
+  switchToView('view-results');
+});
 
-  BW_MATRIX_ROWS = rows;
-  renderBookWideMatrix(rows, totalRs, clientsAffected, byStrategy, source);
+document.querySelector('#view-run').insertAdjacentHTML('afterbegin', '');
+function renderRunSummaryPanel(){
+  const entries = scopeEntries();
+  document.getElementById('run-summary-panel').innerHTML =
+    `Scope: <strong>${entries.length}</strong> client(s). Instruction queue: <strong>${INSTRUCTION_QUEUE.length}</strong> instruction(s), ` +
+    `<strong>${NEW_MONEY_RULES.length}</strong> standing new-money rule(s). Funding mode: <strong>${document.getElementById('wf-mode').value}</strong>, ` +
+    `<strong>${WATERFALL_SOURCES.length}</strong> waterfall source(s).`;
 }
+document.querySelectorAll('.tab-btn').forEach(btn=>{
+  if (btn.dataset.view==='view-run') btn.addEventListener('click', renderRunSummaryPanel);
+});
 
+// ============================================================================
+// STAGE 5 — RESULTS (matrix scales naturally from 1 to N clients; CSV export; drill-down)
+// ============================================================================
+function renderResultsMatrix(){
+  const shown = RUN_RESULTS.filter(r=>!r.excluded);
+  document.getElementById('results-summary-card').style.display = shown.length ? '' : 'none';
+  const totalTradeRs = shown.reduce((s,r)=> s + (r.tickets||[]).filter(t=>t.side==='BUY').reduce((s2,t)=>s2+t.amount,0), 0);
+  const byStrategy = {};
+  shown.forEach(r=>{ byStrategy[r.strategyName] = (byStrategy[r.strategyName]||0) + (r.tickets||[]).filter(t=>t.side==='BUY').reduce((s2,t)=>s2+t.amount,0); });
+  const statusCounts = { green:0, amber:0, red:0 };
+  shown.forEach(r=>{ if (statusCounts[r.ipsStatus]!=null) statusCounts[r.ipsStatus]++; });
+  document.getElementById('results-agg-stats').innerHTML = `
+    <div class="stat"><div class="val">${fmtRs(totalTradeRs)}</div><div class="lbl">Total ₹ bought (gross)</div></div>
+    <div class="stat"><div class="val">${shown.length}</div><div class="lbl"># Clients in results</div></div>
+    <div class="stat"><div class="val" style="color:var(--dgreen)">${statusCounts.green}</div><div class="lbl">Green</div></div>
+    <div class="stat"><div class="val" style="color:#8a6100">${statusCounts.amber}</div><div class="lbl">Amber</div></div>
+    <div class="stat"><div class="val" style="color:var(--dred)">${statusCounts.red}</div><div class="lbl">Red</div></div>
+    ${Object.entries(byStrategy).map(([s,v])=>`<div class="stat"><div class="val">${fmtRs(v)}</div><div class="lbl">${esc(s)}</div></div>`).join('')}
+  `;
+  document.getElementById('results-matrix-card').style.display = RUN_RESULTS.length ? '' : 'none';
+  const tbody = document.querySelector('#results-matrix-table tbody');
+  tbody.innerHTML = RUN_RESULTS.map((r,i)=>{
+    if (r.excluded) {
+      return `<tr><td>${esc(r.client.name)}</td><td><span class="badge-strategy">${esc(r.strategyName)}</span></td><td colspan="5" class="small">${esc(r.reason)}</td><td><span class="pill pill-grey">Excluded</span></td><td></td></tr>`;
+    }
+    const rmName = (PARKING_DATA[r.client.ndas]||{}).rm || '—';
+    const srmName = (PARKING_DATA[r.client.ndas]||{}).srm || '—';
+    const instrSummary = r.perInstructionSnapshots.map(s=>{
+      const label = s.instr.type==='simple' ? bucketLabel(s.instr.bucket) : (s.instr.type==='ratio' ? bucketLabel(s.instr.parentBucket)+' ratio' : (s.instr.type==='paired' ? bucketLabel(s.instr.fromBucket)+'→'+bucketLabel(s.instr.toBucket) : 'rule'));
+      return esc(label);
+    }).join('; ') || (r.noIpsReason ? '—' : 'no queued instructions');
+    const tradeCount = (r.tickets||[]).filter(t=>t.side==='BUY'||t.side==='SELL').length;
+    const fundingUsed = (r.fundingSourcesUsed||[]).join(', ') || '—';
+    return `<tr>
+      <td>${esc(r.client.name)}</td>
+      <td><span class="badge-strategy">${esc(r.strategyName)}</span></td>
+      <td class="small">${esc(rmName)} / ${esc(srmName)}</td>
+      <td class="small">${instrSummary}</td>
+      <td class="num">${tradeCount} trade line(s)</td>
+      <td class="small">${esc(fundingUsed)}</td>
+      <td title="${esc(r.ipsDetail)}">${ipsStatusPill(r.ipsStatus)}</td>
+      <td><button class="ghost small" style="padding:4px 8px;font-size:11px;" onclick="drillIntoResultRow(${i})">Drill in</button></td>
+    </tr>`;
+  }).join('');
+}
 function ipsStatusPill(status){
   if (status==='green') return '<span class="pill pill-green">OK</span>';
   if (status==='amber') return '<span class="pill pill-amber">Would breach (marginal)</span>';
   if (status==='red') return '<span class="pill pill-red">Would breach</span>';
   return '<span class="pill pill-grey">N/A</span>';
 }
-
-function renderBookWideMatrix(rows, totalRs, clientsAffected, byStrategy, source){
-  document.getElementById('bw-summary-card').style.display='';
-  document.getElementById('bw-agg-stats').innerHTML = `
-    <div class="stat"><div class="val">${fmtRs(totalRs)}</div><div class="lbl">Total ₹ to move</div></div>
-    <div class="stat"><div class="val">${clientsAffected}</div><div class="lbl"># Clients affected</div></div>
-    ${Object.entries(byStrategy).map(([s,v])=>`<div class="stat"><div class="val">${fmtRs(v)}</div><div class="lbl">${esc(s)}</div></div>`).join('')}
-    <div class="stat"><div class="val small">${source==='cash_first_then_equity'?'Cash→Equity':'Pro-rata Equity'}</div><div class="lbl">Funding source used</div></div>
-  `;
-  document.getElementById('bw-matrix-card').style.display='';
-  const tbody = document.querySelector('#bw-matrix-table tbody');
-  tbody.innerHTML = rows.map((r,i)=>`
-    <tr>
-      <td>${esc(r.client.name)}</td>
-      <td><span class="badge-strategy">${esc(r.strategy)}</span></td>
-      <td class="small">${esc(r.rm)}</td>
-      <td class="num" title="${r.currentPct}">${r.currentPct.toFixed(2)}%</td>
-      <td class="num">${r.targetPct.toFixed(2)}%</td>
-      <td class="num" title="${r.tradeRs}">${fmtRs(r.tradeRs)}</td>
-      <td class="num">${r.tradeAumPct.toFixed(2)}%</td>
-      <td class="small">${esc(r.fundsSold)}</td>
-      <td class="small">${esc(r.fundingSource)}</td>
-      <td title="${esc(r.ipsDetail)}">${ipsStatusPill(r.ipsStatus)}</td>
-      <td class="small">${esc(r.actionFlag)}</td>
-      <td><button class="ghost small" style="padding:4px 8px;font-size:11px;" onclick="drillIntoRow(${i})">Drill in</button></td>
-    </tr>`).join('');
-}
-
-function drillIntoRow(i){
-  const r = BW_MATRIX_ROWS[i];
-  document.getElementById('bw-drill-card').style.display='';
-  document.getElementById('bw-drill-title').textContent = 'Drill-down: '+r.client.name+' ('+r.client.account+')';
-  document.getElementById('bw-drill-content').innerHTML = `
+function drillIntoResultRow(i){
+  const r = RUN_RESULTS[i];
+  document.getElementById('results-drill-card').style.display='';
+  document.getElementById('results-drill-title').textContent = 'Drill-down: '+r.client.name+' ('+r.client.account+')';
+  if (r.excluded) {
+    document.getElementById('results-drill-content').innerHTML = `<div class="recon-fail">Excluded: ${esc(r.reason)}</div>`;
+    document.getElementById('results-drill-card').scrollIntoView({behavior:'smooth'});
+    return;
+  }
+  const ticketRows = (r.tickets||[]).filter(t=>t.side==='BUY'||t.side==='SELL');
+  const noteRows = (r.tickets||[]).filter(t=>t.side==='NOTE');
+  document.getElementById('results-drill-content').innerHTML = `
     <div class="small muted" style="margin-bottom:8px;">${esc(r.ipsDetail)}</div>
-    <div id="bw-drill-ba"></div>`;
-  renderBeforeAfter('bw-drill-ba', r.beforeHoldings, r.beforeAum, r.afterHoldings, r.afterAum);
-  document.getElementById('bw-drill-card').scrollIntoView({behavior:'smooth'});
+    ${r.cons && !r.cons.ok ? '<div class="recon-fail">✗ '+esc(r.cons.errors.join('; '))+'</div>' : '<div class="recon-ok">✓ Conservation checks passed.</div>'}
+    ${noteRows.length ? '<div class="hint" style="margin:8px 0;">'+noteRows.map(n=>esc(n.note)).join('<br>')+'</div>' : ''}
+    <h3>Full Trade Ticket</h3>
+    ${renderTradeTicketTable(ticketRows)}
+    <h3>Per-Instruction Progression</h3>
+    <div id="results-drill-instrs"></div>
+    <h3>Overall Before / After</h3>
+    <div id="results-drill-ba"></div>`;
+  renderBeforeAfter('results-drill-ba', r.beforeHoldings, r.beforeAum, r.afterHoldings, r.afterAum);
+  const instrEl = document.getElementById('results-drill-instrs');
+  instrEl.innerHTML = r.perInstructionSnapshots.map((s,idx)=>{
+    if (s.skipped) {
+      return `<div class="card" style="margin-bottom:8px; padding:12px 14px; border-color:var(--dred);">
+        <div class="small" style="font-weight:700; margin-bottom:6px; color:var(--dred);">#${idx+1}: ${esc(describeQueueInstruction(s.instr))} — SKIPPED for this client</div>
+        <div class="small muted">Reason: ${esc(s.reason)}</div>
+      </div>`;
+    }
+    return `<div class="card" style="margin-bottom:8px; padding:12px 14px;">
+      <div class="small" style="font-weight:700; margin-bottom:6px;">#${idx+1}: ${esc(describeQueueInstruction(s.instr))}</div>
+      <div class="small muted">Equity ${s.metricsBefore.eqPct.toFixed(2)}% → ${s.metricsAfter.eqPct.toFixed(2)}% &nbsp;|&nbsp; Debt+Alt ${s.metricsBefore.debtAltPct.toFixed(2)}% → ${s.metricsAfter.debtAltPct.toFixed(2)}%</div>
+    </div>`;
+  }).join('') || '<div class="muted small">No instructions were queued for this run.</div>';
+  document.getElementById('results-drill-card').scrollIntoView({behavior:'smooth'});
 }
-
-document.getElementById('bw-export-csv').addEventListener('click', ()=>{
-  const header = ['Client','Strategy','RM/SRM','Current %','Target %','Trade Rs','Trade %AUM','Funds Sold','Funding Source','IPS Status','IPS Detail','Action Flag'];
+function renderTradeTicketTable(tickets){
+  if (!tickets.length) return '<div class="muted small">No trades required.</div>';
+  const netByFund = {};
+  tickets.forEach(t=>{ const signed = t.side==='BUY'?t.amount:-t.amount; netByFund[t.fund]=(netByFund[t.fund]||0)+signed; });
+  const netSum = Object.values(netByFund).reduce((s,v)=>s+v,0);
+  let html = `<div class="scroll-x"><table><thead><tr><th>Fund</th><th>Side</th><th class="num">₹ Amount</th><th>Note</th></tr></thead><tbody>`;
+  tickets.forEach(t=>{
+    html += `<tr><td>${esc(t.fund)}</td><td>${t.side==='BUY'?'<span class="pill pill-green">BUY</span>':'<span class="pill pill-red">SELL</span>'}</td><td class="num" title="${t.amount}">${fmtRs(t.amount)}</td><td class="small muted">${esc(t.note||'')}</td></tr>`;
+  });
+  html += `</tbody></table></div>
+  <div class="small muted" style="margin-top:8px;">Net of all legs: <strong title="${netSum}">${fmtRs(Math.abs(netSum))}</strong> ${Math.abs(netSum)<1?'(nets to zero ✓)':'<span style="color:var(--dred)">— does NOT net to zero</span>'}</div>`;
+  return html;
+}
+document.getElementById('results-export-csv').addEventListener('click', ()=>{
+  const header = ['Client','Strategy','RM/SRM','Instructions','Trade lines','Funding sources used','IPS Status','IPS Detail'];
   const lines = [header.join(',')];
-  BW_MATRIX_ROWS.forEach(r=>{
-    const cells = [r.client.name, r.strategy, r.rm, r.currentPct.toFixed(2), r.targetPct.toFixed(2),
-      r.tradeRs.toFixed(2), r.tradeAumPct.toFixed(2), r.fundsSold, r.fundingSource, r.ipsStatus, r.ipsDetail, r.actionFlag]
+  RUN_RESULTS.forEach(r=>{
+    if (r.excluded) { lines.push([r.client.name, r.strategyName, '', '', '', '', 'Excluded', r.reason].map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(',')); return; }
+    const rmName = (PARKING_DATA[r.client.ndas]||{}).rm || '—';
+    const srmName = (PARKING_DATA[r.client.ndas]||{}).srm || '—';
+    const instrSummary = r.perInstructionSnapshots.map(s=>describeQueueInstruction(s.instr)).join(' | ');
+    const tradeCount = (r.tickets||[]).filter(t=>t.side==='BUY'||t.side==='SELL').length;
+    const cells = [r.client.name, r.strategyName, rmName+'/'+srmName, instrSummary, tradeCount, (r.fundingSourcesUsed||[]).join(';'), r.ipsStatus, r.ipsDetail]
       .map(v=>'"'+String(v).replace(/"/g,'""')+'"');
     lines.push(cells.join(','));
   });
   const blob = new Blob([lines.join('\n')], {type:'text/csv'});
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
-  a.href = url; a.download = 'bookwide_rebalance_matrix.csv';
+  a.href = url; a.download = 'rebalance_results_matrix.csv';
   document.body.appendChild(a); a.click(); document.body.removeChild(a);
   URL.revokeObjectURL(url);
 });
@@ -27736,7 +28253,12 @@ function renderSelfTest(results){
 // ============================================================================
 // INIT
 // ============================================================================
-populateStrategyPicker();
+populateAllBucketSelects();
+renderScopeTable();
+renderInstructionQueue();
+renderWaterfallList();
+// Run baseline reconciliation once at load so the header badge is accurate before any user action.
+renderReconReport(runBaselineReconciliation());
 </script>
 </body>
 </html>
