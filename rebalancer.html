@@ -234,6 +234,16 @@ table tr:hover td{background:#fafbff;}
   <button class="tab-btn" data-view="view-selftest">Self-Test</button>
 </div>
 
+<div class="card" style="background:#eef0ff;border:1px solid #cfd3f5;">
+  <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
+    <div>
+      <strong>Preset: Rajnish Kumar — "Financials shift / factor 50:25:25 / commodities 20% at 85:15 / +10% domestic equity into small cap"</strong>
+      <div class="muted small">Loads the scope, 5-instruction queue, and funding waterfall for this exact call and runs it immediately — no manual form-filling.</div>
+    </div>
+    <button id="preset-rajnish-btn" style="white-space:nowrap;">▶ Load &amp; Run This Example</button>
+  </div>
+</div>
+
 <!-- ============ 1. SCOPE ============ -->
 <div class="view active" id="view-scope">
   <div class="card">
@@ -28249,6 +28259,41 @@ function renderSelfTest(results){
   });
   document.getElementById('selftest-out').innerHTML = html;
 }
+
+// ============================================================================
+// PRESET — "Load & Run This Example" (Rajnish Kumar rebalancing call, one click, no manual form-filling)
+// ============================================================================
+document.getElementById('preset-rajnish-btn').addEventListener('click', ()=>{
+  // 1. Scope: Rajnish Kumar only (strategyIdx 0 = Allocate Select, clientIdx 0)
+  SCOPE_SELECTED.clear();
+  SCOPE_SELECTED.add(keyFor(0,0));
+  renderScopeTable();
+
+  // 2. Targets: the 5-instruction queue, in order
+  INSTRUCTION_QUEUE.length = 0;
+  INSTRUCTION_QUEUE.push(
+    { type:'paired', fromBucket:'fund', fromFundIsin:'INF247L01BU1', fromForm:'pct', fromValue:100, toBucket:'sector:Financials', toFundIsin:'INF247L01GN5' },
+    { type:'multiway_ratio', parentBucket:'equity_total', children:[
+      {bucket:'factor:Momentum', ratio:50}, {bucket:'factor:Low Vol', ratio:25}, {bucket:'factor:Value', ratio:25}
+    ]},
+    { type:'ratio', parentBucket:'commodities', childA:'gold', childB:'silver', ratioA:85, ratioB:15 },
+    { type:'simple', bucket:'commodities', basis:'aum', form:'absolute', value:20, mapping:'pro_rata' },
+    { type:'simple', bucket:'domestic_equity', basis:'equity', form:'delta', value:10, mapping:'concentrate', concentrateIsin:'INF204K01K15' }
+  );
+  renderInstructionQueue();
+
+  // 3. Funding Waterfall: Cash first, then Motilal Oswal Flexi Cap only (explicitly keeps international
+  // equity untouched, and keeps the 85:15 Gold:Silver / 20% Commodities from instructions 3-4 exact).
+  WATERFALL_SOURCES.length = 0;
+  WATERFALL_SOURCES.push({ kind:'cash' }, { kind:'named', isins:['INF247L01502'] });
+  renderWaterfallList();
+
+  // 4/5. Run for scope, then jump straight to the Results Matrix and open Rajnish Kumar's drill-down —
+  // the whole point of a preset is landing on the answer, not on the form.
+  document.getElementById('run-execute-btn').click();
+  switchToView('view-results');
+  drillIntoResultRow(0);
+});
 
 // ============================================================================
 // INIT
