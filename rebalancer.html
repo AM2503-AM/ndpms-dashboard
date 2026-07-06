@@ -7,6 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Reddit+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
 :root{
   --blue:#222a9c;
@@ -29,6 +30,7 @@ body{
   color:#1b1b2a;
   font-size:14px;
   line-height:1.45;
+  zoom:1.18; /* scales all text + spacing together, since most sizes below are fixed px, not rem */
 }
 a{color:var(--blue);}
 .app-header{
@@ -489,7 +491,10 @@ table tr:hover td{background:#fafbff;}
   <div class="card" id="results-matrix-card" style="display:none;">
     <div class="flex-between">
       <h2>Results Matrix</h2>
-      <button class="secondary" id="results-export-csv">Export CSV</button>
+      <div style="display:flex;gap:8px;">
+        <button class="secondary" id="results-export-csv">Export CSV</button>
+        <button class="secondary" id="results-export-excel">⬇ Download Excel (IPS + Trades, all clients in scope)</button>
+      </div>
     </div>
     <p class="muted small">One row per client in scope. For a single-client scope this is a matrix of one row — drill in below for the full before/after (same view either way, nothing special-cased for "book-wide").</p>
     <div class="scroll-x">
@@ -28142,6 +28147,86 @@ document.getElementById('results-export-csv').addEventListener('click', ()=>{
   a.href = url; a.download = 'rebalance_results_matrix.csv';
   document.body.appendChild(a); a.click(); document.body.removeChild(a);
   URL.revokeObjectURL(url);
+});
+
+// ============================================================================
+// EXCEL EXPORT — Before/After IPS + full trade ticket (₹ and % of AUM) for every client in RUN_RESULTS
+// ============================================================================
+function uniqueSheetName(base, used){
+  let name = String(base).replace(/[\\/?*[\]:]/g,' ').trim().substring(0,31) || 'Client';
+  let i = 2;
+  while (used.has(name)) {
+    const suffix = ' ('+i+')';
+    name = base.substring(0, 31-suffix.length) + suffix;
+    i++;
+  }
+  used.add(name);
+  return name;
+}
+function ipsBeforeAfterAoa(beforeHoldings, beforeAum, afterHoldings, afterAum){
+  const mb = computeClientMetrics(beforeHoldings, beforeAum);
+  const ma = computeClientMetrics(afterHoldings, afterAum);
+  const rows = [
+    ['AUM (₹)', mb.aum, ma.aum],
+    ['Equity %', mb.eqPct, ma.eqPct],
+    ['Debt %', mb.debtPct, ma.debtPct],
+    ['Others %', mb.othPct, ma.othPct],
+    ['Debt+Alt %', mb.debtAltPct, ma.debtAltPct],
+    ['Domestic Equity % (of equity)', mb.domesticEqPct, ma.domesticEqPct],
+    ['Global Equity % (of equity)', mb.globalEqPct, ma.globalEqPct],
+    ['Large Cap % (of equity)', mb.lcPct, ma.lcPct],
+    ['Mid Cap % (of equity)', mb.mcPct, ma.mcPct],
+    ['Small Cap % (of equity)', mb.scPct, ma.scPct],
+    ['Intl Equity % (of equity)', mb.intlEqPct, ma.intlEqPct],
+    ['AMC Concentration %', mb.topAmcPct, ma.topAmcPct],
+    ['Scheme Concentration %', mb.topSchemePct, ma.topSchemePct],
+    ['Lock-in %', mb.lockedPct, ma.lockedPct],
+    ['Commodities %', mb.commodityPct, ma.commodityPct],
+    ['Gold % (of commodities)', mb.goldOfCommodityPct, ma.goldOfCommodityPct],
+    ['Silver % (of commodities)', mb.silverOfCommodityPct, ma.silverOfCommodityPct],
+    ['Value factor (₹)', mb.valueAmt, ma.valueAmt],
+    ['Momentum factor (₹)', mb.momentumAmt, ma.momentumAmt],
+    ['Risk Profile', mb.riskProfile, ma.riskProfile],
+  ];
+  const aoa = [['Metric','Before','After','Δ']];
+  rows.forEach(([label, b, a])=>{
+    const delta = (typeof b==='number' && typeof a==='number') ? +(a-b).toFixed(4) : '—';
+    aoa.push([label, (typeof b==='number'? +b.toFixed(4): b), (typeof a==='number'? +a.toFixed(4): a), delta]);
+  });
+  return aoa;
+}
+document.getElementById('results-export-excel').addEventListener('click', ()=>{
+  if (!RUN_RESULTS.length) { alert('Run the scenario first (Stage 4) before exporting.'); return; }
+  const wb = XLSX.utils.book_new();
+  const usedNames = new Set();
+
+  // Summary sheet first
+  const summaryAoa = [['Client','Strategy','RM','SRM','IPS Status','IPS Detail','Trade Lines']];
+  RUN_RESULTS.forEach(r=>{
+    if (r.excluded) { summaryAoa.push([r.client.name, r.strategyName, '', '', 'EXCLUDED', r.reason, 0]); return; }
+    const rm = (PARKING_DATA[r.client.ndas]||{}).rm || '—';
+    const srm = (PARKING_DATA[r.client.ndas]||{}).srm || '—';
+    const tradeCount = (r.tickets||[]).filter(t=>t.side==='BUY'||t.side==='SELL').length;
+    summaryAoa.push([r.client.name, r.strategyName, rm, srm, r.ipsStatus, r.ipsDetail, tradeCount]);
+  });
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(summaryAoa), uniqueSheetName('Summary', usedNames));
+
+  // One sheet per client: trade ticket (₹ and % of AUM) + before/after IPS, stacked
+  RUN_RESULTS.forEach(r=>{
+    if (r.excluded) return;
+    const aoa = [];
+    aoa.push(['Trade Ticket — '+r.client.name]);
+    aoa.push(['Fund','Side','₹ Amount','% of AUM','Note']);
+    (r.tickets||[]).filter(t=>t.side==='BUY'||t.side==='SELL').forEach(t=>{
+      aoa.push([t.fund, t.side, Math.round(t.amount), +((t.amount/r.afterAum)*100).toFixed(3), t.note||'']);
+    });
+    aoa.push([]);
+    aoa.push(['Before / After IPS — '+r.client.name]);
+    ipsBeforeAfterAoa(r.beforeHoldings, r.beforeAum, r.afterHoldings, r.afterAum).forEach(row=>aoa.push(row));
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(aoa), uniqueSheetName(r.client.name, usedNames));
+  });
+
+  XLSX.writeFile(wb, 'NDPMS_Rebalance_Result_'+new Date().toISOString().slice(0,10)+'.xlsx');
 });
 
 // ============================================================================
