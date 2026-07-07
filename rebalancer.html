@@ -28115,17 +28115,40 @@ function drillIntoResultRow(i){
   }).join('') || '<div class="muted small">No instructions were queued for this run.</div>';
   document.getElementById('results-drill-card').scrollIntoView({behavior:'smooth'});
 }
+// Net a raw ticket list (one entry per instruction-leg) down to one row per fund, since several
+// instructions can legitimately touch the same fund in opposite directions (e.g. a ratio fix buys
+// Gold, then a later bucket-shrink sells some of that same Gold back down) — showing both raw legs
+// would read as two real, offsetting trades that only cost transaction fees for no net position
+// change. Returns [{fund, side, amount, legDetail}], omitting funds that fully net to zero.
+function netTicketsByFund(tickets){
+  const byFund = {};
+  tickets.forEach(t=>{
+    const signed = t.side==='BUY'?t.amount:-t.amount;
+    if (!byFund[t.fund]) byFund[t.fund] = { net:0, legs:[] };
+    byFund[t.fund].net += signed;
+    byFund[t.fund].legs.push(t);
+  });
+  const out = [];
+  Object.keys(byFund).forEach(fund=>{
+    const f = byFund[fund];
+    if (Math.abs(f.net) < 1) return;
+    const legDetail = f.legs.length>1
+      ? f.legs.map(l=>(l.side==='BUY'?'+':'-')+fmtRs(l.amount)+(l.note?' ('+l.note+')':'')).join('; ')
+      : (f.legs[0].note||'');
+    out.push({ fund, side: f.net>0?'BUY':'SELL', amount: Math.abs(f.net), legCount: f.legs.length, legDetail });
+  });
+  return out;
+}
 function renderTradeTicketTable(tickets){
   if (!tickets.length) return '<div class="muted small">No trades required.</div>';
-  const netByFund = {};
-  tickets.forEach(t=>{ const signed = t.side==='BUY'?t.amount:-t.amount; netByFund[t.fund]=(netByFund[t.fund]||0)+signed; });
-  const netSum = Object.values(netByFund).reduce((s,v)=>s+v,0);
-  let html = `<div class="scroll-x"><table><thead><tr><th>Fund</th><th>Side</th><th class="num">₹ Amount</th><th>Note</th></tr></thead><tbody>`;
-  tickets.forEach(t=>{
-    html += `<tr><td>${esc(t.fund)}</td><td>${t.side==='BUY'?'<span class="pill pill-green">BUY</span>':'<span class="pill pill-red">SELL</span>'}</td><td class="num" title="${t.amount}">${fmtRs(t.amount)}</td><td class="small muted">${esc(t.note||'')}</td></tr>`;
+  const netRows = netTicketsByFund(tickets);
+  const netSum = tickets.reduce((s,t)=> s + (t.side==='BUY'?t.amount:-t.amount), 0);
+  let html = `<div class="scroll-x"><table><thead><tr><th>Fund</th><th>Side</th><th class="num">₹ Amount (net)</th><th>Note</th></tr></thead><tbody>`;
+  netRows.forEach(f=>{
+    html += `<tr><td>${esc(f.fund)}</td><td>${f.side==='BUY'?'<span class="pill pill-green">BUY</span>':'<span class="pill pill-red">SELL</span>'}</td><td class="num" title="${f.amount}">${fmtRs(f.amount)}</td><td class="small muted" title="${esc(f.legDetail)}">${f.legCount>1?(f.legCount+' legs netted: '+esc(f.legDetail)):esc(f.legDetail)}</td></tr>`;
   });
   html += `</tbody></table></div>
-  <div class="small muted" style="margin-top:8px;">Net of all legs: <strong title="${netSum}">${fmtRs(Math.abs(netSum))}</strong> ${Math.abs(netSum)<1?'(nets to zero ✓)':'<span style="color:var(--dred)">— does NOT net to zero</span>'}</div>`;
+  <div class="small muted" style="margin-top:8px;">Net of all legs across all funds: <strong title="${netSum}">${fmtRs(Math.abs(netSum))}</strong> ${Math.abs(netSum)<1?'(nets to zero ✓)':'<span style="color:var(--dred)">— does NOT net to zero</span>'}</div>`;
   return html;
 }
 document.getElementById('results-export-csv').addEventListener('click', ()=>{
@@ -28215,10 +28238,10 @@ document.getElementById('results-export-excel').addEventListener('click', ()=>{
   RUN_RESULTS.forEach(r=>{
     if (r.excluded) return;
     const aoa = [];
-    aoa.push(['Trade Ticket — '+r.client.name]);
-    aoa.push(['Fund','Side','₹ Amount','% of AUM','Note']);
-    (r.tickets||[]).filter(t=>t.side==='BUY'||t.side==='SELL').forEach(t=>{
-      aoa.push([t.fund, t.side, Math.round(t.amount), +((t.amount/r.afterAum)*100).toFixed(3), t.note||'']);
+    aoa.push(['Trade Ticket — '+r.client.name+' (netted per fund — see notes for underlying legs where an instruction later traded the same fund back the other way)']);
+    aoa.push(['Fund','Side','₹ Amount (net)','% of AUM','Note']);
+    netTicketsByFund((r.tickets||[]).filter(t=>t.side==='BUY'||t.side==='SELL')).forEach(f=>{
+      aoa.push([f.fund, f.side, Math.round(f.amount), +((f.amount/r.afterAum)*100).toFixed(3), f.legCount>1?(f.legCount+' legs netted: '+f.legDetail):f.legDetail]);
     });
     aoa.push([]);
     aoa.push(['Before / After IPS — '+r.client.name]);
