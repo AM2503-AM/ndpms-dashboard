@@ -239,10 +239,10 @@ table tr:hover td{background:#fafbff;}
 <div class="card" style="background:#eef0ff;border:1px solid #cfd3f5;">
   <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
     <div>
-      <strong>Preset: Rajnish Kumar — "Financials shift / factor 50:25:25 / commodities 20% at 85:15 / +10% domestic equity into small cap"</strong>
-      <div class="muted small">Loads the scope, 5-instruction queue, and funding waterfall for this exact call and runs it immediately — no manual form-filling.</div>
+      <strong>Preset: Latest batch — Shah Family + Sakshat Mhatre (factor 50:25:25 + Financials 5%), Brinda Sankar (factor + Financials 5% from cash), Rajnish Kumar (financials shift / factor / commodities 20% at 85:15 / +10% domestic equity)</strong>
+      <div class="muted small">Runs a different instruction set per client (not a single shared queue) and immediately downloads a workbook with one sheet per client — instructions applied, netted trade ticket with ISINs, and before/after IPS. This card is replaced with whatever your latest command is each time.</div>
     </div>
-    <button id="preset-rajnish-btn" style="white-space:nowrap;">▶ Load &amp; Run This Example</button>
+    <button id="preset-batch-btn" style="white-space:nowrap;">▶ Run This Batch &amp; Download Excel</button>
   </div>
 </div>
 
@@ -27374,9 +27374,20 @@ function applyTargetPlan(holdings, aum, plan){
     // (fundTotalValue/fundBucketAmount) removes exactly `sellAmtTotal` of the bucket's amount.
     const sellAmtTotal = -deltaAmt;
     const rows = matchingHoldingsForBucket(holdings, classified, bucket, instr.fundIsin);
-    if (instr.mapping === 'concentrate' && instr.concentrateIsin) {
-      const targetSecurity = holdings.find(h => (ISIN_MAP[h.security]||'') === instr.concentrateIsin)?.security;
-      const row = rows.find(r=>r.c.security===targetSecurity) || rows[0];
+    // "concentrate" only means "sell specifically from THIS fund" when that fund is a holding the
+    // client ALREADY has in this bucket (a genuine, intentional choice — e.g. "trim Value, but
+    // specifically from fund X"). If concentrateIsin refers to a fund not currently held here at
+    // all, it was almost certainly meant as a BUY destination (picked before knowing this leg would
+    // turn out to be a SELL, e.g. a bucket that's over-target because of pre-existing holdings the
+    // caller didn't account for) — selling "from" a position that doesn't exist would silently fall
+    // back to whichever holding matched first, concentrating the whole sell into one arbitrary fund
+    // instead of the intended pro-rata trim across the bucket. Confirmed empirically: a Financials
+    // sector target on a client already overweight via individual bank stocks tried to sell the
+    // entire trim amount out of one bank stock alone, instead of pro-rata across all of them.
+    const targetSecurity = holdings.find(h => (ISIN_MAP[h.security]||'') === instr.concentrateIsin)?.security;
+    const targetIsGenuinelyHeldInBucket = targetSecurity && rows.some(r=>r.c.security===targetSecurity);
+    if (instr.mapping === 'concentrate' && instr.concentrateIsin && targetIsGenuinelyHeldInBucket) {
+      const row = rows.find(r=>r.c.security===targetSecurity);
       if (row) {
         const bucketAmtInRow = bucketRowAmount(row.c, bucket);
         const grossUp = (bucketAmtInRow>1e-9 && bucketAmtInRow < row.c.mval) ? row.c.mval/bucketAmtInRow : 1;
@@ -28378,38 +28389,67 @@ function renderSelfTest(results){
 }
 
 // ============================================================================
-// PRESET — "Load & Run This Example" (Rajnish Kumar rebalancing call, one click, no manual form-filling)
+// PRESET — "Run This Batch & Download Excel" — a DIFFERENT instruction set per client, not a single
+// shared queue. The normal Scope→Targets→Waterfall→Run flow assumes one queue for everyone in scope,
+// which can't express "these 6 clients each get their own call" — so this preset runs each client (or
+// client group sharing the same call) through runForOneClient() individually with its own queue/
+// waterfall, assembles them into RUN_RESULTS itself, then jumps straight to Results and triggers the
+// Excel download — no manual form-filling, no per-client form repetition.
 // ============================================================================
-document.getElementById('preset-rajnish-btn').addEventListener('click', ()=>{
-  // 1. Scope: Rajnish Kumar only (strategyIdx 0 = Allocate Select, clientIdx 0)
-  SCOPE_SELECTED.clear();
-  SCOPE_SELECTED.add(keyFor(0,0));
-  renderScopeTable();
+document.getElementById('preset-batch-btn').addEventListener('click', ()=>{
+  const FINANCIALS_ISIN = 'INF247L01GN5'; // Motilal Oswal Financial Services Fund — same destination across the batch for consistency
+  const NIFTY500_ISIN = 'INF247L01BU1';
+  const MINDSPACE_ISIN = 'INE0CCU25019';
+  const combined = [];
 
-  // 2. Targets: the 5-instruction queue, in order
-  INSTRUCTION_QUEUE.length = 0;
-  INSTRUCTION_QUEUE.push(
-    { type:'paired', fromBucket:'fund', fromFundIsin:'INF247L01BU1', fromForm:'pct', fromValue:100, toBucket:'sector:Financials', toFundIsin:'INF247L01GN5' },
-    { type:'multiway_ratio', parentBucket:'equity_total', children:[
-      {bucket:'factor:Momentum', ratio:50}, {bucket:'factor:Low Vol', ratio:25}, {bucket:'factor:Value', ratio:25}
-    ]},
+  function runClient(si, ci, strategyName, queue, waterfall){
+    const client = STRATEGY_DATA[si].clients[ci];
+    INSTRUCTION_QUEUE.length = 0; INSTRUCTION_QUEUE.push(...queue);
+    WATERFALL_SOURCES.length = 0; WATERFALL_SOURCES.push(...waterfall);
+    const r = runForOneClient(client, 'rebalance');
+    r.strategyName = strategyName;
+    r.noIpsReason = null;
+    combined.push(r);
+  }
+
+  const factor502525 = { type:'multiway_ratio', parentBucket:'equity_total', children:[
+    {bucket:'factor:Momentum', ratio:50}, {bucket:'factor:Low Vol', ratio:25}, {bucket:'factor:Value', ratio:25}
+  ]};
+  const financials5pct = { type:'simple', bucket:'sector:Financials', basis:'aum', form:'absolute', value:5, mapping:'concentrate', concentrateIsin: FINANCIALS_ISIN };
+
+  // Shah Family (Jay/Ruchita/Nitin) — factor rebalance + Financials 5%, funded cash -> Nifty500 -> Mindspace REIT (2nd priority)
+  const shahWaterfall = [{kind:'cash'}, {kind:'named', isins:[NIFTY500_ISIN]}, {kind:'named', isins:[MINDSPACE_ISIN]}];
+  runClient(0,8,'Allocate Select', [factor502525, financials5pct], shahWaterfall);
+  runClient(0,9,'Allocate Select', [factor502525, financials5pct], shahWaterfall);
+  runClient(0,7,'Allocate Select', [factor502525, financials5pct], shahWaterfall);
+
+  // Sakshat Mhatre — factor rebalance + Financials 5%, funded cash -> Nifty500 (no REIT mentioned for him)
+  runClient(2,4,'CoPilot', [factor502525, financials5pct], [{kind:'cash'}, {kind:'named', isins:[NIFTY500_ISIN]}]);
+
+  // Brinda Sankar — factor rebalance + Financials 5% funded entirely from cash (she holds no Nifty500/REIT,
+  // but has ample cash — "cash is there if financials call has to be taken" read as confirming the same call applies to her)
+  runClient(2,1,'CoPilot', [factor502525, financials5pct], [{kind:'cash'}]);
+
+  // Rajnish Kumar — full 5-instruction call: shift Nifty500->Financials, factor rebalance, Gold:Silver 85:15,
+  // Commodities->20% AUM, Domestic Equity +10% of equity into small cap, funded cash -> Motilal Flexi Cap
+  // (explicitly keeps international equity untouched, per his own confirmed refinement)
+  runClient(0,0,'Allocate Select', [
+    { type:'paired', fromBucket:'fund', fromFundIsin: NIFTY500_ISIN, fromForm:'pct', fromValue:100, toBucket:'sector:Financials', toFundIsin: FINANCIALS_ISIN },
+    factor502525,
     { type:'ratio', parentBucket:'commodities', childA:'gold', childB:'silver', ratioA:85, ratioB:15 },
     { type:'simple', bucket:'commodities', basis:'aum', form:'absolute', value:20, mapping:'pro_rata' },
     { type:'simple', bucket:'domestic_equity', basis:'equity', form:'delta', value:10, mapping:'concentrate', concentrateIsin:'INF204K01K15' }
-  );
-  renderInstructionQueue();
+  ], [{kind:'cash'}, {kind:'named', isins:['INF247L01502']}]);
 
-  // 3. Funding Waterfall: Cash first, then Motilal Oswal Flexi Cap only (explicitly keeps international
-  // equity untouched, and keeps the 85:15 Gold:Silver / 20% Commodities from instructions 3-4 exact).
-  WATERFALL_SOURCES.length = 0;
-  WATERFALL_SOURCES.push({ kind:'cash' }, { kind:'named', isins:['INF247L01502'] });
-  renderWaterfallList();
-
-  // 4/5. Run for scope, then jump straight to the Results Matrix and open Rajnish Kumar's drill-down —
-  // the whole point of a preset is landing on the answer, not on the form.
-  document.getElementById('run-execute-btn').click();
+  // Install into the real RUN_RESULTS (in-place mutation — reassigning would shadow the let-scoped
+  // variable other functions close over) and render exactly as the normal Run stage would.
+  RUN_RESULTS.length = 0;
+  RUN_RESULTS.push(...combined);
+  RUN_RECON_FAILING_CODES = new Set();
+  document.getElementById('run-status').innerHTML = `<div class="recon-ok">Batch complete: ${RUN_RESULTS.length} client(s) processed via per-client instruction sets.</div>`;
   switchToView('view-results');
-  drillIntoResultRow(0);
+  renderResultsMatrix();
+  document.getElementById('results-export-excel').click();
 });
 
 // ============================================================================
