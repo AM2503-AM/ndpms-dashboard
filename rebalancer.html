@@ -28234,17 +28234,26 @@ document.getElementById('results-export-excel').addEventListener('click', ()=>{
   });
   XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(summaryAoa), uniqueSheetName('Summary', usedNames));
 
-  // One sheet per client: trade ticket (₹ and % of AUM) + before/after IPS, stacked
+  // One sheet per client: instructions applied + trade ticket (₹, %AUM, ISIN) + before/after IPS, stacked
   RUN_RESULTS.forEach(r=>{
     if (r.excluded) return;
     const aoa = [];
-    aoa.push(['Trade Ticket — '+r.client.name+' (netted per fund — see notes for underlying legs where an instruction later traded the same fund back the other way)']);
-    aoa.push(['Fund','Side','₹ Amount (net)','% of AUM','Note']);
-    netTicketsByFund((r.tickets||[]).filter(t=>t.side==='BUY'||t.side==='SELL')).forEach(f=>{
-      aoa.push([f.fund, f.side, Math.round(f.amount), +((f.amount/r.afterAum)*100).toFixed(3), f.legCount>1?(f.legCount+' legs netted: '+f.legDetail):f.legDetail]);
+    aoa.push([r.client.name+' ('+r.client.account+', '+r.strategyName+')']);
+    aoa.push([]);
+    aoa.push(['Calls / Instructions Applied']);
+    aoa.push(['#','Instruction','Status']);
+    (r.perInstructionSnapshots||[]).forEach((s,idx)=>{
+      aoa.push([idx+1, describeQueueInstruction(s.instr), s.skipped ? ('SKIPPED — '+s.reason) : 'Applied']);
     });
     aoa.push([]);
-    aoa.push(['Before / After IPS — '+r.client.name]);
+    aoa.push(['Trade Ticket (netted per fund — see Note for underlying legs where a later instruction traded the same fund back the other way)']);
+    aoa.push(['Fund','ISIN','Side','₹ Amount (net)','% of AUM','Note']);
+    netTicketsByFund((r.tickets||[]).filter(t=>t.side==='BUY'||t.side==='SELL')).forEach(f=>{
+      const isin = f.fund==='Cash' ? '—' : (ISIN_MAP[f.fund] || (Object.keys(ADVISORY_V2).find(k=>ADVISORY_V2[k][0]===f.fund)) || 'Not found');
+      aoa.push([f.fund, isin, f.side, Math.round(f.amount), +((f.amount/r.afterAum)*100).toFixed(3), f.legCount>1?(f.legCount+' legs netted: '+f.legDetail):f.legDetail]);
+    });
+    aoa.push([]);
+    aoa.push(['Before / After IPS']);
     ipsBeforeAfterAoa(r.beforeHoldings, r.beforeAum, r.afterHoldings, r.afterAum).forEach(row=>aoa.push(row));
     XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(aoa), uniqueSheetName(r.client.name, usedNames));
   });
