@@ -90,6 +90,8 @@
   .attr-btn:hover{background:#EAF1F8}
   .attr-btn.active{background:var(--primary);color:#fff;border-color:var(--primary)}
   .attr-empty{text-align:center;color:var(--muted);padding:28px;font-size:13px}
+  .search-result-row:hover{background:#EAF1F8}
+  .search-result-chip:hover{background:var(--primary);color:#fff}
 </style>
 </head>
 <body>
@@ -97,6 +99,12 @@
   <div>
     <h1 id="topbar-title">NDPMS Strategies Outlook and Updates</h1>
     <div class="meta" id="topbar-meta">Data as of <strong>30 June 2026</strong> &middot; covers Allocate Select, LVPMS &amp; CoPilot</div>
+  </div>
+  <div id="topbar-search-wrap" style="position:relative;flex:1;max-width:380px;min-width:200px">
+    <input id="global-search-input" type="text" placeholder="&#128269; Search client or fund&hellip;" autocomplete="off"
+      style="width:100%;padding:10px 14px;border-radius:6px;border:none;font-size:13px;box-shadow:0 2px 4px rgba(0,0,0,.1);outline:none;box-sizing:border-box"
+      oninput="globalSearchInput(this.value)" onfocus="globalSearchInput(this.value)" onkeydown="globalSearchKeydown(event)">
+    <div id="global-search-results" style="display:none;position:absolute;top:calc(100% + 6px);left:0;right:0;background:#fff;border-radius:8px;box-shadow:0 6px 20px rgba(0,0,0,.25);max-height:420px;overflow-y:auto;z-index:200;text-align:left;color:var(--text)"></div>
   </div>
   <div id="topbar-actions" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
     <a class="refresh-btn" href="#" onclick="askRefresh();return false;">&#x21bb; &nbsp;Refresh Dashboard</a>
@@ -2699,6 +2707,108 @@ function askRefresh() {
 }
 
 renderMainView();
+
+// ── Global search (client name / NDAS / account / fund-security name) ───────
+let SEARCH_CLIENT_INDEX = [];
+let SEARCH_SECURITY_INDEX = {};
+
+function buildSearchIndex(){
+  SEARCH_CLIENT_INDEX = [];
+  SEARCH_SECURITY_INDEX = {};
+  STRATEGY_DATA.forEach((s, si) => {
+    s.clients.forEach((c, ci) => {
+      SEARCH_CLIENT_INDEX.push({ name: c.name, ndas: c.ndas, account: c.account, strategyName: s.name, stratIdx: si, clientIdx: ci });
+      (c.holdings||[]).forEach(h => {
+        if (!h.security || h.security === 'Cash') return;
+        const key = h.security;
+        if (!SEARCH_SECURITY_INDEX[key]) SEARCH_SECURITY_INDEX[key] = { security: key, clients: [] };
+        if (!SEARCH_SECURITY_INDEX[key].clients.some(x => x.stratIdx===si && x.clientIdx===ci)) {
+          SEARCH_SECURITY_INDEX[key].clients.push({ stratIdx: si, clientIdx: ci, name: c.name });
+        }
+      });
+    });
+  });
+}
+
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+}
+
+function globalSearchInput(qRaw){
+  const q = (qRaw||'').trim().toLowerCase();
+  const resultsEl = document.getElementById('global-search-results');
+  if (!q) { resultsEl.style.display='none'; resultsEl.innerHTML=''; return; }
+
+  const clientMatches = SEARCH_CLIENT_INDEX.filter(c =>
+    c.name.toLowerCase().includes(q) || (c.ndas||'').toLowerCase().includes(q) || String(c.account||'').toLowerCase().includes(q)
+  ).slice(0, 8);
+
+  const fundMatches = Object.values(SEARCH_SECURITY_INDEX).filter(f => f.security.toLowerCase().includes(q)).slice(0, 8);
+
+  if (!clientMatches.length && !fundMatches.length) {
+    resultsEl.innerHTML = `<div style="padding:14px;color:var(--muted);font-size:13px">No matches for "${escapeHtml(qRaw)}"</div>`;
+    resultsEl.style.display = 'block';
+    return;
+  }
+
+  let html = '';
+  if (clientMatches.length) {
+    html += '<div style="padding:8px 14px;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--border)">Clients</div>';
+    clientMatches.forEach(c => {
+      html += `<div class="search-result-row" onclick="globalSearchGoToClient(${c.stratIdx},${c.clientIdx})" style="padding:10px 14px;cursor:pointer;border-bottom:1px solid var(--border)">
+        <div style="font-weight:600;font-size:13px;color:var(--text)">${escapeHtml(c.name)}</div>
+        <div style="font-size:11px;color:var(--muted)">${escapeHtml(c.strategyName)} &middot; ${escapeHtml(c.ndas)} &middot; A/c ${escapeHtml(String(c.account))}</div>
+      </div>`;
+    });
+  }
+  if (fundMatches.length) {
+    html += '<div style="padding:8px 14px;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--border)">Funds / Securities</div>';
+    fundMatches.forEach(f => {
+      const chips = f.clients.map(cl =>
+        `<span class="search-result-chip" onclick="event.stopPropagation();globalSearchGoToClient(${cl.stratIdx},${cl.clientIdx})" style="display:inline-block;margin:4px 6px 0 0;padding:3px 9px;background:#EAF1F8;color:var(--primary);border-radius:12px;font-size:11px;cursor:pointer;font-weight:600">${escapeHtml(cl.name)}</span>`
+      ).join('');
+      html += `<div style="padding:10px 14px;border-bottom:1px solid var(--border)">
+        <div style="font-weight:600;font-size:13px;color:var(--text)">${escapeHtml(f.security)}</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px">Held by ${f.clients.length} client${f.clients.length===1?'':'s'}:</div>
+        <div>${chips}</div>
+      </div>`;
+    });
+  }
+  resultsEl.innerHTML = html;
+  resultsEl.style.display = 'block';
+}
+
+function globalSearchGoToClient(stratIdx, clientIdx){
+  document.getElementById('global-search-results').style.display = 'none';
+  document.getElementById('global-search-input').value = '';
+  const ipsView = document.getElementById('ips-view');
+  const checklistView = document.getElementById('checklist-view');
+  if (ipsView) ipsView.style.display = 'none';
+  if (checklistView) checklistView.style.display = 'none';
+  showClient(stratIdx, clientIdx);
+  window.scrollTo({top:0, behavior:'instant'});
+}
+
+function globalSearchKeydown(e){
+  if (e.key === 'Escape') {
+    document.getElementById('global-search-results').style.display = 'none';
+    e.target.blur();
+  } else if (e.key === 'Enter') {
+    const resultsEl = document.getElementById('global-search-results');
+    const first = resultsEl.querySelector('.search-result-row, .search-result-chip');
+    if (first) first.click();
+  }
+}
+
+document.addEventListener('click', function(e){
+  const wrap = document.getElementById('topbar-search-wrap');
+  if (wrap && !wrap.contains(e.target)) {
+    const resultsEl = document.getElementById('global-search-results');
+    if (resultsEl) resultsEl.style.display = 'none';
+  }
+});
+
+buildSearchIndex();
 
 // ── Pending Actions ──────────────────────────────────────────────────────────
 function renderActions(ndas) {
