@@ -2205,9 +2205,9 @@ function showClient(strategyIdx, clientIdx) {
   holdingsRows += `
     <tr class="tot-row" style="font-weight:700;background:#EAF1F8">
       <td colspan="4" style="text-align:right">TOTAL</td>
-      <td class="num">${fmtINR(grandCost)}</td>
+      <td class="num" title="Cost basis (amount invested)">${fmtINR(grandCost)}</td>
       <td></td>
-      <td class="num">${fmtINR(grandMV)}</td>
+      <td class="num" style="background:#DCE9F5" title="Current market value — matches portfolio AUM">${fmtINR(grandMV)} <span style="font-size:10px;color:var(--muted);font-weight:400">(= AUM)</span></td>
       <td class="num">${fmtINR(grandGL)}</td>
       <td class="num" style="color:${grandPct>=0?'var(--green)':'var(--red)'}">${pctRaw(grandPct)}</td>
       <td class="num">${pctRaw(grandAssetsPct)}</td>
