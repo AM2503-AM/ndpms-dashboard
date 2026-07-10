@@ -1687,6 +1687,52 @@ function clearCharts(prefix) {
   });
 }
 
+// ============ Instrument-type classification (shared by client-level and scheme-level views) ============
+// Splits the coarse Equity/Hybrid/Fixed Income/Alternative Assets/Cash asset_class into
+// direct listed shares vs domestic equity funds/ETFs, international, commodity, AIF/SIF, etc.
+function classifyInstrument(h) {
+  const name = h.security || '';
+  const isETF = /\bETF\b|BEES/i.test(name);
+  const isFundName = /Direct-?G$|Direct Growth$|\bGrowth$|\bFoF\b/i.test(name);
+  if (/\bAIF\b|\bA1F\b|SageOne|Sage One/i.test(name)) return 'AIF / SIF';
+  if (h.asset_class === 'Equity') {
+    const isIntl = /Nasdaq|Greater China|U\.S\.|International|Off-?shore|Global|Overseas|Asian Equity/i.test(name);
+    if (isIntl) return isETF ? 'International Equity ETF' : 'International Equity Fund';
+    if (isETF) return 'Domestic Equity ETF';
+    if (isFundName) return 'Domestic Equity Fund';
+    return 'Domestic Equity'; // direct/listed shares — not a fund or ETF
+  }
+  if (h.asset_class === 'Alternative Assets') {
+    if (/REIT|INVIT/i.test(name)) return 'REIT / InvIT';
+    return isETF ? 'Commodity ETF' : 'Commodity Fund';
+  }
+  if (h.asset_class === 'Fixed Income') {
+    return /Arbitrage/i.test(name) ? 'Arbitrage Fund' : 'Debt Fund';
+  }
+  if (h.asset_class === 'Hybrid') return 'Hybrid';
+  if (h.asset_class === 'Cash and Equivalent') {
+    return /^Cash$/i.test(name.trim()) ? 'Cash' : 'Liquid / Overnight';
+  }
+  return h.asset_class;
+}
+function computeInstrumentMix(holdings) {
+  const totVal = (holdings||[]).reduce((s,h) => s + (h.market_value||0), 0);
+  if (totVal <= 0) return null;
+  const mixMap = {};
+  holdings.forEach(h => {
+    const cat = classifyInstrument(h);
+    if (!mixMap[cat]) mixMap[cat] = { mv: 0, count: 0 };
+    mixMap[cat].mv += h.market_value || 0;
+    mixMap[cat].count += 1;
+  });
+  return Object.keys(mixMap).map(cat => ({
+    category: cat,
+    pct: Math.round(mixMap[cat].mv/totVal*1000)/10,
+    count: mixMap[cat].count,
+    mv: mixMap[cat].mv
+  }));
+}
+
 // ============ Main view ============
 function renderStrategy(s, i) {
   const aumTotCr = s.total_aum / 1e7;
@@ -1729,6 +1775,13 @@ function renderStrategy(s, i) {
       <td>${statusPill(c.psi, c.bsi)}</td>
     </tr>`).join('');
 
+  // Scheme-level instrument-type breakdown: aggregate live holdings across every client in this strategy
+  if (!s.instrument_mix) {
+    const allHoldings = s.clients.flatMap(cl => cl.holdings || []);
+    const mix = computeInstrumentMix(allHoldings);
+    if (mix) s.instrument_mix = mix;
+  }
+
   return `
     <div class="strategy-section ${i === 0 ? 'active' : ''}" data-idx="${i}">
       <div class="benchmark-line">&#9642; Benchmark &nbsp;|&nbsp; ${s.benchmark}</div>
@@ -1739,6 +1792,10 @@ function renderStrategy(s, i) {
           <div class="chart-canvas-wrap"><canvas id="schemeAssetPie-${i}"></canvas></div></div>
         <div class="chart-card"><h3>Strategy Equity Drill-down (% of Equity)</h3>
           <div class="chart-canvas-wrap"><canvas id="schemeCapBar-${i}"></canvas></div></div>
+        ` : ''}
+        ${(s.instrument_mix && s.instrument_mix.length) ? `
+        <div class="chart-card" style="grid-column:1/-1"><h3>Strategy Instrument Type Classification (% of Portfolio)</h3>
+          <div class="chart-canvas-wrap"><canvas id="schemeInstrBar-${i}"></canvas></div></div>
         ` : ''}
         <div class="chart-card"><h3>% of Eligible Clients Outperforming Benchmark</h3>
           <div class="chart-canvas-wrap"><canvas id="periodBar-${i}"></canvas></div></div>
@@ -1795,6 +1852,43 @@ function buildMainCharts(s, i) {
           scales:{ y:{ beginAtZero:true, max:100, ticks:{ callback:v=>v+'%' }}}}
       });
     }
+  }
+  const schemeInstrCtx = document.getElementById(`schemeInstrBar-${i}`);
+  if (schemeInstrCtx && s.instrument_mix && s.instrument_mix.length) {
+    const mix = [...s.instrument_mix].sort((x,y) => (y.pct||0) - (x.pct||0));
+    const labels = mix.map(m => m.category);
+    const pcts = mix.map(m => m.pct);
+    const palette = ['#1F4E78','#4A90D9','#7E57C2','#2EA260','#F0C040','#D9534F','#9C27B0','#FF8A65','#6D4C41','#26A69A','#5C6BC0','#EC407A'];
+    CHART_INSTANCES[`schemeInstrBar-${i}`] = new Chart(schemeInstrCtx, {
+      type: 'bar',
+      data: {
+        labels,
+        datasets: [{
+          label: '% of Portfolio',
+          data: pcts,
+          backgroundColor: labels.map((_, k) => palette[k % palette.length]),
+          borderRadius: 4,
+          maxBarThickness: 28,
+        }],
+      },
+      options: {
+        indexAxis: 'y',
+        responsive: true, maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: ctx => {
+                const m = mix[ctx.dataIndex];
+                const pct = ctx.parsed.x.toFixed(2);
+                return ` ${pct}%  (${m.count} holding${m.count===1?'':'s'}, MV ${fmtINR(m.mv)})`;
+              }
+            }
+          }
+        },
+        scales: { x: { title: { display:true, text:'% of Portfolio' }, ticks: { callback: v => v + '%' } } }
+      }
+    });
   }
   const perCtx = document.getElementById(`periodBar-${i}`);
   if (perCtx) {
@@ -2257,47 +2351,10 @@ function showClient(strategyIdx, clientIdx) {
     }
   }
   // Instrument-type breakdown (finer than the Equity/Debt/Others pie): splits out
-  // international vs domestic equity funds/ETFs, commodity funds vs ETFs, AIF/SIF, etc.
-  function classifyInstrument(h) {
-    const name = h.security || '';
-    const isETF = /\bETF\b|BEES/i.test(name);
-    if (/\bAIF\b|\bA1F\b|SageOne|Sage One/i.test(name)) return 'AIF / SIF';
-    if (h.asset_class === 'Equity') {
-      if (/Nasdaq|Greater China|U\.S\.|International|Off-?shore|Global|Overseas|Asian Equity/i.test(name)) {
-        return isETF ? 'International Equity ETF' : 'International Equity Fund';
-      }
-      return isETF ? 'Domestic Equity ETF' : 'Domestic Equity Fund';
-    }
-    if (h.asset_class === 'Alternative Assets') {
-      if (/REIT|INVIT/i.test(name)) return 'REIT / InvIT';
-      return isETF ? 'Commodity ETF' : 'Commodity Fund';
-    }
-    if (h.asset_class === 'Fixed Income') {
-      return /Arbitrage/i.test(name) ? 'Arbitrage Fund' : 'Debt Fund';
-    }
-    if (h.asset_class === 'Hybrid') return 'Hybrid';
-    if (h.asset_class === 'Cash and Equivalent') {
-      return /^Cash$/i.test(name.trim()) ? 'Cash' : 'Liquid / Overnight';
-    }
-    return h.asset_class;
-  }
+  // direct listed shares vs domestic equity funds/ETFs, international, commodity, AIF/SIF, etc.
   if (c.allocation && c.holdings && c.holdings.length) {
-    const _instrTotVal = c.holdings.reduce((s,h) => s + (h.market_value||0), 0);
-    if (_instrTotVal > 0) {
-      const _mixMap = {};
-      c.holdings.forEach(h => {
-        const cat = classifyInstrument(h);
-        if (!_mixMap[cat]) _mixMap[cat] = { mv: 0, count: 0 };
-        _mixMap[cat].mv += h.market_value || 0;
-        _mixMap[cat].count += 1;
-      });
-      c.allocation.instrument_mix = Object.keys(_mixMap).map(cat => ({
-        category: cat,
-        pct: Math.round(_mixMap[cat].mv/_instrTotVal*1000)/10,
-        count: _mixMap[cat].count,
-        mv: _mixMap[cat].mv
-      }));
-    }
+    const mix = computeInstrumentMix(c.holdings);
+    if (mix) c.allocation.instrument_mix = mix;
   }
   const allocCard = c.allocation ? `
     <div class="charts-grid">
