@@ -1768,11 +1768,16 @@ function isReviewExempt(holdings) {
   const parkedPct = mix.filter(m => /Arbitrage|Liquid|^Cash$/i.test(m.category)).reduce((s,m) => s + m.pct, 0);
   return parkedPct >= REVIEW_EXEMPT_THRESHOLD_PCT;
 }
-// Manually confirmed as not needing an active review cadence (small/company/debt-leaning books
-// that don't clear the automatic liquid/arbitrage-only bar but are exempt by PM judgment):
+// Manually confirmed as not needing an active review cadence — PM judgment call, not derivable
+// from holdings composition alone, so these are an explicit override on top of the automatic
+// liquid/arbitrage-only check:
 // Alka Lifestyles Private Limited (NDAS0010) — company account, 99.9% single hybrid fund.
 // Rohit Garg (AONDCP0001) — small book, primarily debt-leaning hybrid.
-const MANUAL_REVIEW_EXEMPT_NDAS = ['NDAS0010', 'AONDCP0001'];
+// Dhiraj Sarna (AONDCP0009) — PM-confirmed exempt; note the live holdings check found ~46%
+// in real equity/commodity exposure (not just cash/arbitrage), so this is a deliberate override.
+// Chittavajhula Venkat Subramanya Sharma (AONDCP0012) — new account (funded 29-Jun-2026),
+// still deploying capital; revisit once fully invested.
+const MANUAL_REVIEW_EXEMPT_NDAS = ['NDAS0010', 'AONDCP0001', 'AONDCP0009', 'AONDCP0012'];
 // Parses the dashboard's "Data as of" banner (e.g. "30 June 2026") into {month, year} (month 0-indexed).
 const MONTH_FULL = {January:0,February:1,March:2,April:3,May:4,June:5,July:6,August:7,September:8,October:9,November:10,December:11};
 function getReportingMonthYear() {
