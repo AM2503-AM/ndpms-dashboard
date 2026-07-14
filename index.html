@@ -110,12 +110,14 @@
     <a class="refresh-btn" href="#" onclick="askRefresh();return false;">&#x21bb; &nbsp;Refresh Dashboard</a>
     <a class="refresh-btn" id="ips-btn" href="#" onclick="toggleIPSView();return false;">&#128203; IPS Review</a>
     <a class="refresh-btn" id="checklist-btn" href="#" onclick="toggleChecklistView();return false;">&#9776; Client Checklist</a>
+    <a class="refresh-btn" id="export-deviations-btn" href="#" onclick="downloadDeviationsExcel();return false;">&#11015; Export Deviations</a>
   </div>
 </div>
 
 <div class="container">
   <!-- Main strategy view -->
   <div id="main-view">
+    <div id="pending-tasks-section"></div>
     <div class="strategy-tabs" id="tabs"></div>
     <div id="content"></div>
     <div class="footer-note">
@@ -1065,7 +1067,7 @@ const STRATEGY_DATA = [
 
     const UNFUNDED_DATA = [{"code": "AONDCP0002", "client_name": "Owen Roger Roncon", "name": "Ionic Co-Pilot Portfolio", "rm": "Prerna Lotlikar", "srm": "Shairoz Tejani"}, {"code": "AONDLV0007", "client_name": "Agarwal Ritu", "name": "Ionic Large Value Portfolio", "rm": "Gaurav Khadgawat", "srm": "Rohit Singh"}, {"code": "AONDLV0008", "client_name": "Kiran Agarwal", "name": "Ionic Large Value Portfolio", "rm": "Gaurav Khadgawat", "srm": "Rohit Singh"}, {"code": "AONDLV0010", "client_name": "Agarwal Lalita", "name": "Ionic Large Value Portfolio", "rm": "Gaurav Khadgawat", "srm": "Rohit Singh"}, {"code": "NDAS0003", "client_name": "Anuj Surendra Ruia", "name": "Ionic Select Portfolio", "rm": "Parth Shah", "srm": "Riddhi Patel"}, {"code": "NDAS0004", "client_name": "Sanjay Prakash Ruia", "name": "Ionic Select Portfolio", "rm": "Parth Shah", "srm": "Riddhi Patel"}, {"code": "NDAS0005", "client_name": "Surendra Prakash Ruia", "name": "Ionic Select Portfolio", "rm": "Parth Shah", "srm": "Riddhi Patel"}, {"code": "NDAS0006", "client_name": "Diksha Gupta", "name": "Ionic Select Portfolio", "rm": "Parth Shah", "srm": "Riddhi Patel"}, {"code": "NDAS0007", "client_name": "Sonali Sanjay Ruia", "name": "Ionic Select Portfolio", "rm": "Parth Shah", "srm": "Riddhi Patel"}, {"code": "NDAS0009", "client_name": "Ambarish Chintamani Kenghe", "name": "Ionic Select Portfolio", "rm": "Direct", "srm": ""}, {"code": "NDAS0015", "client_name": "Kanaiya Lal Bachani", "name": "Ionic Select Portfolio", "rm": "Jay Anil Patel", "srm": "Riddhi Patel"}]
 
-    const MIS_DATA ={"AONDCP0002":{"advisor":"Farzan","last_review":"08-May-2026","action_items":null},"AONDLV0004":{"advisor":"Abhinandan","last_review":null,"action_items":"Factor Realloaction"},"AONDLV0007":{"advisor":"Abhinandan","last_review":null,"action_items":null},"AONDLV0008":{"advisor":"Abhinandan","last_review":null,"action_items":null},"AONDLV0010":{"advisor":"Abhinandan","last_review":null,"action_items":null},"NDAS0003":{"advisor":"Farzan","last_review":"05-Apr-2026","action_items":null},"NDAS0004":{"advisor":"Farzan","last_review":"05-Apr-2026","action_items":null},"NDAS0005":{"advisor":"Farzan","last_review":"05-Apr-2026","action_items":null},"NDAS0006":{"advisor":"Farzan","last_review":"05-Apr-2026","action_items":null},"NDAS0007":{"advisor":"Farzan","last_review":"05-Apr-2026","action_items":null},"NDAS0009":{"advisor":null,"last_review":null,"action_items":null},"NDAS0015":{"advisor":null,"last_review":null,"action_items":null},"ANGNR0004":{"advisor":"Pransu","last_review":"NR","action_items":null},"AONDCP0001":{"advisor":null,"last_review":"NR","action_items":null},"AONDCP0004":{"advisor":null,"last_review":"27-May-2026","action_items":"Factor Realloaction"},"AONDCP0006":{"advisor":null,"last_review":"11-Jun-2026","action_items":"Indus Infra Buy"},"AONDCP0007":{"advisor":null,"last_review":"15-Jun-2026","action_items":"Factor Realloaction"},"AONDCP0008":{"advisor":null,"last_review":"15-Jun-2026","action_items":null},"AONDCP0009":{"advisor":"Pransu","last_review":"NR","action_items":null},"AONDCP0011":{"advisor":"Abhinandan","last_review":null,"action_items":null},"AONDCP0012":{"advisor":null,"last_review":"NR","action_items":"Buy bonds and Green Lantern"},"AONDLV0001":{"advisor":"Abhinandan","last_review":"15-Jun-2026","action_items":"Buy Gold ETF\nBuy Buoyant Opp PMS\nFactor Reallocation"},"AONDLV0002":{"advisor":"Abhinandan","last_review":"15-Jun-2026","action_items":"Create cash buffer\nBuy Buoyant Opp PMS\nFactor Reallocation"},"AONDLV0009":{"advisor":"Abhinandan","last_review":null,"action_items":null},"AONDLV0012":{"advisor":"Abhinandan","last_review":"27-May-2026","action_items":"Under Transition\nFactor Reallocation"},"NDAS0001":{"advisor":"Pransu","last_review":"17-Apr-2026","action_items":"Factor Realloaction\nEquity Increase\nTactical Call Addition"},"NDAS0002":{"advisor":null,"last_review":"NR","action_items":"Gold STP Buy"},"NDAS0008":{"advisor":"Farzan","last_review":"09-Apr-2026","action_items":"Factor Realloaction\nEquity Increase\nTactical Call Addition"},"NDAS0010":{"advisor":null,"last_review":"NR","action_items":null},"NDAS0011":{"advisor":null,"last_review":"15-Apr-2026","action_items":"Factor Reallocation\nTactical Call Addition"},"NDAS0012":{"advisor":null,"last_review":"15-Apr-2026","action_items":"Factor Reallocation\nTactical Call Addition"},"NDAS0013":{"advisor":null,"last_review":"15-Apr-2026","action_items":"Factor Reallocation\nTactical Call Addition"},"NDAS0014":{"advisor":null,"last_review":"15-Jun-2026","action_items":null},"NDAS0016":{"advisor":"Farzan","last_review":"NR","action_items":null},"NDAS0017":{"advisor":null,"last_review":"NR","action_items":null}};
+    const MIS_DATA ={"AONDCP0002":{"advisor":"Farzan","last_review":"08-May-2026","action_items":null},"AONDLV0004":{"advisor":"Abhinandan","last_review":"13-Jul-2026","action_items":"Factor Realloaction"},"AONDLV0007":{"advisor":"Abhinandan","last_review":null,"action_items":null},"AONDLV0008":{"advisor":"Abhinandan","last_review":null,"action_items":null},"AONDLV0010":{"advisor":"Abhinandan","last_review":null,"action_items":null},"NDAS0003":{"advisor":"Farzan","last_review":"05-Apr-2026","action_items":null},"NDAS0004":{"advisor":"Farzan","last_review":"05-Apr-2026","action_items":null},"NDAS0005":{"advisor":"Farzan","last_review":"05-Apr-2026","action_items":null},"NDAS0006":{"advisor":"Farzan","last_review":"05-Apr-2026","action_items":null},"NDAS0007":{"advisor":"Farzan","last_review":"05-Apr-2026","action_items":null},"NDAS0009":{"advisor":null,"last_review":null,"action_items":null},"NDAS0015":{"advisor":null,"last_review":null,"action_items":null},"ANGNR0004":{"advisor":"Pransu","last_review":"NR","action_items":null},"AONDCP0001":{"advisor":null,"last_review":"NR","action_items":null},"AONDCP0004":{"advisor":"DE Team","last_review":"03-Jul-2026","action_items":"Factor Realloaction"},"AONDCP0006":{"advisor":"DE Team","last_review":"11-Jun-2026","action_items":"Indus Infra Buy"},"AONDCP0007":{"advisor":null,"last_review":"15-Jun-2026","action_items":"Factor Realloaction"},"AONDCP0008":{"advisor":null,"last_review":"15-Jun-2026","action_items":null},"AONDCP0009":{"advisor":"Pransu","last_review":"NR","action_items":null},"AONDCP0011":{"advisor":"Abhinandan","last_review":"13-Jul-2026","action_items":null},"AONDCP0012":{"advisor":null,"last_review":"NR","action_items":"Buy bonds and Green Lantern"},"AONDLV0001":{"advisor":null,"last_review":"In-Process","action_items":"Buy Gold ETF\nBuy Buoyant Opp PMS\nFactor Reallocation"},"AONDLV0002":{"advisor":null,"last_review":"In-Process","action_items":"Create cash buffer\nBuy Buoyant Opp PMS\nFactor Reallocation"},"AONDLV0009":{"advisor":"Abhinandan","last_review":"In-Process","action_items":null},"AONDLV0012":{"advisor":"Abhinandan","last_review":"27-May-2026","action_items":"Under Transition\nFactor Reallocation"},"NDAS0001":{"advisor":null,"last_review":"17-Apr-2026","action_items":"Factor Realloaction\nEquity Increase\nTactical Call Addition"},"NDAS0002":{"advisor":null,"last_review":"NR","action_items":"Gold STP Buy"},"NDAS0008":{"advisor":"Farzan","last_review":"In-Process","action_items":"Factor Realloaction\nEquity Increase\nTactical Call Addition"},"NDAS0010":{"advisor":null,"last_review":"NR","action_items":null},"NDAS0011":{"advisor":null,"last_review":"15-Apr-2026","action_items":"Factor Reallocation\nTactical Call Addition"},"NDAS0012":{"advisor":null,"last_review":"15-Apr-2026","action_items":"Factor Reallocation\nTactical Call Addition"},"NDAS0013":{"advisor":null,"last_review":"15-Apr-2026","action_items":"Factor Reallocation\nTactical Call Addition"},"NDAS0014":{"advisor":"DE Team","last_review":"15-Jun-2026","action_items":null},"NDAS0016":{"advisor":"Farzan","last_review":"NR","action_items":null},"NDAS0017":{"advisor":null,"last_review":"NR","action_items":null}};
 
     // Pending actions per client — tell Claude to add/remove/check off items
     // Format: { "NDAS_CODE": [ {text:"...", done:false}, ... ] }
@@ -1733,6 +1735,50 @@ function computeInstrumentMix(holdings) {
   }));
 }
 
+// ============ Review status helpers (shared by client view, Pending Tasks panel, and Excel export) ============
+const REVIEW_OVERDUE_DAYS = 90; // flag reviews older than ~3 months
+const MONTH_ABBR = {Jan:0,Feb:1,Mar:2,Apr:3,May:4,Jun:5,Jul:6,Aug:7,Sep:8,Oct:9,Nov:10,Dec:11};
+function parseReviewDate(str) {
+  if (!str) return null;
+  const m = /^(\d{1,2})-([A-Za-z]{3})-(\d{4})$/.exec(str.trim());
+  if (!m) return null;
+  const mon = MONTH_ABBR[m[2]];
+  if (mon === undefined) return null;
+  return new Date(+m[3], mon, +m[1]);
+}
+// Returns { code: 'not_reviewed'|'in_process'|'overdue'|'ok', label, daysSince }
+function getReviewStatus(lastReviewStr, now) {
+  now = now || new Date();
+  if (!lastReviewStr || lastReviewStr === 'NR') return { code: 'not_reviewed', label: 'Not Reviewed', daysSince: null };
+  if (lastReviewStr === 'In-Process') return { code: 'in_process', label: 'In-Process', daysSince: null };
+  const d = parseReviewDate(lastReviewStr);
+  if (!d) return { code: 'not_reviewed', label: 'Not Reviewed', daysSince: null };
+  const daysSince = Math.round((now - d) / 86400000);
+  if (daysSince > REVIEW_OVERDUE_DAYS) return { code: 'overdue', label: `Overdue (${daysSince}d)`, daysSince };
+  return { code: 'ok', label: lastReviewStr, daysSince };
+}
+// Flattens every client across all strategies into one array with MIS/review info attached
+function getAllClientsFlat() {
+  const out = [];
+  STRATEGY_DATA.forEach((s, si) => {
+    s.clients.forEach((c, ci) => {
+      const mis = MIS_DATA[c.ndas] || {};
+      const parking = PARKING_DATA[c.ndas] || {};
+      out.push({
+        strategyIdx: si, clientIdx: ci, strategyName: s.name,
+        name: c.name, ndas: c.ndas, account: c.account, aum: c.aum,
+        psi: c.psi, bsi: c.bsi, p1m: c.p1m, p3m: c.p3m, p6m: c.p6m,
+        rm: parking.rm || null, srm: parking.srm || null,
+        advisor: mis.advisor || null,
+        last_review: mis.last_review || null,
+        action_items: mis.action_items || null,
+        reviewStatus: getReviewStatus(mis.last_review)
+      });
+    });
+  });
+  return out;
+}
+
 // ============ Main view ============
 function renderStrategy(s, i) {
   const aumTotCr = s.total_aum / 1e7;
@@ -1923,7 +1969,102 @@ function buildMainCharts(s, i) {
   }
 }
 
+// ============ Pending Tasks panel (reviews overdue/in-process/not-done + open action items) ============
+function pendingTasksSearchKey(c) {
+  return (c.name + ' ' + c.ndas + ' ' + (c.rm||'') + ' ' + (c.srm||'') + ' ' + (c.advisor||'')).toLowerCase();
+}
+function pendingClientLink(c) {
+  return `<a href="#" onclick="showClient(${c.strategyIdx},${c.clientIdx});return false;" ` +
+    `style="color:var(--primary);font-weight:600;text-decoration:none;border-bottom:1px dashed #4A90D9;cursor:pointer">${c.name}</a>`;
+}
+function reviewStatusPill(rs) {
+  const cfg = {
+    not_reviewed: ['#FFE0E0', '#B71C1C'],
+    in_process:   ['#FFF3CD', '#856404'],
+    overdue:      ['#FFE0E0', '#B71C1C'],
+    ok:           ['#E8F5E9', '#2E7D32']
+  }[rs.code] || ['#F0F2F5', '#888'];
+  return `<span style="background:${cfg[0]};color:${cfg[1]};padding:2px 9px;border-radius:4px;font-size:11px;font-weight:700;white-space:nowrap">${rs.label}</span>`;
+}
+function isActionPending(actionItems) {
+  const v = (actionItems || '').trim().toUpperCase();
+  return v && v !== 'NA';
+}
+function renderPendingTasksPanel() {
+  const panel = document.getElementById('pending-tasks-panel');
+  if (!panel) return;
+  const all = getAllClientsFlat();
+  const reviewPending = all.filter(c => c.reviewStatus.code !== 'ok')
+    .sort((a,b) => (b.reviewStatus.daysSince||0) - (a.reviewStatus.daysSince||0));
+  const actionPending = all.filter(c => isActionPending(c.action_items));
+
+  const reviewRows = reviewPending.length ? reviewPending.map(c => `
+    <tr class="pt-row" data-search="${pendingTasksSearchKey(c)}">
+      <td style="padding:8px 10px">${pendingClientLink(c)}</td>
+      <td style="padding:8px 10px;font-size:12px;color:var(--muted)">${c.strategyName}</td>
+      <td style="padding:8px 10px;font-size:12px">${c.rm||'—'}</td>
+      <td style="padding:8px 10px;font-size:12px">${c.advisor||'—'}</td>
+      <td style="padding:8px 10px">${reviewStatusPill(c.reviewStatus)}</td>
+    </tr>`).join('') : `<tr><td colspan="5" style="padding:14px;text-align:center;color:var(--muted);font-size:12.5px">No pending reviews — everyone reviewed within the last ${REVIEW_OVERDUE_DAYS} days.</td></tr>`;
+
+  const actionRows = actionPending.length ? actionPending.map(c => `
+    <tr class="pt-row" data-search="${pendingTasksSearchKey(c)}">
+      <td style="padding:8px 10px">${pendingClientLink(c)}</td>
+      <td style="padding:8px 10px;font-size:12px;color:var(--muted)">${c.strategyName}</td>
+      <td style="padding:8px 10px;font-size:12px">${c.rm||'—'}</td>
+      <td style="padding:8px 10px;font-size:12px">${c.advisor||'—'}</td>
+      <td style="padding:8px 10px;font-size:12.5px">${c.action_items.split('\n').map(a => `<div>&bull; ${a}</div>`).join('')}</td>
+    </tr>`).join('') : `<tr><td colspan="5" style="padding:14px;text-align:center;color:var(--muted);font-size:12.5px">No pending action items.</td></tr>`;
+
+  panel.innerHTML = `
+    <div style="margin-bottom:14px">
+      <input id="pt-search" type="text" placeholder="&#128269; Search client, RM, or advisor&hellip;" oninput="filterPendingTasks(this.value)"
+        style="width:100%;max-width:360px;padding:8px 12px;border-radius:6px;border:1px solid var(--border);font-size:13px;outline:none;box-sizing:border-box">
+    </div>
+    <div style="margin-bottom:18px">
+      <div style="font-size:13px;font-weight:700;color:var(--primary);text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px">
+        Reviews Pending <span style="font-weight:400;color:var(--muted);text-transform:none;letter-spacing:0">(${reviewPending.length})</span>
+      </div>
+      <div style="overflow-x:auto"><table style="width:100%"><thead><tr>
+        <th style="text-align:left;padding:6px 10px;font-size:11px;color:var(--muted);text-transform:uppercase">Client</th>
+        <th style="text-align:left;padding:6px 10px;font-size:11px;color:var(--muted);text-transform:uppercase">Strategy</th>
+        <th style="text-align:left;padding:6px 10px;font-size:11px;color:var(--muted);text-transform:uppercase">RM</th>
+        <th style="text-align:left;padding:6px 10px;font-size:11px;color:var(--muted);text-transform:uppercase">Advisor</th>
+        <th style="text-align:left;padding:6px 10px;font-size:11px;color:var(--muted);text-transform:uppercase">Status</th>
+      </tr></thead><tbody id="pt-review-body">${reviewRows}</tbody></table></div>
+    </div>
+    <div>
+      <div style="font-size:13px;font-weight:700;color:var(--primary);text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px">
+        Actions Pending <span style="font-weight:400;color:var(--muted);text-transform:none;letter-spacing:0">(${actionPending.length})</span>
+      </div>
+      <div style="overflow-x:auto"><table style="width:100%"><thead><tr>
+        <th style="text-align:left;padding:6px 10px;font-size:11px;color:var(--muted);text-transform:uppercase">Client</th>
+        <th style="text-align:left;padding:6px 10px;font-size:11px;color:var(--muted);text-transform:uppercase">Strategy</th>
+        <th style="text-align:left;padding:6px 10px;font-size:11px;color:var(--muted);text-transform:uppercase">RM</th>
+        <th style="text-align:left;padding:6px 10px;font-size:11px;color:var(--muted);text-transform:uppercase">Advisor</th>
+        <th style="text-align:left;padding:6px 10px;font-size:11px;color:var(--muted);text-transform:uppercase">Action Items</th>
+      </tr></thead><tbody id="pt-action-body">${actionRows}</tbody></table></div>
+    </div>
+  `;
+}
+function filterPendingTasks(q) {
+  q = (q||'').toLowerCase().trim();
+  document.querySelectorAll('#pending-tasks-panel .pt-row').forEach(row => {
+    const match = !q || (row.dataset.search||'').includes(q);
+    row.style.display = match ? '' : 'none';
+  });
+}
+
 function renderMainView() {
+  const _all = getAllClientsFlat();
+  const _reviewCount = _all.filter(c => c.reviewStatus.code !== 'ok').length;
+  const _actionCount = _all.filter(c => isActionPending(c.action_items)).length;
+  document.getElementById('pending-tasks-section').innerHTML = collapseSection(
+    '&#128203; Pending Tasks',
+    '<div id="pending-tasks-panel"></div>',
+    { open: true, sub: `${_reviewCount} review${_reviewCount===1?'':'s'} pending &middot; ${_actionCount} action${_actionCount===1?'':'s'} pending` }
+  );
+  renderPendingTasksPanel();
   document.getElementById('tabs').innerHTML = STRATEGY_DATA.map(
     (s, i) => `<button class="strategy-tab ${i === 0 ? 'active' : ''}" data-idx="${i}">${s.name}</button>`
   ).join('');
@@ -2506,6 +2647,60 @@ function showClient(strategyIdx, clientIdx) {
 const ISIN_MAP = {
   "GALAXY SURFACTANTS LTD": "INE600K01018", "SAMVARDHANA MOTHERSON INTERNATIONAL LTD": "INE775A01035", "J KUMAR INFRAPROJECTS LTD": "INE576I01022", "ICICI PRUDENTIAL NIFTY ALPHA LOW VOLATILITY 30 ETF": "INF109KC17V7", "VINATI ORGANICS LTD": "INE410B01037", "ZERODHA NIFTY 1D RATE LIQUID ETF": "INF0R8F01034", "JAIPRAKASH POWER VENTURES LTD": "INE351F01018", "GARDEN REACH SHIPBUILDERS and ENGINEERS LTD": "INE382Z01011", "UNION BANK OF INDIA": "INE692A01016", "HINDUSTAN PETROLEUM CORPORATION LTD": "INE094A01015", "CPSE ETF": "INF457M01133", "Kotak Gilt Investment Direct-G": "INF174K01KE4", "BANDHAN BANK LTD": "INE545U01014", "Aditya Birla SL Flexi Cap Direct-G": "INF209K01XX1", "IDEAFORGE TECHNOLOGY LTD": "INE349Y01013", "HINDUSTAN AERONAUTICS LTD": "INE066F01020", "Motilal Oswal Midcap Direct-G": "INF247L01445", "A C C LTD": "INE012A01025", "NIPPON INDIA SILVER ETF": "INF204KC1402", "ITC LTD": "INE154A01025", "SBI LIFE INSURANCE COMPANY LTD": "INE123W01016", "GODREJ CONSUMER PRODUCTS LTD": "INE102D01028", "UTI Liquid Direct-G": "INF789F01XQ6", "TATA ELXSI LTD": "INE670A01012", "INDRAPRASTHA GAS LTD": "INE203G01027", "TITAN COMPANY LTD": "INE280A01028", "NAVIN FLUORINE INTERNATIONAL LTD": "INE048G01026", "N M D C LTD": "INE584A01023", "KOTAK NIFTY 1D RATE LIQUID ETF": "INF174KA1LV5", "TATA GOLD ETF": "INF277KA1976", "EMBASSY OFFICE PARKS REIT": "INE041025011", "Axis Liquid Direct-G": "INF846K01CX4", "INTERGLOBE AVIATION LTD": "INE646L01027", "Union Small Cap Direct-G": "INF582M01BU9", "SANSTAR LTD": "INE08NE01025", "TATA POWER CO LTD": "INE245A01021", "Magnum Hybrid Long Short Fund Direct Plan Growth": "INF200K30049", "HDFC Flexi Cap Direct-G": "INF179K01UT0", "AXIS BANK LTD": "INE238A01034", "Quant Small Cap Direct-G": "INF966L01689", "ICICI Pru Flexicap Direct-G": "INF109KC1R14", "KPIT TECHNOLOGIES LTD": "INE04I401011", "ETERNAL LIMITED": "INE758T01015", "FEDERAL BANK LTD": "INE171A01029", "HDFC Long Duration Debt Direct-G": "INF179KC1ET7", "TORRENT PHARMACEUTICALS LTD": "INE685A01028", "ICICI LOMBARD GENERAL INSURANCE COMPANY LTD": "INE765G01017", "Tata Motors Passenger Vehicles Limited": "INE155A01022", "NTPC LTD": "INE733E01010", "KEI INDUSTRIES LTD": "INE878B01027", "MIRAE ASSET GOLD ETF": "INF769K01JP9", "MARICO LTD": "INE196A01026", "DSP Multi Asset Allocation Direct-G": "INF740KA1TE9", "KAYNES TECHNOLOGY INDIA LTD": "INE918Z01012", "EXIDE INDUSTRIES LTD": "INE302A01020", "KFIN TECHNOLOGIES LTD": "INE138Y01010", "AUROBINDO PHARMA LTD": "INE406A01037", "INDIA GRID TRUST INVIT": "INE219X23014", "ICICI PRUDENTIAL LIFE INSURANCE COMPANY LTD": "INE726G01019", "TRENT LTD": "INE849A01020", "PERSISTENT SYSTEMS LTD": "INE262H01021", "INTELLECT DESIGN ARENA LTD": "INE306R01017", "Canara Robeco Mid Cap Direct-G": "INF760K01KI1", "HDFC BANK LTD": "INE040A01034", "ULTRATECH CEMENT LTD": "INE481G01011", "UTI SILVER ETF": "INF789F1AYK6", "HDFC Large Cap Direct-G": "INF179K01YV8", "SAGILITY INDIA LTD": "INE0W2G01015", "YES BANK LTD": "INE528G01035", "WhiteOak Capital Mid Cap Direct-G": "INF03VN01597", "CASTROL INDIA LTD": "INE172A01027", "VA TECH WABAG LTD": "INE956G01038", "CIPLA LTD": "INE059A01026", "ASTRA MICROWAVE PRODUCTS LTD": "INE386C01029", "SBI ETF GOLD": "INF200KA16D8", "Tata Motors Limited": "INE1TAE01010", "RITES LTD": "INE320J01015", "BAJAJ HOUSING FINANCE LTD": "INE377Y01014", "SIEMENS ENERGY INDIA LTD": "INE1NPP01017", "MOTILAL OSWAL NIFTY 500 ETF": "INF247L01BU1", "JSW ENERGY LTD": "INE121E01018", "ICICI Prudential Asset Management Company Limited": "INE346A01027", "VISHAL MEGA MART LTD": "INE01EA01019", "Edelweiss Arbitrage Direct-G": "INF754K01EA4", "COAL INDIA LTD": "INE522F01014", "ICICI Pru Silver ETF FoF Direct-G": "INF109KC1Y98", "OIL and NATURAL GAS CORPORATION LTD": "INE213A01029", "INDIAN RENEWABLE ENERGY DEVELOPMENT AGENCY LTD": "INE202E01016", "INOX WIND LTD": "INE066P01011", "AFCONS INFRASTRUCTURE LTD": "INE101I01011", "SBI CARDS AND PAYMENT SERVICES LTD": "INE018E01016", "CANFIN HOMES LTD": "INE477A01020", "COLGATE-PALMOLIVE I LTD": "INE259A01022", "STEEL AUTHORITY OF INDIA LTD": "INE114A01011", "SBI Gold Direct-G": "INF200K01RP8", "APOLLO HOSPITALS ENTERPRISES LTD": "INE437A01024", "AMBUJA CEMENTS LTD": "INE079A01024", "UNO MINDA LTD": "INE405E01023", "HDFC Focused Direct-G": "INF179K01VK7", "Invesco India Smallcap Direct-G": "INF205K013T3", "11% Indel Money 23Jan29": "INE0BUS07CJ2", "Edelweiss Equity Savings Direct-G": "INF843K01KC8", "HOUSING and URBAN DEVELOPMENT CORPORATION LTD": "INE031A01017", "CENTRAL DEPOSITORY SERVICES INDIA LTD": "INE736A01011", "Aditya Birla Real Estate Limited": "INE055A01016", "STATE BANK OF INDIA": "INE062A01020", "CHOLAMANDALAM INVESTMENT AND FINANCE COMPANY LTD": "INE121A01024", "Kotak Flexicap Direct-G": "INF174K01LS2", "NIVA BUPA HEALTH INSURANCE COMPANY LTD": "INE995S01015", "MIRAE ASSET SILVER ETF": "INF769K01KG6", "ICICI PRUDENTIAL GOLD ETF": "INF109KC1NT3", "Franklin U.S. Opportunities Equity Active FoF Direct-G": "INF090I01JR0", "MAX HEALTHCARE INSTITUTE LTD": "INE027H01010", "WAAREE ENERGIES LTD": "INE377N01017", "LIC HOUSING FINANCE LTD": "INE115A01026", "HITACHI ENERGY INDIA LTD": "INE07Y701011", "HEG LTD": "INE545A01024", "GLENMARK PHARMACEUTICALS LTD": "INE935A01035", "Motilal Oswal Flexi Cap Direct-G": "INF247L01502", "Bandhan Small Cap Direct-G": "INF194KB1AL4", "ITC HOTELS LTD": "INE379A01028", "Bandhan Nifty100 Low Volatility 30 Index Direct-G": "INF194KB1DV7", "VST TILLERS TRACTORS LTD": "INE764D01017", "GAIL INDIA LTD": "INE129A01019", "BOSCH LTD": "INE323A01026", "EICHER MOTORS LTD": "INE066A01021", "TORRENT POWER LTD": "INE813H01021", "PUNJAB NATIONAL BANK": "INE160A01022", "NHPC LTD": "INE848E01016", "MOTILAL OSWAL FINANCIAL SERVICES LTD": "INE338I01027", "SUN PHARMACEUTICAL INDUSTRIES LTD": "INE044A01036", "BAJAJ FINSERV LTD": "INE918I01026", "WhiteOak Capital Multi Asset Allocation Direct-G": "INF03VN01761", "National Securities Depository Ltd": "INE301O01023", "EID PARRY INDIA LTD": "INE126A01031", "PETRONET LNG LTD": "INE347G01014", "ICICI Pru Manufacturing Direct-G": "INF109KC1LJ8", "HINDUSTAN ZINC LTD": "INE267A01025", "PVP VENTURES LTD": "INE362A01016", "BAJAJ FINANCE LTD": "INE296A01032", "BHARAT DYNAMICS LTD": "INE171Z01026", "ICICI Pru Arbitrage Direct-G": "INF109K016O4", "ENGINEERS INDIA LTD": "INE510A01028", "NIPPON INDIA ETF NIFTY MIDCAP 150": "INF204KB1V68", "UTI Nifty200 Momentum 30 Index Direct-G": "INF789F1AUT5", "PG ELECTROPLAST LTD": "INE457L01029", "KOTAK NIFTY CHEMICALS ETF": "INF174KA1XV0", "BHARTI AIRTEL LTD": "INE397D01024", "INDIAN RAILWAY CATERING and TOURISM CORPORATION LTD": "INE335Y01020", "Axis Greater China Equity FoF Direct-G": "INF846K01Y39", "HDB Financial Services Ltd": "INE756I01012", "Nippon India Large Cap Direct-G": "INF204K01XI3", "ERIS LIFESCIENCES LTD": "INE406M01024", "INDIAN OIL CORPORATION LTD": "INE242A01010", "JIO FINANCIAL SERVICES LTD": "INE758E01017", "BIOCON LTD": "INE376G01013", "AVENUE SUPERMARTS LTD": "INE192R01011", "IDFC FIRST BANK LTD": "INE092T01019", "ICICI PRUDENTIAL NIFTY MIDCAP 150 ETF": "INF109KC11W8", "SBI ETF NIFTY 50": "INF200KA1FS1", "SageOne - Flagship Growth OE Fund - A1F3": "INF0RR622217", "COFORGE LTD": "INE591G01025", "HDFC ASSET MANAGEMENT COMPANY LTD": "INE127D01025", "ZEN TECHNOLOGIES LTD": "INE251B01027", "Motilal Oswal Nifty India Defence Index Direct-G": "INF247L01CW5", "Franklin Asian Equity Direct-G": "INF090I01IZ5", "Nippon India Nifty 50 Value 20 Index Direct-G": "INF204KB12Z0", "Motilal Oswal Nasdaq 100 FOF Direct-G": "INF247L01718", "DALMIA BHARAT LTD": "INE00R701025", "NIPPON INDIA NIFTY 1D RATE LIQUID BEES ETF": "INF732E01037", "SBI Arbitrage Opportunities Direct-G": "INF200K01QU0", "ICICI Pru India Opportunities Direct-G": "INF109KC1RH9", "UTI Arbitrage Direct-G": "INF789FB1RG6", "JINDAL STAINLESS LTD": "INE220G01021", "ICICI PRUDENTIAL NIFTY METAL ETF": "INF109KC19W1", "POWER FINANCE CORPORATION LTD": "INE134E01011", "UJJIVAN SMALL FINANCE BANK LTD": "INE551W01018", "Motilal Oswal Nifty Midcap 150 Index Direct-G": "INF247L01916", "MOTHERSON SUMI WIRING INDIA LTD": "INE0FS801015", "GRASIM INDUSTRIES LTD": "INE047A01021", "RADICO KHAITAN LTD": "INE944F01028", "BHARAT PETROLEUM CORPORATION LTD": "INE029A01011", "POWER GRID CORPORATION OF INDIA LTD": "INE752E01010", "TECH MAHINDRA LTD": "INE669C01036", "INVENTURUS KNOWLEDGE SOLUTIONS LTD": "INE115Q01022", "Axis Overnight Direct-G": "INF846K01N65", "Mirae Asset Midcap Direct-G": "INF769K01FA9", "DLF LTD": "INE271C01023", "NIIT LEARNING SYSTEMS LTD": "INE342G01023", "JUBILANT FOODWORKS LTD": "INE797F01020", "DSP Liquidity Direct-G": "INF740K01QL4", "MAHINDRA and MAHINDRA LTD": "INE101A01026", "CANARA BANK": "INE476A01022", "ICICI PRUDENTIAL NIFTY50 VALUE 20 ETF": "INF109KC11V0", "NARAYANA HRUDAYALAYA LTD": "INE410P01011", "INFOSYS LTD": "INE009A01021", "BHARAT HIGHWAYS INVIT": "INE0NHL23019", "BALRAMPUR CHINI MILLS LTD": "INE119A01028", "DIVIS LABORATORIES LTD": "INE361B01024", "ICICI Pru Equity Savings Direct-G": "INF109KA11J9", "VODAFONE IDEA LTD": "INE669E01016", "GUJARAT INDUSTRIES POWER COMPANY LTD": "INE162A01010", "DSP Small Cap Direct-G": "INF740K01QD1", "Edelweiss Recently Listed IPO Direct-G": "INF754K01ML4", "OIL INDIA LTD": "INE274J01014", "DCB BANK LTD": "INE503A01015", "ALTIUS TELECOM INFRASTRUCTURE TRUST INVIT": "INE0BWS23018", "BALAJI AMINES LTD": "INE050E01027", "Parag Parikh Flexi Cap Direct-G": "INF879O01027", "LINDE INDIA LTD": "INE473A01011", "KIRLOSKAR OIL ENGINES LTD": "INE146L01010", "ALLIED BLENDERS and DISTILLERS LTD": "INE552Z01027", "NMDC STEEL LTD": "INE0NNS01018", "Edelweiss Greater China Equity Off-shore Direct-G": "INF843K01AU1", "TATA INVESTMENT CORPORATION LTD": "INE672A01026", "GHCL LTD": "INE539A01019", "Invesco India Flexi Cap Direct-G": "INF205KA1494", "Aditya Birla SL Arbitrage Direct-G": "INF209K01VP1", "HINDUSTAN UNILEVER LTD": "INE030A01027", "Mirae Asset CRISIL IBX Gilt Index - April 2033 Index Direct-G": "INF769K01IX5", "LARSEN and TOUBRO LTD": "INE018A01030", "HDFC NIFTY SMALLCAP 250 ETF": "INF179KC1FB2", "EMUDHRA LTD": "INE01QM01018", "MINDSPACE BUSINESS PARKS REIT": "INE0CCU25019", "Kotak Equity Arbitrage Direct-G": "INF174K01LC6", "ICICI BANK LTD": "INE090A01021", "DSP Arbitrage Direct-G": "INF740KA1DN4", "Altiva Hybrid Long Short Fund Direct Plan Growth": "INF754K30011", "RELIANCE INDUSTRIES LTD": "INE002A01018", "ICICI PRUDENTIAL SILVER ETF": "INF109KC1Y56", "KWALITY WALLS INDIA LTD": "INE2KCE01013", "ICICI Pru Technology Direct-G": "INF109K01Z48"
 };
+
+function downloadDeviationsExcel() {
+  const TMPL = {
+    Aggressive:  {equity:{min:65,max:100,label:"65-100%"},debt_alt:{min:0, max:35,label:"0-35%"},amc:{max:25},scheme:{max:15},lc:{min:50,label:">50%"},mc:{max:40,label:"<40%"},sc:{max:20,label:"<20%"},lockin:{max:20}},
+    Moderate:    {equity:{min:40,max:65, label:"40-65%"},debt_alt:{min:35,max:60,label:"35-60%"},amc:{max:25},scheme:{max:15},lc:{min:50,label:">50%"},mc:{max:30,label:"<30%"},sc:{max:20,label:"<20%"},lockin:{max:20}},
+    Conservative:{equity:{min:0, max:40, label:"0-40%"}, debt_alt:{min:60,max:100,label:"60-100%"},amc:{max:25},scheme:{max:15},lc:{min:50,label:">50%"},mc:{max:30,label:"<30%"},sc:{max:20,label:"<20%"},lockin:{max:20}}
+  };
+  function getBreaches(c) {
+    const t = TMPL[c.risk_profile] || TMPL.Aggressive, b = [];
+    if (c.eq_pct < t.equity.min || c.eq_pct > t.equity.max) b.push('Equity ' + c.eq_pct.toFixed(1) + '% vs ' + t.equity.label);
+    if (c.debt_alt_pct < t.debt_alt.min || c.debt_alt_pct > t.debt_alt.max) b.push('Debt+Alt ' + c.debt_alt_pct.toFixed(1) + '% vs ' + t.debt_alt.label);
+    if (c.top_amc_pct > t.amc.max) b.push('AMC: ' + c.top_amc_pct.toFixed(1) + '% (' + c.top_amc + ') > ' + t.amc.max + '%');
+    if (c.top_scheme_pct > t.scheme.max) b.push('Scheme: ' + c.top_scheme_pct.toFixed(1) + '% > ' + t.scheme.max + '%');
+    if (c.lc_pct < t.lc.min) b.push('LC: ' + c.lc_pct.toFixed(1) + '% < ' + t.lc.min + '%');
+    if (c.mc_pct > t.mc.max) b.push('MC: ' + c.mc_pct.toFixed(1) + '% > ' + t.mc.max + '%');
+    if (c.sc_pct > t.sc.max) b.push('SC: ' + c.sc_pct.toFixed(1) + '% > ' + t.sc.max + '%');
+    if (c.locked_pct > t.lockin.max) b.push('Lock-in: ' + c.locked_pct.toFixed(1) + '% > ' + t.lockin.max + '%');
+    return b;
+  }
+
+  const rows = [['Client', 'NDAS / Account', 'Strategy', 'RM', 'Advisor', 'Last Review', 'Review Status',
+    'AUM (Cr)', 'SI Performance %', 'SI Benchmark %', 'Alpha (bps)', 'Risk Profile', 'IPS Deviations', 'Pending Actions']];
+
+  getAllClientsFlat().forEach(c => {
+    const ipsClient = IPS_DATA.clients.find(ic => c.ndas && ((ic.full_name && ic.full_name.includes(c.ndas)) || (ic.ndas_codes && ic.ndas_codes.includes(c.ndas))));
+    const noIps = IPS_DATA.no_ips.find(ni => ni.full_name && ni.full_name.includes(c.ndas));
+    let deviations = '—', riskProfile = '—';
+    if (noIps) {
+      deviations = 'No IPS: ' + noIps.reason;
+    } else if (ipsClient) {
+      riskProfile = ipsClient.risk_profile;
+      const breaches = getBreaches(ipsClient);
+      deviations = breaches.length ? breaches.join('; ') : 'No deviations';
+    }
+    const alpha = (c.psi != null && c.bsi != null) ? Math.round((c.psi - c.bsi) * 100) : '—';
+    rows.push([
+      c.name, c.ndas || c.account, c.strategyName, c.rm || '—', c.advisor || '—',
+      c.last_review || '—', c.reviewStatus.label,
+      +((c.aum || 0) / 1e7).toFixed(2),
+      c.psi != null ? +c.psi.toFixed(2) : '—',
+      c.bsi != null ? +c.bsi.toFixed(2) : '—',
+      alpha,
+      riskProfile,
+      deviations,
+      c.action_items ? c.action_items.replace(/\n/g, '; ') : '—'
+    ]);
+  });
+
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(rows), 'Deviations Report');
+  const today = new Date();
+  const dstr = today.toISOString().slice(0,10);
+  XLSX.writeFile(wb, `NDPMS_Deviations_${dstr}.xlsx`);
+}
 
 function downloadClientExcel(strategyIdx, clientIdx) {
   const s = STRATEGY_DATA[strategyIdx];
