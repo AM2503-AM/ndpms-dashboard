@@ -1757,6 +1757,17 @@ function getReviewStatus(lastReviewStr, now) {
   if (daysSince > REVIEW_OVERDUE_DAYS) return { code: 'overdue', label: `Overdue (${daysSince}d)`, daysSince };
   return { code: 'ok', label: lastReviewStr, daysSince };
 }
+// Blank advisor means the house team (Preet/Anushka) is handling the account directly.
+function advisorLabel(advisor) { return advisor || 'Preet/Anushka'; }
+// A client whose live holdings are (near-)entirely arbitrage/liquid/cash needs no active
+// review cadence — there's nothing to rebalance. Threshold allows a sliver of cash drag.
+const REVIEW_EXEMPT_THRESHOLD_PCT = 98;
+function isReviewExempt(holdings) {
+  const mix = computeInstrumentMix(holdings || []);
+  if (!mix) return false;
+  const parkedPct = mix.filter(m => /Arbitrage|Liquid|^Cash$/i.test(m.category)).reduce((s,m) => s + m.pct, 0);
+  return parkedPct >= REVIEW_EXEMPT_THRESHOLD_PCT;
+}
 // Flattens every client across all strategies into one array with MIS/review info attached
 function getAllClientsFlat() {
   const out = [];
@@ -1772,7 +1783,8 @@ function getAllClientsFlat() {
         advisor: mis.advisor || null,
         last_review: mis.last_review || null,
         action_items: mis.action_items || null,
-        reviewStatus: getReviewStatus(mis.last_review)
+        reviewStatus: getReviewStatus(mis.last_review),
+        reviewExempt: isReviewExempt(c.holdings)
       });
     });
   });
@@ -1994,7 +2006,7 @@ function renderPendingTasksPanel() {
   const panel = document.getElementById('pending-tasks-panel');
   if (!panel) return;
   const all = getAllClientsFlat();
-  const reviewPending = all.filter(c => c.reviewStatus.code !== 'ok')
+  const reviewPending = all.filter(c => c.reviewStatus.code !== 'ok' && !c.reviewExempt)
     .sort((a,b) => (b.reviewStatus.daysSince||0) - (a.reviewStatus.daysSince||0));
   const actionPending = all.filter(c => isActionPending(c.action_items));
 
@@ -2003,7 +2015,7 @@ function renderPendingTasksPanel() {
       <td style="padding:8px 10px">${pendingClientLink(c)}</td>
       <td style="padding:8px 10px;font-size:12px;color:var(--muted)">${c.strategyName}</td>
       <td style="padding:8px 10px;font-size:12px">${c.rm||'—'}</td>
-      <td style="padding:8px 10px;font-size:12px">${c.advisor||'—'}</td>
+      <td style="padding:8px 10px;font-size:12px">${advisorLabel(c.advisor)}</td>
       <td style="padding:8px 10px">${reviewStatusPill(c.reviewStatus)}</td>
     </tr>`).join('') : `<tr><td colspan="5" style="padding:14px;text-align:center;color:var(--muted);font-size:12.5px">No pending reviews — everyone reviewed within the last ${REVIEW_OVERDUE_DAYS} days.</td></tr>`;
 
@@ -2012,7 +2024,7 @@ function renderPendingTasksPanel() {
       <td style="padding:8px 10px">${pendingClientLink(c)}</td>
       <td style="padding:8px 10px;font-size:12px;color:var(--muted)">${c.strategyName}</td>
       <td style="padding:8px 10px;font-size:12px">${c.rm||'—'}</td>
-      <td style="padding:8px 10px;font-size:12px">${c.advisor||'—'}</td>
+      <td style="padding:8px 10px;font-size:12px">${advisorLabel(c.advisor)}</td>
       <td style="padding:8px 10px;font-size:12.5px">${c.action_items.split('\n').map(a => `<div>&bull; ${a}</div>`).join('')}</td>
     </tr>`).join('') : `<tr><td colspan="5" style="padding:14px;text-align:center;color:var(--muted);font-size:12.5px">No pending action items.</td></tr>`;
 
@@ -2057,7 +2069,7 @@ function filterPendingTasks(q) {
 
 function renderMainView() {
   const _all = getAllClientsFlat();
-  const _reviewCount = _all.filter(c => c.reviewStatus.code !== 'ok').length;
+  const _reviewCount = _all.filter(c => c.reviewStatus.code !== 'ok' && !c.reviewExempt).length;
   const _actionCount = _all.filter(c => isActionPending(c.action_items)).length;
   document.getElementById('pending-tasks-section').innerHTML = collapseSection(
     '&#128203; Pending Tasks',
@@ -2683,7 +2695,7 @@ function downloadDeviationsExcel() {
     }
     const alpha = (c.psi != null && c.bsi != null) ? Math.round((c.psi - c.bsi) * 100) : '—';
     rows.push([
-      c.name, c.ndas || c.account, c.strategyName, c.rm || '—', c.advisor || '—',
+      c.name, c.ndas || c.account, c.strategyName, c.rm || '—', advisorLabel(c.advisor),
       c.last_review || '—', c.reviewStatus.label,
       +((c.aum || 0) / 1e7).toFixed(2),
       c.psi != null ? +c.psi.toFixed(2) : '—',
@@ -3544,7 +3556,7 @@ function buildChecklist(){
     }
 
     var mis=ndas?(MIS_DATA[ndas]||{}):{};
-    var advisor=mis.advisor||'—';
+    var advisor=advisorLabel(mis.advisor);
     var lastReview=mis.last_review||'—';
     var actionItems=mis.action_items;
     s+='<tr style="background:'+rowbg+'">';
@@ -3593,7 +3605,7 @@ function buildChecklist(){
     }
 
     var mis2=ndas?(MIS_DATA[ndas]||{}):{};
-    var advisor2=mis2.advisor||'—';
+    var advisor2=advisorLabel(mis2.advisor);
     var lastReview2=mis2.last_review||'—';
     var actionItems2=mis2.action_items;
     s+='<tr style="background:'+rowbg+'">';
@@ -3625,7 +3637,7 @@ function buildChecklist(){
     else if(u.code.indexOf('AONDLV')===0) uStrat='LVPMS';
     else if(u.code.indexOf('AONDCP')===0||u.code.indexOf('ANGNR')===0) uStrat='CoPilot';
     var mis3=MIS_DATA[u.code]||{};
-    var advisor3=mis3.advisor||'—';
+    var advisor3=advisorLabel(mis3.advisor);
     var lastReview3=mis3.last_review||'—';
     var actionItems3=mis3.action_items;
     s+='<tr style="background:'+rowbg+';opacity:0.6">';
