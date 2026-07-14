@@ -1768,6 +1768,33 @@ function isReviewExempt(holdings) {
   const parkedPct = mix.filter(m => /Arbitrage|Liquid|^Cash$/i.test(m.category)).reduce((s,m) => s + m.pct, 0);
   return parkedPct >= REVIEW_EXEMPT_THRESHOLD_PCT;
 }
+// Manually confirmed as not needing an active review cadence (small/company/debt-leaning books
+// that don't clear the automatic liquid/arbitrage-only bar but are exempt by PM judgment):
+// Alka Lifestyles Private Limited (NDAS0010) — company account, 99.9% single hybrid fund.
+// Rohit Garg (AONDCP0001) — small book, primarily debt-leaning hybrid.
+const MANUAL_REVIEW_EXEMPT_NDAS = ['NDAS0010', 'AONDCP0001'];
+// Parses the dashboard's "Data as of" banner (e.g. "30 June 2026") into {month, year} (month 0-indexed).
+const MONTH_FULL = {January:0,February:1,March:2,April:3,May:4,June:5,July:6,August:7,September:8,October:9,November:10,December:11};
+function getReportingMonthYear() {
+  const el = document.getElementById('topbar-meta');
+  const txt = el ? el.textContent : '';
+  const m = /(\d{1,2})\s+([A-Za-z]+)\s+(\d{4})/.exec(txt);
+  if (!m || !(m[2] in MONTH_FULL)) return null;
+  return { month: MONTH_FULL[m[2]], year: +m[3] };
+}
+// Client "inception" is stored as DD/MM/YYYY.
+function parseInceptionDate(str) {
+  if (!str) return null;
+  const m = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/.exec(str.trim());
+  if (!m) return null;
+  return new Date(+m[3], +m[2]-1, +m[1]);
+}
+function isNewThisReportingMonth(inceptionStr) {
+  const rm = getReportingMonthYear();
+  const d = parseInceptionDate(inceptionStr);
+  if (!rm || !d) return false;
+  return d.getFullYear() === rm.year && d.getMonth() === rm.month;
+}
 // Flattens every client across all strategies into one array with MIS/review info attached
 function getAllClientsFlat() {
   const out = [];
@@ -1777,14 +1804,15 @@ function getAllClientsFlat() {
       const parking = PARKING_DATA[c.ndas] || {};
       out.push({
         strategyIdx: si, clientIdx: ci, strategyName: s.name,
-        name: c.name, ndas: c.ndas, account: c.account, aum: c.aum,
+        name: c.name, ndas: c.ndas, account: c.account, aum: c.aum, inception: c.inception,
         psi: c.psi, bsi: c.bsi, p1m: c.p1m, b1m: c.b1m, p3m: c.p3m, b3m: c.b3m, p6m: c.p6m, b6m: c.b6m,
         rm: parking.rm || null, srm: parking.srm || null,
         advisor: mis.advisor || null,
         last_review: mis.last_review || null,
         action_items: mis.action_items || null,
         reviewStatus: getReviewStatus(mis.last_review),
-        reviewExempt: isReviewExempt(c.holdings)
+        reviewExempt: isReviewExempt(c.holdings) || MANUAL_REVIEW_EXEMPT_NDAS.includes(c.ndas),
+        isNewThisMonth: isNewThisReportingMonth(c.inception)
       });
     });
   });
@@ -2660,19 +2688,14 @@ const ISIN_MAP = {
   "GALAXY SURFACTANTS LTD": "INE600K01018", "SAMVARDHANA MOTHERSON INTERNATIONAL LTD": "INE775A01035", "J KUMAR INFRAPROJECTS LTD": "INE576I01022", "ICICI PRUDENTIAL NIFTY ALPHA LOW VOLATILITY 30 ETF": "INF109KC17V7", "VINATI ORGANICS LTD": "INE410B01037", "ZERODHA NIFTY 1D RATE LIQUID ETF": "INF0R8F01034", "JAIPRAKASH POWER VENTURES LTD": "INE351F01018", "GARDEN REACH SHIPBUILDERS and ENGINEERS LTD": "INE382Z01011", "UNION BANK OF INDIA": "INE692A01016", "HINDUSTAN PETROLEUM CORPORATION LTD": "INE094A01015", "CPSE ETF": "INF457M01133", "Kotak Gilt Investment Direct-G": "INF174K01KE4", "BANDHAN BANK LTD": "INE545U01014", "Aditya Birla SL Flexi Cap Direct-G": "INF209K01XX1", "IDEAFORGE TECHNOLOGY LTD": "INE349Y01013", "HINDUSTAN AERONAUTICS LTD": "INE066F01020", "Motilal Oswal Midcap Direct-G": "INF247L01445", "A C C LTD": "INE012A01025", "NIPPON INDIA SILVER ETF": "INF204KC1402", "ITC LTD": "INE154A01025", "SBI LIFE INSURANCE COMPANY LTD": "INE123W01016", "GODREJ CONSUMER PRODUCTS LTD": "INE102D01028", "UTI Liquid Direct-G": "INF789F01XQ6", "TATA ELXSI LTD": "INE670A01012", "INDRAPRASTHA GAS LTD": "INE203G01027", "TITAN COMPANY LTD": "INE280A01028", "NAVIN FLUORINE INTERNATIONAL LTD": "INE048G01026", "N M D C LTD": "INE584A01023", "KOTAK NIFTY 1D RATE LIQUID ETF": "INF174KA1LV5", "TATA GOLD ETF": "INF277KA1976", "EMBASSY OFFICE PARKS REIT": "INE041025011", "Axis Liquid Direct-G": "INF846K01CX4", "INTERGLOBE AVIATION LTD": "INE646L01027", "Union Small Cap Direct-G": "INF582M01BU9", "SANSTAR LTD": "INE08NE01025", "TATA POWER CO LTD": "INE245A01021", "Magnum Hybrid Long Short Fund Direct Plan Growth": "INF200K30049", "HDFC Flexi Cap Direct-G": "INF179K01UT0", "AXIS BANK LTD": "INE238A01034", "Quant Small Cap Direct-G": "INF966L01689", "ICICI Pru Flexicap Direct-G": "INF109KC1R14", "KPIT TECHNOLOGIES LTD": "INE04I401011", "ETERNAL LIMITED": "INE758T01015", "FEDERAL BANK LTD": "INE171A01029", "HDFC Long Duration Debt Direct-G": "INF179KC1ET7", "TORRENT PHARMACEUTICALS LTD": "INE685A01028", "ICICI LOMBARD GENERAL INSURANCE COMPANY LTD": "INE765G01017", "Tata Motors Passenger Vehicles Limited": "INE155A01022", "NTPC LTD": "INE733E01010", "KEI INDUSTRIES LTD": "INE878B01027", "MIRAE ASSET GOLD ETF": "INF769K01JP9", "MARICO LTD": "INE196A01026", "DSP Multi Asset Allocation Direct-G": "INF740KA1TE9", "KAYNES TECHNOLOGY INDIA LTD": "INE918Z01012", "EXIDE INDUSTRIES LTD": "INE302A01020", "KFIN TECHNOLOGIES LTD": "INE138Y01010", "AUROBINDO PHARMA LTD": "INE406A01037", "INDIA GRID TRUST INVIT": "INE219X23014", "ICICI PRUDENTIAL LIFE INSURANCE COMPANY LTD": "INE726G01019", "TRENT LTD": "INE849A01020", "PERSISTENT SYSTEMS LTD": "INE262H01021", "INTELLECT DESIGN ARENA LTD": "INE306R01017", "Canara Robeco Mid Cap Direct-G": "INF760K01KI1", "HDFC BANK LTD": "INE040A01034", "ULTRATECH CEMENT LTD": "INE481G01011", "UTI SILVER ETF": "INF789F1AYK6", "HDFC Large Cap Direct-G": "INF179K01YV8", "SAGILITY INDIA LTD": "INE0W2G01015", "YES BANK LTD": "INE528G01035", "WhiteOak Capital Mid Cap Direct-G": "INF03VN01597", "CASTROL INDIA LTD": "INE172A01027", "VA TECH WABAG LTD": "INE956G01038", "CIPLA LTD": "INE059A01026", "ASTRA MICROWAVE PRODUCTS LTD": "INE386C01029", "SBI ETF GOLD": "INF200KA16D8", "Tata Motors Limited": "INE1TAE01010", "RITES LTD": "INE320J01015", "BAJAJ HOUSING FINANCE LTD": "INE377Y01014", "SIEMENS ENERGY INDIA LTD": "INE1NPP01017", "MOTILAL OSWAL NIFTY 500 ETF": "INF247L01BU1", "JSW ENERGY LTD": "INE121E01018", "ICICI Prudential Asset Management Company Limited": "INE346A01027", "VISHAL MEGA MART LTD": "INE01EA01019", "Edelweiss Arbitrage Direct-G": "INF754K01EA4", "COAL INDIA LTD": "INE522F01014", "ICICI Pru Silver ETF FoF Direct-G": "INF109KC1Y98", "OIL and NATURAL GAS CORPORATION LTD": "INE213A01029", "INDIAN RENEWABLE ENERGY DEVELOPMENT AGENCY LTD": "INE202E01016", "INOX WIND LTD": "INE066P01011", "AFCONS INFRASTRUCTURE LTD": "INE101I01011", "SBI CARDS AND PAYMENT SERVICES LTD": "INE018E01016", "CANFIN HOMES LTD": "INE477A01020", "COLGATE-PALMOLIVE I LTD": "INE259A01022", "STEEL AUTHORITY OF INDIA LTD": "INE114A01011", "SBI Gold Direct-G": "INF200K01RP8", "APOLLO HOSPITALS ENTERPRISES LTD": "INE437A01024", "AMBUJA CEMENTS LTD": "INE079A01024", "UNO MINDA LTD": "INE405E01023", "HDFC Focused Direct-G": "INF179K01VK7", "Invesco India Smallcap Direct-G": "INF205K013T3", "11% Indel Money 23Jan29": "INE0BUS07CJ2", "Edelweiss Equity Savings Direct-G": "INF843K01KC8", "HOUSING and URBAN DEVELOPMENT CORPORATION LTD": "INE031A01017", "CENTRAL DEPOSITORY SERVICES INDIA LTD": "INE736A01011", "Aditya Birla Real Estate Limited": "INE055A01016", "STATE BANK OF INDIA": "INE062A01020", "CHOLAMANDALAM INVESTMENT AND FINANCE COMPANY LTD": "INE121A01024", "Kotak Flexicap Direct-G": "INF174K01LS2", "NIVA BUPA HEALTH INSURANCE COMPANY LTD": "INE995S01015", "MIRAE ASSET SILVER ETF": "INF769K01KG6", "ICICI PRUDENTIAL GOLD ETF": "INF109KC1NT3", "Franklin U.S. Opportunities Equity Active FoF Direct-G": "INF090I01JR0", "MAX HEALTHCARE INSTITUTE LTD": "INE027H01010", "WAAREE ENERGIES LTD": "INE377N01017", "LIC HOUSING FINANCE LTD": "INE115A01026", "HITACHI ENERGY INDIA LTD": "INE07Y701011", "HEG LTD": "INE545A01024", "GLENMARK PHARMACEUTICALS LTD": "INE935A01035", "Motilal Oswal Flexi Cap Direct-G": "INF247L01502", "Bandhan Small Cap Direct-G": "INF194KB1AL4", "ITC HOTELS LTD": "INE379A01028", "Bandhan Nifty100 Low Volatility 30 Index Direct-G": "INF194KB1DV7", "VST TILLERS TRACTORS LTD": "INE764D01017", "GAIL INDIA LTD": "INE129A01019", "BOSCH LTD": "INE323A01026", "EICHER MOTORS LTD": "INE066A01021", "TORRENT POWER LTD": "INE813H01021", "PUNJAB NATIONAL BANK": "INE160A01022", "NHPC LTD": "INE848E01016", "MOTILAL OSWAL FINANCIAL SERVICES LTD": "INE338I01027", "SUN PHARMACEUTICAL INDUSTRIES LTD": "INE044A01036", "BAJAJ FINSERV LTD": "INE918I01026", "WhiteOak Capital Multi Asset Allocation Direct-G": "INF03VN01761", "National Securities Depository Ltd": "INE301O01023", "EID PARRY INDIA LTD": "INE126A01031", "PETRONET LNG LTD": "INE347G01014", "ICICI Pru Manufacturing Direct-G": "INF109KC1LJ8", "HINDUSTAN ZINC LTD": "INE267A01025", "PVP VENTURES LTD": "INE362A01016", "BAJAJ FINANCE LTD": "INE296A01032", "BHARAT DYNAMICS LTD": "INE171Z01026", "ICICI Pru Arbitrage Direct-G": "INF109K016O4", "ENGINEERS INDIA LTD": "INE510A01028", "NIPPON INDIA ETF NIFTY MIDCAP 150": "INF204KB1V68", "UTI Nifty200 Momentum 30 Index Direct-G": "INF789F1AUT5", "PG ELECTROPLAST LTD": "INE457L01029", "KOTAK NIFTY CHEMICALS ETF": "INF174KA1XV0", "BHARTI AIRTEL LTD": "INE397D01024", "INDIAN RAILWAY CATERING and TOURISM CORPORATION LTD": "INE335Y01020", "Axis Greater China Equity FoF Direct-G": "INF846K01Y39", "HDB Financial Services Ltd": "INE756I01012", "Nippon India Large Cap Direct-G": "INF204K01XI3", "ERIS LIFESCIENCES LTD": "INE406M01024", "INDIAN OIL CORPORATION LTD": "INE242A01010", "JIO FINANCIAL SERVICES LTD": "INE758E01017", "BIOCON LTD": "INE376G01013", "AVENUE SUPERMARTS LTD": "INE192R01011", "IDFC FIRST BANK LTD": "INE092T01019", "ICICI PRUDENTIAL NIFTY MIDCAP 150 ETF": "INF109KC11W8", "SBI ETF NIFTY 50": "INF200KA1FS1", "SageOne - Flagship Growth OE Fund - A1F3": "INF0RR622217", "COFORGE LTD": "INE591G01025", "HDFC ASSET MANAGEMENT COMPANY LTD": "INE127D01025", "ZEN TECHNOLOGIES LTD": "INE251B01027", "Motilal Oswal Nifty India Defence Index Direct-G": "INF247L01CW5", "Franklin Asian Equity Direct-G": "INF090I01IZ5", "Nippon India Nifty 50 Value 20 Index Direct-G": "INF204KB12Z0", "Motilal Oswal Nasdaq 100 FOF Direct-G": "INF247L01718", "DALMIA BHARAT LTD": "INE00R701025", "NIPPON INDIA NIFTY 1D RATE LIQUID BEES ETF": "INF732E01037", "SBI Arbitrage Opportunities Direct-G": "INF200K01QU0", "ICICI Pru India Opportunities Direct-G": "INF109KC1RH9", "UTI Arbitrage Direct-G": "INF789FB1RG6", "JINDAL STAINLESS LTD": "INE220G01021", "ICICI PRUDENTIAL NIFTY METAL ETF": "INF109KC19W1", "POWER FINANCE CORPORATION LTD": "INE134E01011", "UJJIVAN SMALL FINANCE BANK LTD": "INE551W01018", "Motilal Oswal Nifty Midcap 150 Index Direct-G": "INF247L01916", "MOTHERSON SUMI WIRING INDIA LTD": "INE0FS801015", "GRASIM INDUSTRIES LTD": "INE047A01021", "RADICO KHAITAN LTD": "INE944F01028", "BHARAT PETROLEUM CORPORATION LTD": "INE029A01011", "POWER GRID CORPORATION OF INDIA LTD": "INE752E01010", "TECH MAHINDRA LTD": "INE669C01036", "INVENTURUS KNOWLEDGE SOLUTIONS LTD": "INE115Q01022", "Axis Overnight Direct-G": "INF846K01N65", "Mirae Asset Midcap Direct-G": "INF769K01FA9", "DLF LTD": "INE271C01023", "NIIT LEARNING SYSTEMS LTD": "INE342G01023", "JUBILANT FOODWORKS LTD": "INE797F01020", "DSP Liquidity Direct-G": "INF740K01QL4", "MAHINDRA and MAHINDRA LTD": "INE101A01026", "CANARA BANK": "INE476A01022", "ICICI PRUDENTIAL NIFTY50 VALUE 20 ETF": "INF109KC11V0", "NARAYANA HRUDAYALAYA LTD": "INE410P01011", "INFOSYS LTD": "INE009A01021", "BHARAT HIGHWAYS INVIT": "INE0NHL23019", "BALRAMPUR CHINI MILLS LTD": "INE119A01028", "DIVIS LABORATORIES LTD": "INE361B01024", "ICICI Pru Equity Savings Direct-G": "INF109KA11J9", "VODAFONE IDEA LTD": "INE669E01016", "GUJARAT INDUSTRIES POWER COMPANY LTD": "INE162A01010", "DSP Small Cap Direct-G": "INF740K01QD1", "Edelweiss Recently Listed IPO Direct-G": "INF754K01ML4", "OIL INDIA LTD": "INE274J01014", "DCB BANK LTD": "INE503A01015", "ALTIUS TELECOM INFRASTRUCTURE TRUST INVIT": "INE0BWS23018", "BALAJI AMINES LTD": "INE050E01027", "Parag Parikh Flexi Cap Direct-G": "INF879O01027", "LINDE INDIA LTD": "INE473A01011", "KIRLOSKAR OIL ENGINES LTD": "INE146L01010", "ALLIED BLENDERS and DISTILLERS LTD": "INE552Z01027", "NMDC STEEL LTD": "INE0NNS01018", "Edelweiss Greater China Equity Off-shore Direct-G": "INF843K01AU1", "TATA INVESTMENT CORPORATION LTD": "INE672A01026", "GHCL LTD": "INE539A01019", "Invesco India Flexi Cap Direct-G": "INF205KA1494", "Aditya Birla SL Arbitrage Direct-G": "INF209K01VP1", "HINDUSTAN UNILEVER LTD": "INE030A01027", "Mirae Asset CRISIL IBX Gilt Index - April 2033 Index Direct-G": "INF769K01IX5", "LARSEN and TOUBRO LTD": "INE018A01030", "HDFC NIFTY SMALLCAP 250 ETF": "INF179KC1FB2", "EMUDHRA LTD": "INE01QM01018", "MINDSPACE BUSINESS PARKS REIT": "INE0CCU25019", "Kotak Equity Arbitrage Direct-G": "INF174K01LC6", "ICICI BANK LTD": "INE090A01021", "DSP Arbitrage Direct-G": "INF740KA1DN4", "Altiva Hybrid Long Short Fund Direct Plan Growth": "INF754K30011", "RELIANCE INDUSTRIES LTD": "INE002A01018", "ICICI PRUDENTIAL SILVER ETF": "INF109KC1Y56", "KWALITY WALLS INDIA LTD": "INE2KCE01013", "ICICI Pru Technology Direct-G": "INF109K01Z48"
 };
 
-// AUM bridge for a client's latest attribution month: start-of-month AUM (sum of bmv) and an
-// estimated net inflow/outflow = EndAUM - StartAUM*(1+return) — i.e. the part of the AUM change
-// NOT explained by market movement. This is an estimate (no ledger-level cash-flow feed exists
-// in this dataset), not a reported transaction figure.
+// Last month's AUM for a client, from their latest attribution month's start-of-month holding values.
 function getClientAumBridge(c) {
   const cdata = ATTRIBUTION_DATA[c.ndas];
   if (!cdata || !cdata.months || !cdata.months.length) return null;
   const lastMonth = cdata.months[cdata.months.length - 1];
   const bmvSum = lastMonth.rows.reduce((s,r) => s + (r.bmv||0), 0);
-  const emvSum = lastMonth.rows.reduce((s,r) => s + (r.emv||0), 0);
   if (bmvSum <= 0) return null; // new account this month — no prior AUM to bridge from
-  const impliedEnd = bmvSum * (1 + (c.p1m||0)/100);
-  return { month: lastMonth.m, lastMonthAum: bmvSum, currentAum: emvSum, netFlowEst: emvSum - impliedEnd };
+  return { month: lastMonth.m, lastMonthAum: bmvSum };
 }
 
 function downloadDeviationsExcel() {
@@ -2695,7 +2718,7 @@ function downloadDeviationsExcel() {
   }
 
   const rows = [['Client', 'NDAS / Account', 'Strategy', 'RM', 'Advisor', 'Last Review', 'Review Status',
-    'AUM (Cr)', 'Last Month AUM (Cr)', 'Est. Net Flow (Cr)',
+    'AUM (Cr)', 'Last Month AUM (Cr)', 'AUM Change (Cr)',
     '1M Performance %', '1M Benchmark %', '1M Alpha (bps)',
     '3M Performance %', '3M Benchmark %', '3M Alpha (bps)',
     'SI Performance %', 'SI Benchmark %', 'SI Alpha (bps)',
@@ -2720,7 +2743,7 @@ function downloadDeviationsExcel() {
       c.last_review || '—', c.reviewStatus.label,
       +((c.aum || 0) / 1e7).toFixed(2),
       bridge ? +(bridge.lastMonthAum / 1e7).toFixed(2) : '—',
-      bridge ? +(bridge.netFlowEst / 1e7).toFixed(2) : '—',
+      bridge ? +(((c.aum||0) - bridge.lastMonthAum) / 1e7).toFixed(2) : '—',
       c.p1m != null ? +c.p1m.toFixed(2) : '—',
       c.b1m != null ? +c.b1m.toFixed(2) : '—',
       alphaBps(c.p1m, c.b1m),
@@ -2736,16 +2759,16 @@ function downloadDeviationsExcel() {
     ]);
   });
 
-  // ── Sheet 2: Strategy Summary ── (client count, AUM now vs last month, estimated net flow)
-  const summaryRows = [['Strategy', '# Clients', 'Total AUM (Cr)', 'Last Month AUM (Cr)', 'AUM Change (Cr)', 'AUM Change %', 'Est. Net Flow (Cr)', 'Clients w/o Prior-Month Data']];
-  let grandAum = 0, grandLastMonth = 0, grandFlow = 0, grandMissing = 0, grandN = 0;
+  // ── Sheet 2: Strategy Summary ── (client count, AUM now vs last month)
+  const summaryRows = [['Strategy', '# Clients', 'Total AUM (Cr)', 'Last Month AUM (Cr)', 'AUM Change (Cr)', 'AUM Change %', 'Clients w/o Prior-Month Data']];
+  let grandAum = 0, grandLastMonth = 0, grandMissing = 0, grandN = 0;
   STRATEGY_DATA.forEach(s => {
     const clientsInStrat = allClients.filter(c => c.strategyName === s.name);
-    let stratAum = 0, stratLastMonth = 0, stratFlow = 0, missing = 0;
+    let stratAum = 0, stratLastMonth = 0, missing = 0;
     clientsInStrat.forEach(c => {
       stratAum += c.aum || 0;
       const bridge = getClientAumBridge(c);
-      if (bridge) { stratLastMonth += bridge.lastMonthAum; stratFlow += bridge.netFlowEst; }
+      if (bridge) { stratLastMonth += bridge.lastMonthAum; }
       else missing++;
     });
     const changeCr = (stratAum - stratLastMonth) / 1e7;
@@ -2756,10 +2779,9 @@ function downloadDeviationsExcel() {
       missing < clientsInStrat.length ? +(stratLastMonth / 1e7).toFixed(2) : '—',
       missing < clientsInStrat.length ? +changeCr.toFixed(2) : '—',
       changePct === '—' ? '—' : +changePct.toFixed(2),
-      missing < clientsInStrat.length ? +(stratFlow / 1e7).toFixed(2) : '—',
       missing
     ]);
-    grandAum += stratAum; grandLastMonth += stratLastMonth; grandFlow += stratFlow; grandMissing += missing; grandN += clientsInStrat.length;
+    grandAum += stratAum; grandLastMonth += stratLastMonth; grandMissing += missing; grandN += clientsInStrat.length;
   });
   summaryRows.push([
     'TOTAL', grandN,
@@ -2767,15 +2789,22 @@ function downloadDeviationsExcel() {
     +(grandLastMonth / 1e7).toFixed(2),
     +((grandAum - grandLastMonth) / 1e7).toFixed(2),
     grandLastMonth > 0 ? +((grandAum - grandLastMonth) / grandLastMonth * 100).toFixed(2) : '—',
-    +(grandFlow / 1e7).toFixed(2),
     grandMissing
   ]);
   summaryRows.push([]);
-  summaryRows.push(['Note: "Est. Net Flow" = Current AUM − (Last Month AUM × (1 + 1M Return)) — the portion of the AUM change not explained by market movement (i.e. deposits/withdrawals). Derived from monthly attribution data, not a reported ledger cash-flow feed. Clients with no prior-month attribution history (new accounts) are excluded from Last Month AUM / Net Flow totals and counted separately.']);
+  summaryRows.push(['Note: "Last Month AUM" is derived from monthly attribution data (start-of-month holding values). Clients with no prior-month attribution history (new accounts) are excluded from Last Month AUM / AUM Change and counted separately — see the New Clients This Month sheet.']);
+
+  // ── Sheet 3: New Clients This Month ── (inception date falls within the dashboard's reporting month)
+  const newClientRows = [['Client', 'NDAS / Account', 'Strategy', 'AUM (Cr)', 'RM', 'Advisor', 'Inception Date']];
+  allClients.filter(c => c.isNewThisMonth).forEach(c => {
+    newClientRows.push([c.name, c.ndas || c.account, c.strategyName, +((c.aum||0)/1e7).toFixed(2), c.rm || '—', advisorLabel(c.advisor), c.inception || '—']);
+  });
+  if (newClientRows.length === 1) newClientRows.push(['—', '—', '—', '—', '—', '—', 'No new clients this reporting month']);
 
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(rows), 'Deviations Report');
   XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(summaryRows), 'Strategy Summary');
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(newClientRows), 'New Clients This Month');
   const today = new Date();
   const dstr = today.toISOString().slice(0,10);
   XLSX.writeFile(wb, `NDPMS_Deviations_${dstr}.xlsx`);
