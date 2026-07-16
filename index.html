@@ -101,7 +101,7 @@
     <div class="meta" id="topbar-meta">Data as of 15 July 2026</strong> &middot; covers Allocate Select, LVPMS &amp; CoPilot</div>
   </div>
   <div id="topbar-search-wrap" style="position:relative;flex:1;max-width:380px;min-width:200px">
-    <input id="global-search-input" type="text" placeholder="&#128269; Search client or fund&hellip;" autocomplete="off"
+    <input id="global-search-input" type="text" placeholder="&#128269; Search client, fund, or RM&hellip;" autocomplete="off"
       style="width:100%;padding:10px 14px;border-radius:6px;border:none;font-size:13px;box-shadow:0 2px 4px rgba(0,0,0,.1);outline:none;box-sizing:border-box"
       oninput="globalSearchInput(this.value)" onfocus="globalSearchInput(this.value)" onkeydown="globalSearchKeydown(event)">
     <div id="global-search-results" style="display:none;position:absolute;top:calc(100% + 6px);left:0;right:0;background:#fff;border-radius:8px;box-shadow:0 6px 20px rgba(0,0,0,.25);max-height:420px;overflow-y:auto;z-index:200;text-align:left;color:var(--text)"></div>
@@ -110,6 +110,7 @@
     <a class="refresh-btn" href="#" onclick="askRefresh();return false;">&#x21bb; &nbsp;Refresh Dashboard</a>
     <a class="refresh-btn" id="ips-btn" href="#" onclick="toggleIPSView();return false;">&#128203; IPS Review</a>
     <a class="refresh-btn" id="checklist-btn" href="#" onclick="toggleChecklistView();return false;">&#9776; Client Checklist</a>
+    <a class="refresh-btn" id="calls-btn" href="#" onclick="toggleCallsView();return false;">&#128200; Thematic Calls</a>
     <a class="refresh-btn" id="export-deviations-btn" href="#" onclick="downloadDeviationsExcel();return false;">&#11015; Export Deviations</a>
   </div>
 </div>
@@ -145,6 +146,9 @@
   </div>
   <div id="checklist-view" style="display:none;padding:20px 0">
     <div id="checklist-root"></div>
+  </div>
+  <div id="calls-view" style="display:none;padding:20px 0">
+    <div id="calls-root"></div>
   </div>
 </div>
 
@@ -20487,6 +20491,9 @@ function buildClientCharts(c) {
 
 function showMainView() {
   document.getElementById('client-view').style.display = 'none';
+  document.getElementById('ips-view').style.display = 'none';
+  document.getElementById('checklist-view').style.display = 'none';
+  document.getElementById('calls-view').style.display = 'none';
   document.getElementById('main-view').style.display = 'block';
   document.getElementById('topbar-title').textContent = 'NDPMS Strategies Outlook and Updates';
   document.getElementById('topbar-meta').innerHTML =
@@ -20494,7 +20501,8 @@ function showMainView() {
   document.getElementById('topbar-actions').innerHTML =
     '<a class="refresh-btn" href="#" onclick="askRefresh();return false;">&#x21bb; &nbsp;Refresh Dashboard</a>' +
     '<a class="refresh-btn" id="ips-btn" href="#" onclick="toggleIPSView();return false;" style="margin-left:8px">&#128203; IPS Review</a>' +
-    '<a class="refresh-btn" id="checklist-btn" href="#" onclick="toggleChecklistView();return false;" style="margin-left:8px">&#9776; Client Checklist</a>';
+    '<a class="refresh-btn" id="checklist-btn" href="#" onclick="toggleChecklistView();return false;" style="margin-left:8px">&#9776; Client Checklist</a>' +
+    '<a class="refresh-btn" id="calls-btn" href="#" onclick="toggleCallsView();return false;" style="margin-left:8px">&#128200; Thematic Calls</a>';
   // Rebuild main charts (they were destroyed)
   renderMainView();
   window.scrollTo({top: 0, behavior: 'instant'});
@@ -20521,7 +20529,8 @@ function buildSearchIndex(){
   SEARCH_SECURITY_INDEX = {};
   STRATEGY_DATA.forEach((s, si) => {
     s.clients.forEach((c, ci) => {
-      SEARCH_CLIENT_INDEX.push({ name: c.name, ndas: c.ndas, account: c.account, strategyName: s.name, stratIdx: si, clientIdx: ci });
+      const parking = PARKING_DATA[c.ndas] || {};
+      SEARCH_CLIENT_INDEX.push({ name: c.name, ndas: c.ndas, account: c.account, strategyName: s.name, stratIdx: si, clientIdx: ci, rm: parking.rm || '', srm: parking.srm || '' });
       (c.holdings||[]).forEach(h => {
         if (!h.security || h.security === 'Cash') return;
         const key = h.security;
@@ -20544,7 +20553,8 @@ function globalSearchInput(qRaw){
   if (!q) { resultsEl.style.display='none'; resultsEl.innerHTML=''; return; }
 
   const clientMatches = SEARCH_CLIENT_INDEX.filter(c =>
-    c.name.toLowerCase().includes(q) || (c.ndas||'').toLowerCase().includes(q) || String(c.account||'').toLowerCase().includes(q)
+    c.name.toLowerCase().includes(q) || (c.ndas||'').toLowerCase().includes(q) || String(c.account||'').toLowerCase().includes(q) ||
+    (c.rm||'').toLowerCase().includes(q) || (c.srm||'').toLowerCase().includes(q)
   ).slice(0, 8);
 
   const fundMatches = Object.values(SEARCH_SECURITY_INDEX).filter(f => f.security.toLowerCase().includes(q)).slice(0, 8);
@@ -20561,7 +20571,7 @@ function globalSearchInput(qRaw){
     clientMatches.forEach(c => {
       html += `<div class="search-result-row" onclick="globalSearchGoToClient(${c.stratIdx},${c.clientIdx})" style="padding:10px 14px;cursor:pointer;border-bottom:1px solid var(--border)">
         <div style="font-weight:600;font-size:13px;color:var(--text)">${escapeHtml(c.name)}</div>
-        <div style="font-size:11px;color:var(--muted)">${escapeHtml(c.strategyName)} &middot; ${escapeHtml(c.ndas)} &middot; A/c ${escapeHtml(String(c.account))}</div>
+        <div style="font-size:11px;color:var(--muted)">${escapeHtml(c.strategyName)} &middot; ${escapeHtml(c.ndas)} &middot; A/c ${escapeHtml(String(c.account))}${c.rm ? ' &middot; RM: '+escapeHtml(c.rm) : ''}</div>
       </div>`;
     });
   }
@@ -20653,6 +20663,114 @@ function toggleIPSView(){
   document.getElementById('topbar-actions').innerHTML=
     '<a class="refresh-btn" href="#" onclick="showMainView();return false;">&larr; Back to Dashboard</a>';
   buildIPSSummary();
+}
+
+// ============ Thematic Calls — has this specific recommendation actually made clients money? ============
+// Edit CALL_THEMES to add/adjust which funds map to which named call (e.g. factor rotation
+// picks, sector ETFs). Matching is by security-name pattern since that's stable across
+// clients; a fund appearing under multiple patterns just gets grouped into all of them.
+const CALL_THEMES = [
+  {label:"Factor Strategy — Low Volatility", pattern:/low volatility|low vol/i},
+  {label:"Factor Strategy — Momentum", pattern:/momentum/i},
+  {label:"Factor Strategy — Value", pattern:/value 20|value index/i},
+  {label:"Metals", pattern:/nifty metal/i},
+  {label:"Chemicals", pattern:/chemicals/i},
+  {label:"Banking & Financial", pattern:/banking and financial/i},
+];
+
+// First month a client's ATTRIBUTION_DATA shows this security going from bmv=0 to emv>0
+// (a fresh purchase). Falls back to "before <first month on record>" for positions held
+// since before attribution history started, so timing is still shown even if not exact.
+function callEntryMonth(ndas, security) {
+  const cdata = ATTRIBUTION_DATA[ndas];
+  if (!cdata || !cdata.months) return null;
+  for (const m of cdata.months) {
+    const row = m.rows.find(r => r.s === security);
+    if (row && row.bmv === 0 && row.emv > 0) return m.m;
+  }
+  const firstSeen = cdata.months.find(m => m.rows.some(r => r.s === security));
+  return firstSeen ? "before " + firstSeen.m : null;
+}
+
+function buildCallThemeData() {
+  return CALL_THEMES.map(theme => {
+    const holders = [];
+    STRATEGY_DATA.forEach(strat => strat.clients.forEach(c => {
+      (c.holdings || []).forEach(h => {
+        if (theme.pattern.test(h.security)) {
+          holders.push({
+            client: c.name, ndas: c.ndas, strategyName: strat.name, security: h.security,
+            mvCr: (h.market_value || 0) / 1e7, costCr: (h.cost || 0) / 1e7, glPct: h.gl_pct,
+            entry: callEntryMonth(c.ndas, h.security)
+          });
+        }
+      });
+    }));
+    if (!holders.length) return { label: theme.label, nHolders: 0 };
+    holders.sort((a, b) => a.glPct - b.glPct);
+    const totalMV = holders.reduce((a, h) => a + h.mvCr, 0);
+    const totalCost = holders.reduce((a, h) => a + h.costCr, 0);
+    const won = holders.filter(h => h.glPct > 0).length, lost = holders.filter(h => h.glPct <= 0).length;
+    return {
+      label: theme.label, nHolders: holders.length, totalMVcr: totalMV, totalCostCr: totalCost,
+      weightedGlPct: totalCost ? ((totalMV - totalCost) / totalCost) * 100 : null,
+      won, lost, holders
+    };
+  });
+}
+
+function toggleCallsView() {
+  document.getElementById('main-view').style.display = 'none';
+  document.getElementById('client-view').style.display = 'none';
+  document.getElementById('ips-view').style.display = 'none';
+  document.getElementById('checklist-view').style.display = 'none';
+  document.getElementById('calls-view').style.display = '';
+  document.getElementById('topbar-title').textContent = 'Thematic Calls — Has It Worked?';
+  document.getElementById('topbar-meta').innerHTML = 'Performance of specific recommendations across every client who holds them';
+  document.getElementById('topbar-actions').innerHTML =
+    '<a class="refresh-btn" href="#" onclick="showMainView();return false;">&larr; Back to Dashboard</a>';
+  renderCallsView();
+}
+
+function renderCallsView() {
+  const themes = buildCallThemeData();
+  const root = document.getElementById('calls-root');
+  const fmtCr = v => '₹' + v.toFixed(2) + ' Cr';
+  const fmtPct = v => (v == null ? '—' : (v >= 0 ? '+' : '') + v.toFixed(2) + '%');
+
+  root.innerHTML = themes.map((t, ti) => {
+    if (!t.nHolders) {
+      return `<div class="chart-card" style="margin-bottom:16px;opacity:.6">
+        <h3>${t.label}</h3>
+        <div class="small">No client currently holds a fund matching this call — may have been fully exited, or not yet implemented.</div>
+      </div>`;
+    }
+    const winColor = t.weightedGlPct >= 0 ? 'var(--green)' : 'var(--red)';
+    const rows = t.holders.map(h => `
+      <tr>
+        <td>${h.client}</td>
+        <td class="small">${h.strategyName}</td>
+        <td class="small">${h.security}</td>
+        <td class="small">${h.entry || '—'}</td>
+        <td class="num">${fmtCr(h.mvCr)}</td>
+        <td class="num" style="color:${h.glPct >= 0 ? 'var(--green)' : 'var(--red)'};font-weight:600">${fmtPct(h.glPct)}</td>
+      </tr>`).join('');
+    return `
+      <div class="chart-card" style="margin-bottom:16px">
+        <h3>${t.label}</h3>
+        <div style="display:flex;gap:24px;flex-wrap:wrap;margin:8px 0 14px">
+          <div><div class="small">Held by</div><div style="font-weight:700">${t.nHolders} client${t.nHolders===1?'':'s'}</div></div>
+          <div><div class="small">Total exposure</div><div style="font-weight:700">${fmtCr(t.totalMVcr)}</div></div>
+          <div><div class="small">Won / Lost</div><div style="font-weight:700"><span style="color:var(--green)">${t.won} up</span> / <span style="color:var(--red)">${t.lost} down</span></div></div>
+          <div><div class="small">Aggregate return (cost-weighted)</div><div style="font-weight:700;color:${winColor}">${fmtPct(t.weightedGlPct)}</div></div>
+        </div>
+        <table>
+          <thead><tr><th>Client</th><th>Strategy</th><th>Fund</th><th>Entry</th><th>Current Value</th><th>Gain/Loss</th></tr></thead>
+          <tbody>${rows}</tbody>
+        </table>
+        <div class="small" style="margin-top:8px">Sorted worst-to-best. "Entry" is the month this holding first appears as a new position in attribution history — compare against Gain/Loss to see whether losses trace to a specific entry window rather than the call itself.</div>
+      </div>`;
+  }).join('');
 }
 
 function buildIPSSummary(){
