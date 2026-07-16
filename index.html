@@ -20287,7 +20287,7 @@ function downloadClientExcel(strategyIdx, clientIdx) {
   if (commAoa.length === 1) commAoa.push(['—', 'No gold/silver holdings', '—', '—']);
   XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(commAoa), 'Commodities');
 
-  const fname = `${(c.name||'client').replace(/[^a-z0-9]+/gi,'_')}_${c.ndas||c.account}_30Jun2026.xlsx`;
+  const fname = `${(c.name||'client').replace(/[^a-z0-9]+/gi,'_')}_${c.ndas||c.account}_15Jul2026.xlsx`;
   XLSX.writeFile(wb, fname);
 }
 
