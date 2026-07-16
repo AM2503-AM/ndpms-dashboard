@@ -20079,6 +20079,7 @@ function showClient(strategyIdx, clientIdx) {
   })();
 
   const attributionSection = renderAttributionSection(c);
+  const callsSection = renderClientCallsSection(c);
 
   const allocSection = collapseSection('Asset Allocation', allocCard, { open:false });
   const topHoldSection = collapseSection('Top Holdings', topHoldingsCard, { open:false });
@@ -20093,6 +20094,7 @@ function showClient(strategyIdx, clientIdx) {
     <div class="benchmark-line">&#9642; Benchmark &nbsp;|&nbsp; ${c.benchmark_name || '—'}</div>
     ${perfSection}
     ${attributionSection}
+    ${callsSection}
     ${allocSection}
     ${topHoldSection}
     ${monthlyPerfSection}
@@ -20955,11 +20957,21 @@ function buildClientDeck(clientRecord){
     const s = pptx.addSlide(); s.background = {color: BRAND.WHITE};
     titleBar(s,"Portfolio Contours — Investment Policy Statement", `${ips.risk_profile} risk profile · current vs ideal bands`);
     const st = {ok:[BRAND.LGREEN,BRAND.DGREEN,"Within band"], over:[BRAND.LRED,BRAND.DRED,"Above band"], under:[BRAND.LRED,BRAND.DRED,"Below band"], gap:["FFF2CC","9C6500","Not present"]};
+    const ipsRows = buildIpsRows(ips);
     const rows = [[C("Parameter",{b:1,color:BRAND.WHITE,fill:BRAND.BLUE,align:"left"}),C("Ideal",{b:1,color:BRAND.WHITE,fill:BRAND.BLUE}),C("Current",{b:1,color:BRAND.WHITE,fill:BRAND.BLUE}),C("Status",{b:1,color:BRAND.WHITE,fill:BRAND.BLUE})]];
-    buildIpsRows(ips).forEach(r=>{ const c = st[r.status]||st.ok;
+    ipsRows.forEach(r=>{ const c = st[r.status]||st.ok;
       rows.push([C(r.param,{align:"left"}), C(r.ideal,{color:BRAND.GREY}), C(r.current,{b:1}), C(c[2],{b:1,color:c[1],fill:c[0],size:10.5})]);
     });
     s.addTable(rows,{x:0.5,y:1.5,w:12.33,colW:[5.3,2.3,3.03,1.7],rowH:0.5,border:{type:"solid",color:BRAND.LINE,pt:1}});
+    // Key observation band — how many bands are breached, and the single most material one
+    const breaches = ipsRows.filter(r=>r.status!=="ok");
+    const y2 = 1.5 + rows.length*0.5 + 0.15;
+    s.addShape(pptx.ShapeType.roundRect,{x:0.5,y:y2,w:12.33,h:0.95,fill:{color:breaches.length?"FFF2CC":BRAND.LGREEN},line:{color:BRAND.LINE,width:1},rectRadius:0.06});
+    const summary = breaches.length===0
+      ? `Fully compliant — all ${ipsRows.length} parameters within band for the ${ips.risk_profile} profile.`
+      : `${breaches.length} of ${ipsRows.length} parameters outside band: ${breaches.map(r=>r.param.replace(/ —.*/,'')).join(", ")}.`;
+    s.addText("Key Observation",{x:0.75,y:y2+0.08,w:11.8,h:0.3,fontFace:BRAND.FONTB,bold:true,fontSize:12,color:BRAND.BLUE});
+    s.addText(summary,{x:0.75,y:y2+0.4,w:11.8,h:0.5,fontFace:BRAND.FONT,fontSize:11,color:BRAND.INK});
     footer(s, `Concentration flagged from largest single holding · ${ips.num_holdings} holdings`);
   })();
 
@@ -20969,13 +20981,26 @@ function buildClientDeck(clientRecord){
     titleBar(s,"Performance Overview", `Portfolio vs ${sc.benchmark_name}`);
     const periods = [["1 Month",sc.p1m,sc.b1m],["3 Months",sc.p3m,sc.b3m],["6 Months",sc.p6m,sc.b6m],["12 Months",sc.p12m,sc.b12m],["Since Inception",sc.psi,sc.bsi]];
     const rows = [[C("Period",{b:1,color:BRAND.WHITE,fill:BRAND.BLUE,align:"left"}),C("Portfolio",{b:1,color:BRAND.WHITE,fill:BRAND.BLUE}),C("Benchmark",{b:1,color:BRAND.WHITE,fill:BRAND.BLUE}),C("Outperformance",{b:1,color:BRAND.WHITE,fill:BRAND.BLUE})]];
+    const avail = [];
     periods.forEach(([label,p,b])=>{
       const out = (p!=null && b!=null) ? p-b : null;
       const beat = out!=null && out>=0;
+      if (out!=null) avail.push({label,out,beat});
       rows.push([C(label,{align:"left"}), C(pct(p)), C(pct(b),{color:BRAND.GREY}),
         C(out==null?"—":(out>=0?"+":"")+out.toFixed(2)+"%",{b:1,color:beat?BRAND.DGREEN:BRAND.DRED,fill:beat?BRAND.LGREEN:BRAND.LRED})]);
     });
-    s.addTable(rows,{x:0.5,y:1.6,w:9.0,colW:[3.0,2.0,2.0,2.0],rowH:0.5,border:{type:"solid",color:BRAND.LINE,pt:1}});
+    s.addTable(rows,{x:0.5,y:1.6,w:8.8,colW:[2.9,1.95,1.95,2.0],rowH:0.5,border:{type:"solid",color:BRAND.LINE,pt:1}});
+    // Key observation — consistency of outperformance across windows, not just the SI headline
+    s.addShape(pptx.ShapeType.roundRect,{x:9.6,y:1.6,w:3.23,h:4.0,fill:{color:BRAND.PANEL},line:{color:BRAND.LINE,width:1},rectRadius:0.06});
+    s.addText("Key Observation",{x:9.8,y:1.75,w:2.9,h:0.35,fontFace:BRAND.FONTB,bold:true,fontSize:12.5,color:BRAND.BLUE});
+    const perfTakeaways = [];
+    const siRow = avail.find(a=>a.label==="Since Inception");
+    if (siRow) perfTakeaways.push(siRow.beat ? `Outperforming benchmark by ${siRow.out.toFixed(1)}pp since inception.` : `Underperforming benchmark by ${Math.abs(siRow.out).toFixed(1)}pp since inception.`);
+    const beatCount = avail.filter(a=>a.beat).length;
+    perfTakeaways.push(`Beat the benchmark in ${beatCount} of ${avail.length} measured periods.`);
+    const recent = avail.find(a=>a.label==="1 Month"), long = avail.find(a=>a.label==="Since Inception");
+    if (recent && long && recent.beat !== long.beat) perfTakeaways.push(long.beat ? "Recent month has lagged despite a strong longer-term track record — worth monitoring." : "Recent month has improved versus the longer-term trend.");
+    s.addText(perfTakeaways.map(t=>({text:t,options:{bullet:{code:"2022"},fontSize:10.5,color:BRAND.INK,paraSpaceAfter:10}})),{x:9.8,y:2.15,w:2.9,h:3.3,fontFace:BRAND.FONT,valign:"top"});
     footer(s, sc.si_ann!=null ? `Since-inception annualised: ${pct(sc.si_ann)}` : "");
   })();
 
@@ -20984,13 +21009,25 @@ function buildClientDeck(clientRecord){
     const s = pptx.addSlide(); s.background = {color: BRAND.WHITE};
     titleBar(s,"Asset Allocation & Market-Cap Split","Current portfolio composition");
     const alloc = [{label:"Equity",pct:ips.eq_pct},{label:"Fixed Income & Alternates",pct:ips.debt_alt_pct}].filter(x=>x.pct>0);
-    s.addText("Asset Allocation",{x:0.9,y:1.45,w:5,h:0.35,fontFace:BRAND.FONTB,bold:true,fontSize:14,color:BRAND.BLUE,align:"center"});
+    s.addText("Asset Allocation",{x:0.5,y:1.45,w:3.6,h:0.35,fontFace:BRAND.FONTB,bold:true,fontSize:13,color:BRAND.BLUE,align:"center"});
     s.addChart(pptx.ChartType.doughnut,[{name:"AA",labels:alloc.map(b=>`${b.label} — ${b.pct}%`),values:alloc.map(b=>b.pct)}],
-      {x:0.5,y:1.85,w:5.3,h:3.7,holeSize:56,showLegend:true,legendPos:"b",legendFontFace:BRAND.FONT,legendFontSize:10,chartColors:[BRAND.BLUE,BRAND.LBLUE,BRAND.GOLD],dataBorder:{pen:2,color:BRAND.WHITE}});
+      {x:0.2,y:1.85,w:3.9,h:3.1,holeSize:56,showLegend:true,legendPos:"b",legendFontFace:BRAND.FONT,legendFontSize:9,chartColors:[BRAND.BLUE,BRAND.LBLUE,BRAND.GOLD],dataBorder:{pen:2,color:BRAND.WHITE}});
     const mc = [{label:"Large Cap",pct:ips.lc_pct},{label:"Mid Cap",pct:ips.mc_pct},{label:"Small Cap",pct:ips.sc_pct}];
-    s.addText("Market-Cap Split (Equity)",{x:7.2,y:1.45,w:5,h:0.35,fontFace:BRAND.FONTB,bold:true,fontSize:14,color:BRAND.BLUE,align:"center"});
+    s.addText("Market-Cap Split (Equity)",{x:4.4,y:1.45,w:3.6,h:0.35,fontFace:BRAND.FONTB,bold:true,fontSize:13,color:BRAND.BLUE,align:"center"});
     s.addChart(pptx.ChartType.doughnut,[{name:"MC",labels:mc.map(b=>b.label),values:mc.map(b=>b.pct)}],
-      {x:7.0,y:1.85,w:5.3,h:3.7,holeSize:56,showLegend:true,legendPos:"b",legendFontFace:BRAND.FONT,legendFontSize:10,chartColors:[BRAND.BLUE,BRAND.LBLUE,BRAND.GOLD],dataBorder:{pen:2,color:BRAND.WHITE},showValue:true,dataLabelColor:BRAND.WHITE,dataLabelFormatCode:'0.0"%"'});
+      {x:4.1,y:1.85,w:3.9,h:3.1,holeSize:56,showLegend:true,legendPos:"b",legendFontFace:BRAND.FONT,legendFontSize:9,chartColors:[BRAND.BLUE,BRAND.LBLUE,BRAND.GOLD],dataBorder:{pen:2,color:BRAND.WHITE},showValue:true,dataLabelColor:BRAND.WHITE,dataLabelFormatCode:'0.0"%"'});
+    // Key observation panel — same rounded-panel + bullet pattern used across the firm's manual reviews
+    s.addShape(pptx.ShapeType.roundRect,{x:8.3,y:1.45,w:4.53,h:3.5,fill:{color:BRAND.PANEL},line:{color:BRAND.LINE,width:1},rectRadius:0.06});
+    s.addText("Key Observation",{x:8.55,y:1.6,w:4.0,h:0.35,fontFace:BRAND.FONTB,bold:true,fontSize:13,color:BRAND.BLUE});
+    const takeaways = [];
+    if (ips.eq_pct >= 80) takeaways.push(`Aggressive, growth-oriented positioning — ${pct(ips.eq_pct)} is in equity.`);
+    else if (ips.eq_pct <= 40) takeaways.push(`Conservative positioning — only ${pct(ips.eq_pct)} in equity, rest in fixed income/alternates.`);
+    else takeaways.push(`Balanced positioning — ${pct(ips.eq_pct)} in equity against ${pct(ips.debt_alt_pct)} fixed income/alternates.`);
+    const midSmall = (ips.mc_pct||0) + (ips.sc_pct||0);
+    if (midSmall > 55) takeaways.push(`~${midSmall.toFixed(0)}% of the equity book is in mid- and small-caps — return potential comes with higher volatility.`);
+    if (ips.intl_eq_pct === 0) takeaways.push("No international exposure — fully home-biased.");
+    if (ips.commodity_pct === 0) takeaways.push("No commodity/gold hedge currently held.");
+    s.addText(takeaways.map(t=>({text:t,options:{bullet:{code:"2022"},fontSize:11,color:BRAND.INK,paraSpaceAfter:10}})),{x:8.55,y:2.0,w:4.05,h:2.85,fontFace:BRAND.FONT,valign:"top"});
     footer(s,"");
   })();
 
@@ -21001,9 +21038,21 @@ function buildClientDeck(clientRecord){
     s.addShape(pptx.ShapeType.roundRect,{x:0.5,y:1.5,w:12.33,h:1.0,fill:{color:BRAND.PANEL},line:{color:BRAND.LINE,width:1},rectRadius:0.06});
     s.addText(`Top AMC: ${ips.top_amc} — ${pct(ips.top_amc_pct)} (ideal ≤ 25%)`,{x:0.75,y:1.6,w:11.8,h:0.4,fontFace:BRAND.FONTB,bold:true,fontSize:13,color:BRAND.BLUE});
     s.addText(`Top single scheme: ${ips.top_scheme} — ${pct(ips.top_scheme_pct)} (ideal ≤ 15%)`,{x:0.75,y:2.0,w:11.8,h:0.4,fontFace:BRAND.FONT,fontSize:12,color:BRAND.INK});
-    const tail = (sc.holdings||[]).slice().sort((a,b)=>b.assets_pct-a.assets_pct).slice(0,10).reverse();
-    s.addChart(pptx.ChartType.bar,[{name:"Holding",labels:tail.map(h=>h.security.slice(0,28)),values:tail.map(h=>h.assets_pct)}],
-      {x:0.4,y:2.8,w:12.3,h:4.1,barDir:"bar",chartColors:tail.map((_,i)=>i%2?BRAND.BLUE:BRAND.GREYB),showValue:true,dataLabelFontFace:BRAND.FONT,dataLabelFontSize:9,dataLabelPosition:"outEnd",dataLabelFormatCode:'0.0"%"',valAxisHidden:true,catAxisLabelFontSize:9,valGridLine:{style:"none"},barGapWidthPct:35});
+    const allHoldings = (sc.holdings||[]).slice().sort((a,b)=>b.assets_pct-a.assets_pct);
+    const tail = allHoldings.slice(0,10).reverse();
+    s.addChart(pptx.ChartType.bar,[{name:"Holding",labels:tail.map(h=>h.security.slice(0,26)),values:tail.map(h=>h.assets_pct)}],
+      {x:0.3,y:2.75,w:7.9,h:4.2,barDir:"bar",chartColors:tail.map((_,i)=>i%2?BRAND.BLUE:BRAND.GREYB),showValue:true,dataLabelFontFace:BRAND.FONT,dataLabelFontSize:8.5,dataLabelPosition:"outEnd",dataLabelFormatCode:'0.0"%"',valAxisHidden:true,catAxisLabelFontSize:8.5,valGridLine:{style:"none"},barGapWidthPct:35});
+    // Key observation panel — tail concentration + why the AMC/scheme breach (if any) matters
+    s.addShape(pptx.ShapeType.roundRect,{x:8.4,y:2.75,w:4.43,h:4.2,fill:{color:BRAND.PANEL},line:{color:BRAND.LINE,width:1},rectRadius:0.06});
+    s.addText("Key Observation",{x:8.65,y:2.9,w:4.0,h:0.35,fontFace:BRAND.FONTB,bold:true,fontSize:12.5,color:BRAND.BLUE});
+    const small = allHoldings.filter(h=>h.assets_pct < 2 && h.security!=="Cash");
+    const smallTotal = small.reduce((a,h)=>a+h.assets_pct,0);
+    const takeaways2 = [];
+    if (ips.top_amc_pct > 25) takeaways2.push(`${ips.top_amc} at ${pct(ips.top_amc_pct)} breaches the 25% AMC concentration cap — a single manager's decisions have outsized influence here.`);
+    else takeaways2.push(`No AMC concentration breach — largest exposure (${ips.top_amc}) is within the 25% cap.`);
+    if (ips.top_scheme_pct > 15) takeaways2.push(`${ips.top_scheme} at ${pct(ips.top_scheme_pct)} breaches the 15% single-scheme cap.`);
+    if (small.length >= 3) takeaways2.push(`${small.length} holdings each under 2% of the portfolio, totalling only ${smallTotal.toFixed(1)}% combined — a long tail worth consolidating.`);
+    s.addText(takeaways2.map(t=>({text:t,options:{bullet:{code:"2022"},fontSize:10.5,color:BRAND.INK,paraSpaceAfter:10}})),{x:8.65,y:3.3,w:3.95,h:3.5,fontFace:BRAND.FONT,valign:"top"});
     footer(s,"Top 10 holdings by weight");
   })();
 
@@ -21021,20 +21070,24 @@ function buildClientDeck(clientRecord){
         const m = fm[normalizeSchemeName(h.security)] || {};
         return {n:h.security, al:h.assets_pct, ...m};
       });
-      const hdr=[C("Scheme",{b:1,color:BRAND.WHITE,fill:BRAND.BLUE,align:"left",size:9}),C("Alloc%",{b:1,color:BRAND.WHITE,fill:BRAND.BLUE,size:9}),
-        C("1Y",{b:1,color:BRAND.WHITE,fill:BRAND.BLUE,size:9}),C("3Y",{b:1,color:BRAND.WHITE,fill:BRAND.BLUE,size:9}),
-        C("RAR",{b:1,color:BRAND.WHITE,fill:BRAND.BLUE,size:9}),C("Up Capture",{b:1,color:BRAND.WHITE,fill:BRAND.BLUE,size:9}),
-        C("Down Capture",{b:1,color:BRAND.WHITE,fill:BRAND.BLUE,size:9}),C("Total Capture",{b:1,color:BRAND.WHITE,fill:BRAND.BLUE,size:9})];
+      const hdr=[C("Scheme",{b:1,color:BRAND.WHITE,fill:BRAND.BLUE,align:"left",size:8.5}),C("Alloc%",{b:1,color:BRAND.WHITE,fill:BRAND.BLUE,size:8.5}),
+        C("3M",{b:1,color:BRAND.WHITE,fill:BRAND.BLUE,size:8.5}),C("6M",{b:1,color:BRAND.WHITE,fill:BRAND.BLUE,size:8.5}),
+        C("1Y",{b:1,color:BRAND.WHITE,fill:BRAND.BLUE,size:8.5}),C("3Y",{b:1,color:BRAND.WHITE,fill:BRAND.BLUE,size:8.5}),
+        C("SD %",{b:1,color:BRAND.WHITE,fill:BRAND.BLUE,size:8.5}),C("RAR",{b:1,color:BRAND.WHITE,fill:BRAND.BLUE,size:8.5}),C("Up Capture",{b:1,color:BRAND.WHITE,fill:BRAND.BLUE,size:8.5}),
+        C("Down Capture",{b:1,color:BRAND.WHITE,fill:BRAND.BLUE,size:8.5}),C("Total Capture",{b:1,color:BRAND.WHITE,fill:BRAND.BLUE,size:8.5})];
       const rows=[hdr];
       funds.slice(0,12).forEach(f=>{
-        rows.push([C(f.n,{align:"left",size:8.5}), C(pct(f.al),{size:8.5}),
-          C(pct(f.y1),{size:8.5}), C(pct(f.y3),{size:8.5}),
-          C(f.rar!=null?f.rar.toFixed(2):"—",{size:8.5,color:txtOn(scale3(f.rar,0.8,1.8,BRAND.SCALE_RWB)),fill:scale3(f.rar,0.8,1.8,BRAND.SCALE_RWB)}),
-          C(f.up!=null?f.up.toFixed(0):"—",{size:8.5,color:txtOn(scale3(f.up,64,110,BRAND.SCALE_RYG)),fill:scale3(f.up,64,110,BRAND.SCALE_RYG)}),
-          C(f.dn!=null?f.dn.toFixed(0):"—",{size:8.5,color:txtOn(scale3(f.dn,55,110,[BRAND.SCALE_RYG[2],BRAND.SCALE_RYG[1],BRAND.SCALE_RYG[0]])),fill:scale3(f.dn,55,110,[BRAND.SCALE_RYG[2],BRAND.SCALE_RYG[1],BRAND.SCALE_RYG[0]])}),
-          C(f.tot!=null?f.tot.toFixed(2):"—",{size:8.5,color:txtOn(scale3(f.tot,0.9,1.15,BRAND.SCALE_RWB)),fill:scale3(f.tot,0.9,1.15,BRAND.SCALE_RWB)})]);
+        rows.push([C(f.n,{align:"left",size:8}), C(pct(f.al),{size:8}),
+          C(pct(f.m3),{size:8}), C(pct(f.m6),{size:8}),
+          C(pct(f.y1),{size:8}), C(pct(f.y3),{size:8}),
+          C(f.sd!=null?f.sd.toFixed(1):"—",{size:8,color:BRAND.GREY}),
+          C(f.rar!=null?f.rar.toFixed(2):"—",{size:8,b:true,color:txtOn(scale3(f.rar,0.8,1.8,BRAND.SCALE_RWB)),fill:scale3(f.rar,0.8,1.8,BRAND.SCALE_RWB)}),
+          C(f.up!=null?f.up.toFixed(0):"—",{size:8,color:txtOn(scale3(f.up,64,110,BRAND.SCALE_RYG)),fill:scale3(f.up,64,110,BRAND.SCALE_RYG)}),
+          C(f.dn!=null?f.dn.toFixed(0):"—",{size:8,color:txtOn(scale3(f.dn,55,110,[BRAND.SCALE_RYG[2],BRAND.SCALE_RYG[1],BRAND.SCALE_RYG[0]])),fill:scale3(f.dn,55,110,[BRAND.SCALE_RYG[2],BRAND.SCALE_RYG[1],BRAND.SCALE_RYG[0]])}),
+          C(f.tot!=null?f.tot.toFixed(2):"—",{size:8,color:txtOn(scale3(f.tot,0.9,1.15,BRAND.SCALE_RWB)),fill:scale3(f.tot,0.9,1.15,BRAND.SCALE_RWB)})]);
       });
-      s.addTable(rows,{x:0.4,y:1.5,w:12.5,colW:[3.5,1.2,1.2,1.2,1.2,1.4,1.4,1.4],rowH:0.4,border:{type:"solid",color:BRAND.LINE,pt:1}});
+      s.addTable(rows,{x:0.3,y:1.5,w:12.73,colW:[2.83,0.85,0.85,0.85,0.85,0.85,0.85,1.2,1.2,1.2,1.2],rowH:0.4,border:{type:"solid",color:BRAND.LINE,pt:1}});
+      s.addText("RAR (Rolling Return ÷ SD) is risk-adjusted return — higher is better per unit of volatility.",{x:0.3,y:6.55,w:12.7,h:0.3,fontFace:BRAND.FONT,italic:true,fontSize:9,color:BRAND.GREY});
     }
     footer(s,"");
   })();
@@ -21069,6 +21122,53 @@ function buildClientDeck(clientRecord){
       if (f.view) s.addText(`Asset X — ${f.bucket}: ${f.view.stance}`,{x:6.85,y:y+0.36,w:5.6,h:0.3,fontFace:BRAND.FONT,italic:true,fontSize:8.5,color:STANCE_COLOR[f.view.stance]||BRAND.GREY,valign:"middle"});
     });
     footer(s,"Contribution = weighted return contribution over the review window, per security · stance from the current Asset X view");
+  })();
+
+  // ---------- THEMATIC CALLS — named calls this client holds, with reasoning + actions taken ----------
+  // Scoped to CALL_THEMES only (not every holding) — these are the firm's specific recommendations
+  // (Factor Strategy, Metals, etc.), not a general performance review. Reuses whatever CALL_THEMES
+  // is defined on the page (the dashboard's Thematic Calls feature); if this pptx is generated
+  // standalone (outside the dashboard) without that global, the slide is skipped gracefully.
+  (function(){
+    if (typeof CALL_THEMES === "undefined") return;
+    const holdings = sc.holdings || [];
+    const matches = [];
+    CALL_THEMES.forEach(theme => holdings.forEach(h => {
+      if (theme.pattern.test(h.security)) matches.push({theme: theme.label, security: h.security, glPct: h.gl_pct, mvCr: (h.market_value||0)/1e7, entry: callEntryMonth ? callEntryMonth(sc.ndas, h.security) : null});
+    }));
+    if (!matches.length) return;
+    const s = pptx.addSlide(); s.background = {color: BRAND.WHITE};
+    titleBar(s,"Thematic Calls — How These Have Played Out", "Firm-wide recommendations this client holds, with reasoning and recent actions");
+    const rowH = 0.72;
+    matches.slice(0,6).forEach((m,i)=>{
+      const y = 1.5 + i*rowH;
+      const h = holdings.find(x=>x.security===m.security);
+      const bucket = h && typeof classifyAssetX==="function" ? classifyAssetX(h) : null;
+      const view = bucket ? ASSET_X_VIEWS[bucket] : null;
+      const up = m.glPct >= 0;
+      s.addShape(pptx.ShapeType.roundRect,{x:0.4,y,w:12.53,h:rowH-0.08,fill:{color:up?BRAND.LGREEN:BRAND.LRED},line:{type:"none"},rectRadius:0.05});
+      s.addText(m.theme,{x:0.55,y:y+0.05,w:2.6,h:rowH-0.18,fontFace:BRAND.FONTB,bold:true,fontSize:10.5,color:BRAND.BLUE,valign:"middle"});
+      s.addText(m.security,{x:3.2,y:y+0.05,w:3.7,h:rowH-0.18,fontFace:BRAND.FONT,fontSize:9,color:BRAND.INK,valign:"middle"});
+      s.addText(`Since ${m.entry||"—"}`,{x:6.95,y:y+0.05,w:1.4,h:rowH-0.18,fontFace:BRAND.FONT,fontSize:8.5,color:BRAND.GREY,valign:"middle"});
+      s.addText((up?"+":"")+m.glPct.toFixed(2)+"%",{x:8.4,y:y+0.05,w:1.3,h:rowH-0.18,fontFace:BRAND.FONTB,bold:true,fontSize:12,color:up?BRAND.DGREEN:BRAND.DRED,align:"right",valign:"middle"});
+      s.addText(view ? `Asset X: ${view.stance}` : "—",{x:9.85,y:y+0.05,w:3.0,h:rowH-0.18,fontFace:BRAND.FONT,italic:true,fontSize:8,color:view?(STANCE_COLOR[view.stance]||BRAND.GREY):BRAND.GREY,valign:"middle"});
+    });
+    // Actions already taken — new positions opened in the last 2 attribution months (distinct from
+    // the Action Summary slide's PENDING items; this is what's already been executed).
+    const cdata = attribution;
+    const recentMonths = (cdata && cdata.months || []).slice(-2);
+    const actedOn = [];
+    recentMonths.forEach(m => (m.rows||[]).forEach(r => {
+      if (r.bmv === 0 && r.emv > 0) actedOn.push(`Bought ${r.s} (${m.m})`);
+      if (r.bmv > 0 && r.emv === 0) actedOn.push(`Exited ${r.s} (${m.m})`);
+    }));
+    const yBase = 1.5 + Math.min(matches.length,6)*rowH + 0.2;
+    if (actedOn.length){
+      s.addShape(pptx.ShapeType.roundRect,{x:0.4,y:yBase,w:12.53,h:1.6,fill:{color:BRAND.PANEL},line:{color:BRAND.LINE,width:1},rectRadius:0.06});
+      s.addText("Actions Already Taken (last 2 months)",{x:0.6,y:yBase+0.1,w:12.0,h:0.3,fontFace:BRAND.FONTB,bold:true,fontSize:12,color:BRAND.BLUE});
+      s.addText(actedOn.slice(0,6).map(t=>({text:t,options:{bullet:{code:"2022"},fontSize:10.5,color:BRAND.INK,paraSpaceAfter:4}})),{x:0.6,y:yBase+0.42,w:12.0,h:1.1,fontFace:BRAND.FONT,valign:"top"});
+    }
+    footer(s,"\"Since\" = month this holding first appears as a new position in attribution history");
   })();
 
   // ---------- PMS / AIF PLACEHOLDER (flagged, not built) ----------
@@ -21217,6 +21317,42 @@ function toggleCallsView() {
   document.getElementById('topbar-actions').innerHTML =
     '<a class="refresh-btn" href="#" onclick="showMainView();return false;">&larr; Back to Dashboard</a>';
   renderCallsView();
+}
+
+// Client-level view: of the named thematic calls, which does THIS client hold, and how have
+// they fared for them specifically vs. the book-wide aggregate for that same call.
+function renderClientCallsSection(c) {
+  const fmtCr = v => '₹'+v.toFixed(2)+' Cr';  // input is already in Cr (mvCr below)
+  const fmtPct = v => (v == null ? '—' : (v >= 0 ? '+' : '') + v.toFixed(2) + '%');
+  const holdings = c.holdings || [];
+  const matches = [];
+  CALL_THEMES.forEach(theme => {
+    holdings.forEach(h => {
+      if (theme.pattern.test(h.security)) matches.push({theme: theme.label, security: h.security, glPct: h.gl_pct, mvCr: (h.market_value||0)/1e7, entry: callEntryMonth(c.ndas, h.security)});
+    });
+  });
+  if (!matches.length) {
+    return collapseSection('&#128200; Thematic Calls — How These Have Fared', '<div class="attr-empty">This client doesn\'t currently hold any of the firm\'s named thematic calls (Factor Strategy, Metals, Chemicals, Banking &amp; Financial).</div>', { open: false });
+  }
+  const allThemes = buildCallThemeData();
+  const rows = matches.map(m => {
+    const bookWide = allThemes.find(t => t.label === m.theme);
+    const bookPct = bookWide ? bookWide.weightedGlPct : null;
+    const bookN = bookWide ? bookWide.nHolders : null;
+    return `<tr>
+      <td>${m.theme}</td>
+      <td class="small">${m.security}</td>
+      <td class="small">${m.entry || '—'}</td>
+      <td class="num">${fmtCr(m.mvCr)}</td>
+      <td class="num" style="color:${m.glPct>=0?'var(--green)':'var(--red)'};font-weight:600">${fmtPct(m.glPct)}</td>
+      <td class="num small">${fmtPct(bookPct)} across ${bookN} client${bookN===1?'':'s'}</td>
+    </tr>`;
+  }).join('');
+  const body = `<table>
+    <thead><tr><th>Call</th><th>Fund</th><th>Entry</th><th>Current Value</th><th>This Client's Gain/Loss</th><th>Book-wide (for context)</th></tr></thead>
+    <tbody>${rows}</tbody>
+  </table>`;
+  return collapseSection('&#128200; Thematic Calls — How These Have Fared', body, { open: true, sub: `${matches.length} named call${matches.length===1?'':'s'} held` });
 }
 
 function renderCallsView() {
