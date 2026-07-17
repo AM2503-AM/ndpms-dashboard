@@ -19519,7 +19519,7 @@ function renderMainView() {
   document.getElementById('pending-tasks-section').innerHTML = collapseSection(
     '&#128203; Pending Tasks',
     '<div id="pending-tasks-panel"></div>',
-    { open: true, sub: `${_reviewCount} review${_reviewCount===1?'':'s'} pending &middot; ${_actionCount} action${_actionCount===1?'':'s'} pending` }
+    { open: false, sub: `${_reviewCount} review${_reviewCount===1?'':'s'} pending &middot; ${_actionCount} action${_actionCount===1?'':'s'} pending` }
   );
   renderPendingTasksPanel();
   document.getElementById('tabs').innerHTML = STRATEGY_DATA.map(
