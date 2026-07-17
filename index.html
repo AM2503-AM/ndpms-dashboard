@@ -19284,6 +19284,25 @@ function getAllClientsFlat() {
 }
 
 // ============ Main view ============
+// Active vs Passive management split, per user instruction 2026-07-17: "active is the ones
+// which have IPS" — i.e. the clients on the documented No-IPS list (arbitrage/passive-mandate
+// accounts that don't get a full IPS band review) count as Passively Managed; everyone else
+// counts as Actively Managed. Keep this list in sync with the "No IPS clients" list in the
+// ndpms-monthly-update skill (Step 4) — re-verify both together each month.
+const PASSIVE_NDAS = new Set(["AONDCP0011","AONDCP0008","AONDCP0001","NDAS0010","AONDCP0009","NDAS0016","NDAS0017","ANGNR0004","AONDCP0012"]);
+function isPassivelyManaged(ndas) { return PASSIVE_NDAS.has(ndas); }
+function computeManagementSplit(clients) {
+  const mk = () => ({ count:0, aum:0, outCount:0, outAum:0, underCount:0, underAum:0 });
+  const active = mk(), passive = mk();
+  (clients||[]).forEach(c => {
+    const bucket = isPassivelyManaged(c.ndas) ? passive : active;
+    bucket.count++; bucket.aum += (c.aum||0);
+    if (c.outperform) { bucket.outCount++; bucket.outAum += (c.aum||0); }
+    else { bucket.underCount++; bucket.underAum += (c.aum||0); }
+  });
+  return { active, passive };
+}
+
 function renderStrategy(s, i) {
   const aumTotCr = s.total_aum / 1e7;
   const kpis = `
@@ -19298,6 +19317,25 @@ function renderStrategy(s, i) {
     <div class="kpi"><div class="kpi-label">Underperforming (SI)</div>
       <div class="kpi-value" style="color:var(--red)">${s.underperformers}</div>
       <div class="kpi-sub">AUM ${fmtINR(s.aum_underperform)}</div></div>`;
+
+  // Active vs Passive breakdown — active = has a real IPS review, passive = the arbitrage/
+  // passive-mandate no-IPS cohort. Shown separately since blending the two together in one
+  // outperform/underperform number isn't an apples-to-apples comparison (a 100%-arbitrage
+  // "underperformer" vs an equity benchmark isn't underperforming its own mandate).
+  const mgmt = computeManagementSplit(s.clients);
+  const mgmtCard = (label, m, color) => `
+    <div class="kpi" style="border-left:3px solid ${color}">
+      <div class="kpi-label">${label} <span class="small" style="font-weight:400">(${m.count} client${m.count===1?'':'s'})</span></div>
+      <div class="kpi-value" style="font-size:16px">
+        <span style="color:var(--green)">${m.outCount} out</span> &middot; <span style="color:var(--red)">${m.underCount} under</span>
+      </div>
+      <div class="kpi-sub">AUM ${fmtINR(m.aum)} &middot; Out ${fmtINR(m.outAum)} / Under ${fmtINR(m.underAum)}</div>
+    </div>`;
+  const mgmtSplit = (mgmt.active.count && mgmt.passive.count) ? `
+    <div class="kpi-grid" style="margin-top:10px">
+      ${mgmtCard('Actively Managed', mgmt.active, 'var(--primary)')}
+      ${mgmtCard('Passively Managed', mgmt.passive, 'var(--muted)')}
+    </div>` : '';
 
   const periodRows = s.periods.map(p => `
     <tr>
@@ -19336,6 +19374,7 @@ function renderStrategy(s, i) {
     <div class="strategy-section ${i === 0 ? 'active' : ''}" data-idx="${i}">
       <div class="benchmark-line">&#9642; Benchmark &nbsp;|&nbsp; ${s.benchmark}</div>
       <div class="kpi-grid">${kpis}</div>
+      ${mgmtSplit}
       <div class="charts-grid">
         ${s.scheme_alloc ? `
         <div class="chart-card"><h3>Strategy Asset Allocation (% of Portfolio)</h3>
