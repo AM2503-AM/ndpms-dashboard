@@ -19653,6 +19653,7 @@ function attrAggregate(instruments, level) {
 }
 
 
+
 // ── Trade Attribution Section ────────────────────────────────────────────────
 function renderTradeAttributionSection(c) {
   const ndas = c.ndas;
@@ -19662,36 +19663,24 @@ function renderTradeAttributionSection(c) {
       '<div class="trade-attr-empty">No buy/sell trade data available for this client.</div>',
       { open: false });
   }
-
   const allWindows = ['1M','3M','6M','12M','SI'];
-  // Only show windows that have data
   const availW = allWindows.filter(w => cdata[w] && (cdata[w].buys.length || cdata[w].sells.length));
   if (!availW.length) {
     return collapseSection('&#128200; Trade Decisions &amp; Outcomes',
       '<div class="trade-attr-empty">No buy/sell transactions found for this client.</div>',
       { open: false });
   }
-
   const safeId = ndas.replace(/[^A-Za-z0-9]/g,'');
   const defW   = availW.includes('3M') ? '3M' : availW[0];
-
   const toggles = `<div class="trade-attr-toggles" id="ta-tog-${safeId}">
     <span class="attr-label">Window</span>
     ${availW.map(w => `<button class="trade-attr-btn${w===defW?' active':''}" onclick="taSetWindow('${ndas}','${w}')" data-w="${w}">${w}</button>`).join('')}
   </div>`;
-
-  const body = `<div class="trade-attr-wrap">
-    ${toggles}
-    <div id="ta-body-${safeId}"></div>
-  </div>`;
-
-  // Store state and render default window after DOM is ready
+  const body = `<div class="trade-attr-wrap">${toggles}<div id="ta-body-${safeId}"></div></div>`;
   window._taState = window._taState || {};
-  window._taState[ndas] = { win: defW, data: cdata, availW };
-  // Render immediately if DOM is already painted, else defer
+  window._taState[ndas] = { win: defW, data: cdata };
   requestAnimationFrame(() => taRenderWindow(ndas));
-
-  return collapseSection('&#128200; Trade Decisions &amp; Outcomes', body, { open: true, sub: 'TWRR vs Benchmark | Buy & Sell Evaluation' });
+  return collapseSection('&#128200; Trade Decisions &amp; Outcomes', body, { open: true, sub: 'TWRR vs Benchmark · Alpha' });
 }
 
 function taSetWindow(ndas, win) {
@@ -19704,133 +19693,85 @@ function taSetWindow(ndas, win) {
 }
 
 function taRenderWindow(ndas) {
-  const safeId = ndas.replace(/[^A-Za-z0-9]/g,'');
-  const el = document.getElementById('ta-body-' + safeId);
+  const el = document.getElementById('ta-body-' + ndas.replace(/[^A-Za-z0-9]/g,''));
   if (!el) return;
-  const st  = window._taState[ndas];
-  const wd  = st.data[st.win] || { buys: [], sells: [] };
+  const st = window._taState[ndas];
+  const wd = st.data[st.win] || { buys: [], sells: [] };
   el.innerHTML = taBuildHtml(wd);
 }
 
 function taBuildHtml(wd) {
   const buys  = wd.buys  || [];
   const sells = wd.sells || [];
-  let html = '';
+  let out = '';
 
-  // ── Buy table ────────────────────────────────────────────────────────────────
   if (buys.length) {
-    html += `<div class="trade-attr-sub">&#128722; Buy Decisions</div>`;
-    html += `<div style="overflow-x:auto"><table class="trade-attr-tbl">
+    out += `<div class="trade-attr-sub">&#128722; Buys</div>
+    <div style="overflow-x:auto"><table class="trade-attr-tbl">
       <thead><tr>
-        <th>Security</th><th>Tranches</th><th>Qty</th><th>VWAP &#x20B9;</th>
-        <th>CMP &#x20B9;</th><th>TWRR %</th><th>N500 TRI %</th><th>Alpha %</th><th>Verdict</th>
+        <th>Security</th><th>Tranches</th><th>VWAP &#x20B9;</th>
+        <th>TWRR %</th><th>Benchmark TWRR %</th><th>Alpha %</th>
       </tr></thead><tbody>`;
     for (const b of buys) {
-      const twrr  = b.twrr_pct   != null ? b.twrr_pct.toFixed(1)  : '—';
-      const bench = b.bench_twrr_pct != null ? b.bench_twrr_pct.toFixed(1) : '—';
-      const alpha = b.alpha_pct  != null ? b.alpha_pct.toFixed(1) : '—';
-      const cmp   = b.current_price ? b.current_price.toLocaleString('en-IN', {maximumFractionDigits:2}) : '—';
+      const twrr  = b.twrr_pct        != null ? fmt1(b.twrr_pct)        : '—';
+      const bench = b.bench_twrr_pct  != null ? fmt1(b.bench_twrr_pct)  : '—';
+      const alpha = b.alpha_pct       != null ? fmt1(b.alpha_pct)        : '—';
       const vwap  = b.vwap ? b.vwap.toLocaleString('en-IN', {maximumFractionDigits:2}) : '—';
-
-      const twrrCls  = b.twrr_pct  == null ? 'neu-val' : b.twrr_pct  >= 0 ? 'pos-val' : 'neg-val';
-      const alphaCls = b.alpha_pct == null ? 'neu-val' : b.alpha_pct >= 2  ? 'pos-val' : b.alpha_pct <= -2 ? 'neg-val' : 'neu-val';
-      const vBadge = taVerdictBadge(b.verdict);
-
-      let secCell = `<div style="font-weight:500">${taEsc(b.name)}</div>`;
-      if (b.stagger_label && b.n_tranches > 1) {
-        secCell += `<div class="stagger-note">&#x21AA; ${taEsc(b.stagger_label)}</div>`;
-      }
-      if (b.first_buy_date) {
-        secCell += `<div class="stagger-note">First buy: ${b.first_buy_date}</div>`;
-      }
-
-      html += `<tr>
-        <td>${secCell}</td>
-        <td>${b.n_tranches}</td>
-        <td>${b.total_qty.toLocaleString('en-IN', {maximumFractionDigits:2})}</td>
+      const aCls  = b.alpha_pct == null ? '' : b.alpha_pct >= 0 ? 'pos-val' : 'neg-val';
+      const tCls  = b.twrr_pct  == null ? '' : b.twrr_pct  >= 0 ? 'pos-val' : 'neg-val';
+      let sub = b.first_buy_date ? `<div class="stagger-note">First buy: ${b.first_buy_date}</div>` : '';
+      if (b.n_tranches > 1 && b.stagger_label) sub += `<div class="stagger-note">&#x21AA; ${taEsc(b.stagger_label)}</div>`;
+      out += `<tr>
+        <td><div style="font-weight:500">${taEsc(b.name)}</div>${sub}</td>
+        <td style="text-align:center">${b.n_tranches}</td>
         <td>${vwap}</td>
-        <td>${cmp}</td>
-        <td class="${twrrCls}">${twrr}</td>
+        <td class="${tCls}">${twrr}</td>
         <td>${bench}</td>
-        <td class="${alphaCls}">${alpha}</td>
-        <td>${vBadge}</td>
+        <td class="${aCls}" style="font-weight:600">${alpha}</td>
       </tr>`;
     }
-    html += '</tbody></table></div>';
+    out += '</tbody></table></div>';
   }
 
-  // ── Sell table ────────────────────────────────────────────────────────────────
   if (sells.length) {
-    html += `<div class="trade-attr-sub" style="margin-top:18px">&#128083; Exits / Sells</div>`;
-    html += `<div style="overflow-x:auto"><table class="trade-attr-tbl">
+    out += `<div class="trade-attr-sub" style="margin-top:18px">&#128083; Sells</div>
+    <div style="overflow-x:auto"><table class="trade-attr-tbl">
       <thead><tr>
-        <th>Security</th><th>Qty</th><th>Avg Buy &#x20B9;</th><th>Sell Price &#x20B9;</th>
-        <th>Holding Return %</th><th>Bench (hold) %</th><th>Alpha %</th><th>Post-Sell Move %</th><th>Verdict</th>
+        <th>Security</th><th>Avg Buy &#x20B9;</th><th>Avg Sell &#x20B9;</th>
+        <th>Holding Return %</th><th>Benchmark Return %</th><th>Alpha %</th>
       </tr></thead><tbody>`;
     for (const s of sells) {
-      const hret  = s.hold_return_pct  != null ? s.hold_return_pct.toFixed(1)  : '—';
-      const bench = s.bench_hold_pct   != null ? s.bench_hold_pct.toFixed(1)   : '—';
-      const alpha = s.hold_alpha_pct   != null ? s.hold_alpha_pct.toFixed(1)   : '—';
-      const post  = s.post_sell_return_pct != null ? s.post_sell_return_pct.toFixed(1) : '—';
-      const abuy  = s.avg_buy_price  ? s.avg_buy_price.toLocaleString('en-IN', {maximumFractionDigits:2})  : '—';
+      const hret  = s.hold_return_pct != null ? fmt1(s.hold_return_pct)  : '—';
+      const bench = s.bench_hold_pct  != null ? fmt1(s.bench_hold_pct)   : '—';
+      const alpha = s.hold_alpha_pct  != null ? fmt1(s.hold_alpha_pct)   : '—';
+      const abuy  = s.avg_buy_price  ? s.avg_buy_price.toLocaleString('en-IN',  {maximumFractionDigits:2}) : '—';
       const asell = s.avg_sell_price ? s.avg_sell_price.toLocaleString('en-IN', {maximumFractionDigits:2}) : '—';
-
-      const hCls  = s.hold_return_pct == null ? 'neu-val' : s.hold_return_pct >= 0 ? 'pos-val' : 'neg-val';
-      const aCls  = s.hold_alpha_pct  == null ? 'neu-val' : s.hold_alpha_pct  >= 2 ? 'pos-val' : s.hold_alpha_pct <= -2 ? 'neg-val' : 'neu-val';
-      const pCls  = s.post_sell_return_pct == null ? 'neu-val' : s.post_sell_return_pct > 10 ? 'neg-val' : s.post_sell_return_pct < -5 ? 'pos-val' : 'neu-val';
-      const vBadge = taSellVerdictBadge(s.sell_verdict);
-
-      let secCell = `<div style="font-weight:500">${taEsc(s.name)}</div>`;
-      if (s.first_sell_date) secCell += `<div class="stagger-note">Sold: ${s.first_sell_date}</div>`;
-
-      html += `<tr>
-        <td>${secCell}</td>
-        <td>${s.qty.toLocaleString('en-IN', {maximumFractionDigits:2})}</td>
+      const hCls  = s.hold_return_pct == null ? '' : s.hold_return_pct >= 0 ? 'pos-val' : 'neg-val';
+      const aCls  = s.hold_alpha_pct  == null ? '' : s.hold_alpha_pct  >= 0 ? 'pos-val' : 'neg-val';
+      let sub = s.first_sell_date ? `<div class="stagger-note">Sold: ${s.first_sell_date}</div>` : '';
+      out += `<tr>
+        <td><div style="font-weight:500">${taEsc(s.name)}</div>${sub}</td>
         <td>${abuy}</td>
         <td>${asell}</td>
         <td class="${hCls}">${hret}</td>
         <td>${bench}</td>
-        <td class="${aCls}">${alpha}</td>
-        <td class="${pCls}">${post}</td>
-        <td>${vBadge}</td>
+        <td class="${aCls}" style="font-weight:600">${alpha}</td>
       </tr>`;
     }
-    html += '</tbody></table></div>';
+    out += '</tbody></table></div>';
   }
 
   if (!buys.length && !sells.length) {
-    html = '<div class="trade-attr-empty">No buy/sell transactions in this window.</div>';
+    out = '<div class="trade-attr-empty">No buy/sell transactions in this window.</div>';
   }
 
-  html += `<div class="small" style="text-align:center;margin-top:10px;color:var(--text-muted)">
-    TWRR computed per security using actual transaction prices; benchmark is Nifty 500 TRI from first buy date.
-    Post-Sell Move % = security price change since exit date (green = price fell after selling → good exit; red = price rose → early exit).
+  out += `<div class="small" style="text-align:center;margin-top:10px;color:var(--text-muted)">
+    TWRR anchored to first buy date per security · Benchmark: Nifty 500 TRI · Alpha = TWRR − Benchmark TWRR
   </div>`;
-  return html;
+  return out;
 }
 
-function taVerdictBadge(v) {
-  const map = {
-    'Good Call':         ['verdict-badge verdict-good',   'Good Call'],
-    'In Line':           ['verdict-badge verdict-inline',  'In Line'],
-    'Lagging':           ['verdict-badge verdict-lag',     'Lagging'],
-    'Review':            ['verdict-badge verdict-review',  'Review'],
-    'Exited':            ['verdict-badge verdict-closed',  'Exited'],
-    'Insufficient data': ['verdict-badge verdict-closed',  'Insuf. Data'],
-  };
-  const [cls, label] = map[v] || ['verdict-badge verdict-closed', v];
-  return `<span class="${cls}">${label}</span>`;
-}
-function taSellVerdictBadge(v) {
-  const map = {
-    'Good Exit':   ['verdict-badge verdict-exit-good',    '&#10003; Good Exit'],
-    'Early Exit':  ['verdict-badge verdict-exit-early',   '&#9888; Early Exit'],
-    'Neutral':     ['verdict-badge verdict-exit-neutral', 'Neutral'],
-    'Closed':      ['verdict-badge verdict-closed',       'Closed'],
-  };
-  const [cls, label] = map[v] || ['verdict-badge verdict-closed', v];
-  return `<span class="${cls}">${label}</span>`;
-}
+function fmt1(v) { return (v >= 0 ? '+' : '') + v.toFixed(1); }
 function taEsc(s) {
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
