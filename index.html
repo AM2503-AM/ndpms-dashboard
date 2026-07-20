@@ -97,12 +97,12 @@
 /* ── Trade Attribution ──────────────────────────────────── */
 .trade-attr-wrap { margin-top:4px; }
 .trade-attr-toggles { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px; align-items:center; }
-.trade-attr-toggles .attr-label { font-size:11px; font-weight:600; color:var(--text-muted); text-transform:uppercase; }
+.trade-attr-toggles .attr-label { font-size:11px; font-weight:600; color:var(--muted); text-transform:uppercase; }
 .trade-attr-btn { padding:4px 12px; border:1px solid var(--border); border-radius:14px; background:transparent; color:var(--text); font-size:12px; cursor:pointer; transition:all .15s; }
 .trade-attr-btn.active { background:var(--accent); color:#fff; border-color:var(--accent); }
 .trade-attr-sub { font-size:12px; font-weight:600; color:var(--text); margin:14px 0 6px; text-transform:uppercase; letter-spacing:.04em; }
 .trade-attr-tbl { width:100%; border-collapse:collapse; font-size:12px; }
-.trade-attr-tbl th { font-size:11px; color:var(--text-muted); font-weight:600; text-transform:uppercase; letter-spacing:.04em; padding:6px 8px; border-bottom:1px solid var(--border); text-align:right; white-space:nowrap; }
+.trade-attr-tbl th { font-size:11px; color:var(--muted); font-weight:600; text-transform:uppercase; letter-spacing:.04em; padding:6px 8px; border-bottom:1px solid var(--border); text-align:right; white-space:nowrap; }
 .trade-attr-tbl th:first-child { text-align:left; }
 .trade-attr-tbl td { padding:6px 8px; border-bottom:1px solid color-mix(in srgb,var(--border) 50%,transparent); text-align:right; white-space:nowrap; }
 .trade-attr-tbl td:first-child { text-align:left; max-width:220px; overflow:hidden; text-overflow:ellipsis; }
@@ -112,15 +112,15 @@
 .verdict-inline { background:rgba(234,179,8,.15);  color:#a16207; }
 .verdict-lag    { background:rgba(249,115,22,.15); color:#c2410c; }
 .verdict-review { background:rgba(239,68,68,.15);  color:#dc2626; }
-.verdict-closed { background:rgba(148,163,184,.15);color:var(--text-muted); }
+.verdict-closed { background:rgba(148,163,184,.15);color:var(--muted); }
 .verdict-exit-good   { background:rgba(34,197,94,.15);  color:#16a34a; }
 .verdict-exit-early  { background:rgba(239,68,68,.15);  color:#dc2626; }
-.verdict-exit-neutral{ background:rgba(148,163,184,.15);color:var(--text-muted); }
-.stagger-note { font-size:10px; color:var(--text-muted); margin-top:1px; }
-.trade-attr-empty { color:var(--text-muted); font-size:13px; padding:16px 0; text-align:center; }
+.verdict-exit-neutral{ background:rgba(148,163,184,.15);color:var(--muted); }
+.stagger-note { font-size:10px; color:var(--muted); margin-top:1px; }
+.trade-attr-empty { color:var(--muted); font-size:13px; padding:16px 0; text-align:center; }
 .pos-val  { color:#16a34a; }
 .neg-val  { color:#dc2626; }
-.neu-val  { color:var(--text-muted); }
+.neu-val  { color:var(--muted); }
 </style>
 </head>
 <body>
@@ -19291,6 +19291,34 @@ function getAllClientsFlat() {
 // ndpms-monthly-update skill (Step 4) — re-verify both together each month.
 const PASSIVE_NDAS = new Set(["AONDCP0011","AONDCP0008","AONDCP0001","NDAS0010","AONDCP0009","NDAS0016","NDAS0017","ANGNR0004","AONDCP0012"]);
 function isPassivelyManaged(ndas) { return PASSIVE_NDAS.has(ndas); }
+
+// AMC concentration — user asked for two numbers side by side: % of the whole portfolio, and
+// % rebalanced to 100 against the MF/AIF/Bond/SIF-only universe (the number IPS_DATA.top_amc_pct
+// already represents, per the skill's AMC-concentration rule: denominator excludes cash and
+// listed shares). Approximates the AMC's raw market value by matching holdings whose security
+// name starts with the AMC's name (stripped of "MF"/"SIF"/"AMC" suffix) — a reasonable heuristic
+// since fund names are conventionally "{AMC} {scheme}", but not exact (won't catch an AMC's
+// listed-share holdings, and a handful of fund names don't lead with the AMC name) — labelled
+// "approx." in the UI for that reason.
+function amcExposureBothPct(topAmc, fullNameOrNdas) {
+  const m = String(fullNameOrNdas||'').match(/([A-Z]+\d+)\s*$/);
+  const ndas = m ? m[1] : null;
+  if (!ndas) return null;
+  let client = null;
+  STRATEGY_DATA.forEach(s => s.clients.forEach(cl => { if (cl.ndas === ndas) client = cl; }));
+  if (!client || !client.holdings || !client.aum) return null;
+  const prefix = String(topAmc||'').replace(/\s*(MF|SIF|AMC)\.?\s*$/i,'').trim().toLowerCase();
+  if (!prefix) return null;
+  const mv = client.holdings.filter(h => (h.security||'').toLowerCase().startsWith(prefix)).reduce((a,h)=>a+(h.market_value||0),0);
+  if (!mv) return null;
+  return { pctPortfolio: mv / client.aum * 100 };
+}
+function amcConcentrationLabel(topAmc, topAmcPct, fullNameOrNdas) {
+  const both = amcExposureBothPct(topAmc, fullNameOrNdas);
+  return both
+    ? `${both.pctPortfolio.toFixed(1)}% of portfolio (approx.) &middot; ${topAmcPct.toFixed(1)}% of MF/AIF/Bond/SIF book (${topAmc})`
+    : `${topAmcPct.toFixed(1)}% (${topAmc})`;
+}
 function computeManagementSplit(clients) {
   const mk = () => ({ count:0, aum:0, outCount:0, outAum:0, underCount:0, underAum:0 });
   const active = mk(), passive = mk();
@@ -19823,7 +19851,7 @@ function taBuildHtml(wd) {
     out = '<div class="trade-attr-empty">No buy transactions in this window.</div>';
   }
 
-  out += `<div class="small" style="text-align:center;margin-top:10px;color:var(--text-muted)">
+  out += `<div class="small" style="text-align:center;margin-top:10px;color:var(--muted)">
     TWRR anchored to first buy date per security · Benchmark: Nifty 500 TRI · Alpha = TWRR − Benchmark TWRR
   </div>`;
   return out;
@@ -20220,7 +20248,7 @@ function showClient(strategyIdx, clientIdx) {
 
     // ── PORTFOLIO SECTION ──
     rows += SEC('Portfolio Level','#FFF3E0');
-    rows += TR('AMC Concentration (Max)','≤'+tm.amc.max+'%',ic.top_amc_pct.toFixed(1)+'% ('+ic.top_amc+')',chkMx(ic.top_amc_pct,tm.amc.max),false);
+    rows += TR('AMC Concentration (Max)','≤'+tm.amc.max+'%',amcConcentrationLabel(ic.top_amc,ic.top_amc_pct,ic.full_name),chkMx(ic.top_amc_pct,tm.amc.max),false);
     rows += TR('Scheme Concentration (Max)','≤'+tm.scheme.max+'%',ic.top_scheme_pct.toFixed(1)+'% ('+ic.top_scheme.substring(0,45)+')',chkMx(ic.top_scheme_pct,tm.scheme.max),false);
     rows += TR('Commodities (% of Portfolio)',tm.commodity.label,ic.commodity_pct.toFixed(1)+'%',chk(ic.commodity_pct,tm.commodity.min,tm.commodity.max),true);
     var lkStr=ic.locked_pct>0?ic.locked_pct.toFixed(1)+'% ('+ic.locked_names.join(', ').substring(0,80)+')':'0.0%';
@@ -20256,19 +20284,24 @@ function showClient(strategyIdx, clientIdx) {
   const actionsSection = collapseSection('Pending Actions', '<ul class="actions-list" id="actions-list"></ul>', { open:false });
   const holdingsSection = collapseSection(`Holdings (${c.holdings.length} securities)`, holdingsTable, { open:false });
 
+  // Grouped into three top-level dropdowns instead of ~10 flat ones, per user request 2026-07-17
+  // ("performance as a group... summary, attribution, thematic calls, monthly performance") — each
+  // group is just a collapseSection() whose body is the concatenation of its member sections'
+  // already-built HTML, so every member keeps its own independent open/closed state and click
+  // handler; nesting collapse-sections works because each gets a unique id from _collapseSeq.
+  const performanceGroup = collapseSection('&#128200; Performance', perfSection + attributionSection + tradeAttrSection + callsSection + monthlyPerfSection,
+    { open: true, sub: 'Summary, Attribution, Trade Decisions, Thematic Calls, Monthly vs Benchmark' });
+  const portfolioGroup = collapseSection('&#128193; Portfolio', allocSection + topHoldSection + holdingsSection,
+    { open: false, sub: `Asset Allocation, Top Holdings, Full Holdings (${c.holdings.length})` });
+  const policyGroup = collapseSection('&#128203; Policy &amp; Actions', ipsSection + actionsSection,
+    { open: false, sub: 'IPS, Pending Actions' });
+
   document.getElementById('client-content').innerHTML = `
     <div class="info-grid">${infoCards}</div>
     <div class="benchmark-line">&#9642; Benchmark &nbsp;|&nbsp; ${c.benchmark_name || '—'}</div>
-    ${perfSection}
-    ${attributionSection}
-    ${tradeAttrSection}
-    ${callsSection}
-    ${allocSection}
-    ${topHoldSection}
-    ${monthlyPerfSection}
-    ${ipsSection}
-    ${actionsSection}
-    ${holdingsSection}
+    ${performanceGroup}
+    ${portfolioGroup}
+    ${policyGroup}
   `;
   renderActions(c.ndas);
 
@@ -21080,29 +21113,38 @@ function renderClientCallsSection(c) {
     return collapseSection('&#128200; Thematic Calls — How These Have Fared', '<div class="attr-empty">This client doesn\'t currently hold, and has never held, any of the firm\'s named thematic calls (Factor Strategy, Metals, Chemicals, Gold, Silver, Banking &amp; Financial).</div>', { open: false });
   }
   const totalMv = held.reduce((a,h)=>a+h.mvCr,0);
-  const rows = held.map(h => `<tr>
-      <td style="text-align:left;width:18%">${h.theme}</td>
-      <td style="text-align:left;width:27%">${h.security}</td>
-      <td style="width:11%">${'₹'+h.mvCr.toFixed(2)+' Cr'}</td>
-      <td style="width:12%;color:${h.glPct>=0?'var(--green)':'var(--red)'};font-weight:600">${h.glPct>=0?'+':''}${h.glPct.toFixed(2)}%</td>
-      <td style="width:14%" class="small">${h.entry||'—'}</td>
-      <td style="width:18%" class="small">&nbsp;</td>
-    </tr>`).join('');
+  // Notes column = the current Asset X house-view stance for this holding's asset class bucket,
+  // so the table isn't left with a blank column — reuses deck-builder.js's own classifier.
+  const noteFor = security => {
+    const h = holdings.find(x => x.security === security);
+    const bucket = h && typeof classifyAssetX === "function" ? classifyAssetX(h) : null;
+    const view = bucket ? ASSET_X_VIEWS[bucket] : null;
+    return view ? {text: `Asset X: ${view.stance}`, color: STANCE_COLOR[view.stance] || 'var(--muted)'} : {text: '—', color: 'var(--muted)'};
+  };
+  const entryFor = entry => (entry||'—').replace(/^before /, '&le; ');
+  const rows = held.map(h => { const note = noteFor(h.security); return `<tr>
+      <td style="text-align:left">${h.theme}</td>
+      <td style="text-align:left">${h.security}</td>
+      <td>${'₹'+h.mvCr.toFixed(2)+' Cr'}</td>
+      <td style="color:${h.glPct>=0?'var(--green)':'var(--red)'};font-weight:600">${h.glPct>=0?'+':''}${h.glPct.toFixed(2)}%</td>
+      <td class="small" style="white-space:nowrap">${entryFor(h.entry)}</td>
+      <td class="small" style="font-style:italic;color:${note.color}">${note.text}</td>
+    </tr>`; }).join('');
   const totalRow = held.length ? `<tr style="font-weight:700;border-top:2px solid var(--border)">
       <td style="text-align:left" colspan="2">Total (held calls)</td>
       <td>${'₹'+totalMv.toFixed(2)+' Cr'}</td>
       <td colspan="3"></td>
     </tr>` : '';
   const exitedRows = exited.map(x => `<tr>
-      <td style="text-align:left;width:18%">${x.theme}</td>
-      <td style="text-align:left;width:27%">${x.security}</td>
-      <td colspan="2" style="width:23%" class="small">Exited ${x.lastMonthHeld||''}</td>
-      <td style="width:14%;color:${x.totalContribution>=0?'var(--green)':'var(--red)'};font-weight:600">${x.totalContribution>=0?'+':''}${x.totalContribution.toFixed(2)}%</td>
-      <td style="width:18%" class="small">&nbsp;</td>
+      <td style="text-align:left">${x.theme}</td>
+      <td style="text-align:left">${x.security}</td>
+      <td colspan="2" class="small" style="white-space:nowrap">Exited ${x.lastMonthHeld||''}</td>
+      <td style="color:${x.totalContribution>=0?'var(--green)':'var(--red)'};font-weight:600">${x.totalContribution>=0?'+':''}${x.totalContribution.toFixed(2)}%</td>
+      <td class="small" style="font-style:italic;color:var(--muted)">EXITED</td>
     </tr>`).join('');
   const body = `<table style="table-layout:fixed;width:100%">
-    <colgroup><col style="width:18%"><col style="width:27%"><col style="width:11%"><col style="width:12%"><col style="width:14%"><col style="width:18%"></colgroup>
-    <thead><tr><th style="text-align:left">Call</th><th style="text-align:left">Security</th><th>Value</th><th>Gain/Loss</th><th>Entry</th><th>Notes</th></tr></thead>
+    <colgroup><col style="width:15%"><col style="width:26%"><col style="width:11%"><col style="width:12%"><col style="width:13%"><col style="width:23%"></colgroup>
+    <thead><tr><th style="text-align:left">Call</th><th style="text-align:left">Security</th><th>Value</th><th>Gain/Loss</th><th>Entry</th><th style="text-align:left">Notes</th></tr></thead>
     <tbody>${rows}${totalRow}${exitedRows}</tbody>
   </table>`;
   return collapseSection('&#128200; Thematic Calls — How These Have Fared', body, { open: true, sub: `${held.length} named call${held.length===1?'':'s'} held${exited.length?`, ${exited.length} exited`:''}` });
@@ -21468,7 +21510,11 @@ function buildClientDeck(clientRecord){
     const s = pptx.addSlide(); s.background = {color: BRAND.WHITE};
     titleBar(s,"Concentration & Tail Analysis","AMC exposure and the long tail of small positions");
     s.addShape(pptx.ShapeType.roundRect,{x:0.5,y:1.5,w:12.33,h:1.0,fill:{color:BRAND.PANEL},line:{color:BRAND.LINE,width:1},rectRadius:0.06});
-    s.addText(`Top AMC: ${ips.top_amc} — ${pct(ips.top_amc_pct)} (ideal ≤ 25%)`,{x:0.75,y:1.6,w:11.8,h:0.4,fontFace:BRAND.FONTB,bold:true,fontSize:13,color:BRAND.BLUE});
+    const amcBoth = (typeof amcExposureBothPct === "function") ? amcExposureBothPct(ips.top_amc, sc.ndas) : null;
+    const amcLine = amcBoth
+      ? `Top AMC: ${ips.top_amc} — ${amcBoth.pctPortfolio.toFixed(1)}% of portfolio · ${pct(ips.top_amc_pct)} of MF/AIF/Bond/SIF book (ideal ≤ 25%)`
+      : `Top AMC: ${ips.top_amc} — ${pct(ips.top_amc_pct)} (ideal ≤ 25%)`;
+    s.addText(amcLine,{x:0.75,y:1.6,w:11.8,h:0.4,fontFace:BRAND.FONTB,bold:true,fontSize:13,color:BRAND.BLUE});
     s.addText(`Top single scheme: ${ips.top_scheme} — ${pct(ips.top_scheme_pct)} (ideal ≤ 15%)`,{x:0.75,y:2.0,w:11.8,h:0.4,fontFace:BRAND.FONT,fontSize:12,color:BRAND.INK});
     const allHoldings = (sc.holdings||[]).slice().sort((a,b)=>b.assets_pct-a.assets_pct);
     const tail = allHoldings.slice(0,10).reverse();
@@ -21725,17 +21771,27 @@ function buildClientDeck(clientRecord){
     if (!actions.length){
       s.addText("No pending action items or IPS deviations on record.",{x:0.8,y:2.5,w:11,h:0.6,fontFace:BRAND.FONT,fontSize:14,color:BRAND.GREY});
     } else {
+      // Vertically centered, height-adaptive card grid — with only 1-3 actions the old fixed
+      // 1.2in-tall/1.35in-spaced layout left more than half the slide blank below; scaling the
+      // card height up (capped) and centering the whole grid in the available space keeps a
+      // sparse action list from reading as an unfinished slide.
       const cols = actions.length > 4 ? 2 : 1;
       const colW = cols===2 ? 5.95 : 12.33;
-      actions.slice(0,8).forEach((a,i)=>{
+      const shown = actions.slice(0,8);
+      const nRows = Math.ceil(shown.length / cols);
+      const gap = 0.32, availTop = 1.55, availBottom = 6.95;
+      const rowH = Math.min(1.55, Math.max(1.15, ((availBottom-availTop) - (nRows-1)*gap) / nRows));
+      const totalH = nRows*rowH + (nRows-1)*gap;
+      const startY = availTop + Math.max(0, ((availBottom-availTop) - totalH) / 2);
+      shown.forEach((a,i)=>{
         const col = cols===2 ? i%2 : 0, row = cols===2 ? Math.floor(i/2) : i;
         const x = 0.5 + col*(colW+0.38);
-        const y = 1.6 + row*1.35;
-        s.addShape(pptx.ShapeType.roundRect,{x,y,w:colW,h:1.2,fill:{color:BRAND.PANEL},line:{color:BRAND.LINE,width:1},rectRadius:0.06});
+        const y = startY + row*(rowH+gap);
+        s.addShape(pptx.ShapeType.roundRect,{x,y,w:colW,h:rowH,fill:{color:BRAND.PANEL},line:{color:BRAND.LINE,width:1},rectRadius:0.06});
         s.addText(`Action ${i+1}`,{x:x+0.2,y:y+0.1,w:colW-0.4,h:0.3,fontFace:BRAND.FONTB,bold:true,fontSize:12,color:BRAND.BLUE});
         s.addShape(pptx.ShapeType.roundRect,{x:x+colW-1.7,y:y+0.1,w:1.5,h:0.28,fill:{color: a.source==="IPS deviation" ? "FFF2CC" : BRAND.LBLUE},line:{type:"none"},rectRadius:0.14});
         s.addText(a.source,{x:x+colW-1.7,y:y+0.1,w:1.5,h:0.28,fontFace:BRAND.FONT,fontSize:8,bold:true,color: a.source==="IPS deviation" ? "9C6500" : BRAND.WHITE,align:"center",valign:"middle"});
-        s.addText(a.headline,{x:x+0.2,y:y+0.42,w:colW-0.4,h:0.7,fontFace:BRAND.FONT,fontSize:11.5,color:BRAND.INK,valign:"top"});
+        s.addText(a.headline,{x:x+0.2,y:y+0.42,w:colW-0.4,h:rowH-0.5,fontFace:BRAND.FONT,fontSize:11.5,color:BRAND.INK,valign:"top"});
       });
       if (actions.length>8) footer(s, `+${actions.length-8} more action items not shown — see full advisor notes`);
     }
@@ -21896,7 +21952,7 @@ function buildClientIPS(idx){
   s+=TR('Credit Quality',tm.credit,c.debt_pct>10?'Review required':'N/A',null,true);
 
   s+=SEC('Portfolio Level','#FFF3E0');
-  s+=TR('AMC Concentration (Max)','≤'+tm.amc.max+'%',c.top_amc_pct.toFixed(1)+'% ('+c.top_amc+')',Rmx(c.top_amc_pct,tm.amc.max),false);
+  s+=TR('AMC Concentration (Max)','≤'+tm.amc.max+'%',amcConcentrationLabel(c.top_amc,c.top_amc_pct,c.full_name),Rmx(c.top_amc_pct,tm.amc.max),false);
   s+=TR('Scheme Concentration (Max)','≤'+tm.scheme.max+'%',c.top_scheme_pct.toFixed(1)+'% ('+c.top_scheme.substring(0,45)+')',Rmx(c.top_scheme_pct,tm.scheme.max),false);
   s+=TR('Commodities (% of Portfolio)',tm.commodity.label,c.commodity_pct.toFixed(1)+'%',R(c.commodity_pct,tm.commodity.min,tm.commodity.max),true);
   var lk=c.locked_pct>0?c.locked_pct.toFixed(1)+'% ('+c.locked_names.join(', ').substring(0,80)+')':'0.0%';
@@ -21966,30 +22022,30 @@ function augmentClientView() {
   const parkingBody = bars;
   const parkingSub = `Total: &#8377;${tpFmt} (${pp}% of AUM)`;
 
-  const checklistBody = '<div style="background:#f8f9ff;border-radius:8px;padding:16px;color:var(--muted);font-style:italic;text-align:center">' +
-    'Checklist items to be configured — placeholder for 10-point onboarding checklist</div>';
-
   // Avoid double-inserting if augmentClientView somehow fires twice for the same render
   if (content.querySelector('[data-augment="parking"]')) return;
 
   const parkDiv = document.createElement('div');
   parkDiv.setAttribute('data-augment', 'parking');
   parkDiv.innerHTML = collapseSection('Cash &amp; Parking Allocation', parkingBody, { open:false, sub: parkingSub });
-  const checkDiv = document.createElement('div');
-  checkDiv.setAttribute('data-augment', 'checklist');
-  checkDiv.innerHTML = collapseSection('Pre-Onboarding Checklist', checklistBody, { open:false });
 
-  // Insert parking BEFORE the IPS collapsible section (identified by its header text), checklist at the very end
+  // Insert parking as the first item inside the Portfolio group (identified by its header text) —
+  // it's a portfolio-composition detail, so it belongs alongside Asset Allocation/Top Holdings/
+  // Holdings, not floating before the (now-nested) IPS section in the Policy & Actions group.
   const allHeaders = content.querySelectorAll('.collapse-header .collapse-title');
-  let ipsNode = null;
-  allHeaders.forEach(t => { if (t.textContent.includes('Investment Policy')) ipsNode = t.closest('.collapse-section'); });
+  let portfolioNode = null, ipsNode = null;
+  allHeaders.forEach(t => {
+    if (t.textContent.includes('Portfolio') && !portfolioNode) portfolioNode = t.closest('.collapse-section');
+    if (t.textContent.includes('Investment Policy')) ipsNode = t.closest('.collapse-section');
+  });
+  const portfolioBody = portfolioNode ? portfolioNode.querySelector('.collapse-body') : null;
 
-  if (ipsNode) {
+  if (portfolioBody) {
+    portfolioBody.insertBefore(parkDiv, portfolioBody.firstChild);
+  } else if (ipsNode) {
     ipsNode.parentNode.insertBefore(parkDiv, ipsNode);
-    content.appendChild(checkDiv);
   } else {
     content.appendChild(parkDiv);
-    content.appendChild(checkDiv);
   }
 }
 
