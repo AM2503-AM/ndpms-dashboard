@@ -155,7 +155,6 @@
   <a class="refresh-btn" href="#" title="Open a full-page, scrollable view of these results"
     onclick="openBrowseView(document.getElementById('search-cat-filter').value, document.getElementById('global-search-input').value);return false;">&#9974; Browse</a>
   <div id="topbar-actions" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-    <a class="refresh-btn" href="#" onclick="askRefresh();return false;">&#x21bb; &nbsp;Refresh Dashboard</a>
     <a class="refresh-btn" id="ips-btn" href="#" onclick="toggleIPSView();return false;">&#128203; IPS Review</a>
     <a class="refresh-btn" id="checklist-btn" href="#" onclick="toggleChecklistView();return false;">&#9776; Client Checklist</a>
     <a class="refresh-btn" id="calls-btn" href="#" onclick="toggleCallsView();return false;">&#128200; Thematic Calls</a>
@@ -171,9 +170,6 @@
     <div id="content"></div>
     <div class="footer-note">
       <strong>Tip:</strong> Click any client name in the scorecard to drill into their holdings and monthly performance.
-      <br><br>
-      <strong>How to refresh:</strong> drop new Portfolio Appraisal &amp; Performance PDFs into each strategy folder,
-      then click <em>&#x21bb; Refresh Dashboard</em> and submit the auto-filled prompt in Claude.
       <br><br>
       <strong>1M / 3M / 6M windows:</strong> A client is only eligible if they have completed that many FULL calendar
       months &mdash; the inception-month row is partial and excluded.
@@ -615,6 +611,16 @@ const CHART_INSTANCES = {};
 // Replaces an earlier "before <inception>" heuristic that produced false positives 129/211 times —
 // verified against this same ledger 2026-07-21 (see ndpms-monthly-update skill Step 13).
 const TRANSFER_IN_DATA = {"AONDCP0006":{"INE062A01020":{"transferDate":"1998-05-08","transferQty":3100,"mixed":false},"INE040A01034":{"transferDate":"1998-09-22","transferQty":10000,"mixed":false},"INE012A01025":{"transferDate":"1998-10-23","transferQty":460,"mixed":false},"INE079A01024":{"transferDate":"2002-02-01","transferQty":2600,"mixed":false},"INE101A01026":{"transferDate":"2003-01-01","transferQty":1800,"mixed":false},"INE047A01021":{"transferDate":"2004-01-01","transferQty":500,"mixed":false},"INE090A01021":{"transferDate":"2004-02-02","transferQty":1800,"mixed":false},"INE481G01011":{"transferDate":"2004-02-02","transferQty":130,"mixed":false},"INE758E01017":{"transferDate":"2004-05-12","transferQty":2000,"mixed":true},"INE002A01018":{"transferDate":"2004-05-12","transferQty":2500,"mixed":false},"INE267A01025":{"transferDate":"2005-02-02","transferQty":4000,"mixed":false},"INE018A01030":{"transferDate":"2005-05-01","transferQty":1040,"mixed":true},"INE669C01036":{"transferDate":"2006-02-02","transferQty":800,"mixed":false},"INE196A01026":{"transferDate":"2008-07-22","transferQty":1000,"mixed":false},"INE918I01026":{"transferDate":"2008-08-03","transferQty":900,"mixed":false},"INE009A01021":{"transferDate":"2015-06-22","transferQty":500,"mixed":false},"INE102D01028":{"transferDate":"2017-07-05","transferQty":300,"mixed":false},"INE296A01032":{"transferDate":"2020-05-11","transferQty":1300,"mixed":false},"INE262H01021":{"transferDate":"2022-08-12","transferQty":170,"mixed":false},"INE758T01015":{"transferDate":"2024-01-31","transferQty":2500,"mixed":false},"INE138Y01010":{"transferDate":"2024-04-30","transferQty":200,"mixed":false},"INE386C01029":{"transferDate":"2024-05-28","transferQty":200,"mixed":true},"INE457L01029":{"transferDate":"2024-07-22","transferQty":500,"mixed":false},"INE101I01011":{"transferDate":"2024-11-04","transferQty":800,"mixed":false},"INE995S01015":{"transferDate":"2024-11-18","transferQty":1000,"mixed":false},"INF966L01689":{"transferDate":"2024-11-19","transferQty":2173.93,"mixed":false},"INE0W2G01015":{"transferDate":"2024-11-29","transferQty":3000,"mixed":true},"INE918Z01012":{"transferDate":"2024-12-02","transferQty":110,"mixed":true},"INE956G01038":{"transferDate":"2024-12-18","transferQty":150,"mixed":false},"INE115Q01022":{"transferDate":"2025-01-29","transferQty":150,"mixed":true},"INE01QM01018":{"transferDate":"2025-02-14","transferQty":300,"mixed":false},"INE155A01022":{"transferDate":"2025-02-24","transferQty":400,"mixed":false},"INE1TAE01010":{"transferDate":"2025-02-24","transferQty":300,"mixed":false},"INE736A01011":{"transferDate":"2025-03-18","transferQty":150,"mixed":false},"INE361B01024":{"transferDate":"2025-04-21","transferQty":30,"mixed":true},"INE591G01025":{"transferDate":"2025-07-30","transferQty":100,"mixed":false},"INE245A01021":{"transferDate":"2025-08-20","transferQty":400,"mixed":false},"INE437A01024":{"transferDate":"2025-09-12","transferQty":15,"mixed":false},"INE04I401011":{"transferDate":"2025-09-19","transferQty":100,"mixed":true},"INE301O01023":{"transferDate":"2025-11-17","transferQty":150,"mixed":false},"INF754K01ML4":{"transferDate":"2025-11-18","transferQty":16983.65,"mixed":false},"INE346A01027":{"transferDate":"2025-12-18","transferQty":50,"mixed":false}},"AONDCP0004":{"INE362A01016":{"transferDate":"2002-02-04","transferQty":15,"mixed":false},"INE062A01020":{"transferDate":"2002-03-20","transferQty":5460,"mixed":false},"INE238A01034":{"transferDate":"2002-03-20","transferQty":1000,"mixed":false},"INE323A01026":{"transferDate":"2002-03-20","transferQty":59,"mixed":false},"INE009A01021":{"transferDate":"2002-03-20","transferQty":3728,"mixed":false},"INE203G01027":{"transferDate":"2005-08-31","transferQty":5000,"mixed":false},"INE114A01011":{"transferDate":"2005-10-11","transferQty":100,"mixed":false},"INE002A01018":{"transferDate":"2006-01-18","transferQty":3708,"mixed":false},"INE758E01017":{"transferDate":"2006-01-18","transferQty":1734,"mixed":true},"INE379A01028":{"transferDate":"2006-03-07","transferQty":30,"mixed":false},"INE018A01030":{"transferDate":"2006-09-29","transferQty":244,"mixed":true},"INE813H01021":{"transferDate":"2007-07-03","transferQty":250,"mixed":false},"INE764D01017":{"transferDate":"2007-08-28","transferQty":1000,"mixed":false},"INE752E01010":{"transferDate":"2007-12-01","transferQty":354,"mixed":true},"INE242A01010":{"transferDate":"2010-10-07","transferQty":300,"mixed":false},"INE245A01021":{"transferDate":"2011-09-27","transferQty":9328,"mixed":false},"INE092T01019":{"transferDate":"2013-02-05","transferQty":51,"mixed":false},"INE059A01026":{"transferDate":"2014-07-25","transferQty":35,"mixed":false},"INE126A01031":{"transferDate":"2014-12-17","transferQty":500,"mixed":false},"INE066A01021":{"transferDate":"2014-12-17","transferQty":100,"mixed":false},"INE146L01010":{"transferDate":"2014-12-17","transferQty":750,"mixed":false},"INE849A01020":{"transferDate":"2014-12-17","transferQty":430,"mixed":false},"INE094A01015":{"transferDate":"2016-09-14","transferQty":2625,"mixed":false},"INE670A01012":{"transferDate":"2017-09-18","transferQty":100,"mixed":false},"INE692A01016":{"transferDate":"2018-03-31","transferQty":100,"mixed":false},"INE129A01019":{"transferDate":"2019-07-09","transferQty":2250,"mixed":false},"INE473A01011":{"transferDate":"2021-10-28","transferQty":150,"mixed":false},"INE397D01024":{"transferDate":"2021-10-29","transferQty":200,"mixed":false},"INE522F01014":{"transferDate":"2023-05-19","transferQty":199,"mixed":true},"INE600K01018":{"transferDate":"2023-05-19","transferQty":200,"mixed":false},"INE349Y01013":{"transferDate":"2023-08-01","transferQty":300,"mixed":false},"INE351F01018":{"transferDate":"2023-11-28","transferQty":100,"mixed":false},"INE040A01034":{"transferDate":"2025-08-29","transferQty":455,"mixed":false},"INE944F01028":{"transferDate":"2025-08-29","transferQty":105,"mixed":false},"INE669C01036":{"transferDate":"2025-08-29","transferQty":165,"mixed":false},"INE066F01020":{"transferDate":"2025-08-29","transferQty":37,"mixed":false},"INE138Y01010":{"transferDate":"2025-08-29","transferQty":189,"mixed":false},"INE576I01022":{"transferDate":"2025-08-29","transferQty":266,"mixed":false},"INE646L01027":{"transferDate":"2025-08-29","transferQty":29,"mixed":false},"INE476A01022":{"transferDate":"2025-08-29","transferQty":1609,"mixed":false},"INE935A01035":{"transferDate":"2025-09-03","transferQty":40,"mixed":false},"INE196A01026":{"transferDate":"2025-09-05","transferQty":381,"mixed":false},"INE377Y01014":{"transferDate":"2025-09-05","transferQty":203,"mixed":false},"INE01EA01019":{"transferDate":"2025-09-05","transferQty":2141,"mixed":false},"INE00R701025":{"transferDate":"2025-09-05","transferQty":126,"mixed":false},"INE220G01021":{"transferDate":"2025-09-05","transferQty":441,"mixed":false},"INE027H01010":{"transferDate":"2025-09-05","transferQty":238,"mixed":false},"INE406M01024":{"transferDate":"2025-09-05","transferQty":161,"mixed":false},"INE262H01021":{"transferDate":"2025-09-05","transferQty":47,"mixed":false},"INE101A01026":{"transferDate":"2025-09-19","transferQty":32,"mixed":true},"INE121A01024":{"transferDate":"2025-09-19","transferQty":67,"mixed":false}},"NDAS0014":{"INE259A01022":{"transferDate":"2015-09-15","transferQty":94,"mixed":false},"INE238A01034":{"transferDate":"2019-08-09","transferQty":10,"mixed":true},"INE528G01035":{"transferDate":"2019-10-09","transferQty":188,"mixed":false},"INE047A01021":{"transferDate":"2019-10-10","transferQty":52,"mixed":false},"INE196A01026":{"transferDate":"2019-10-10","transferQty":387,"mixed":false},"INE775A01035":{"transferDate":"2019-10-10","transferQty":225,"mixed":true},"INE018A01030":{"transferDate":"2019-10-15","transferQty":87,"mixed":true},"INE127D01025":{"transferDate":"2019-10-15","transferQty":20,"mixed":false},"INE242A01010":{"transferDate":"2019-10-16","transferQty":750,"mixed":false},"INE171A01029":{"transferDate":"2019-10-18","transferQty":200,"mixed":true},"INE765G01017":{"transferDate":"2019-10-22","transferQty":20,"mixed":true},"INE154A01025":{"transferDate":"2019-10-28","transferQty":743,"mixed":true},"INE192R01011":{"transferDate":"2019-10-30","transferQty":40,"mixed":false},"INE044A01036":{"transferDate":"2019-11-11","transferQty":303,"mixed":false},"INE090A01021":{"transferDate":"2019-11-21","transferQty":350,"mixed":true},"INE545U01014":{"transferDate":"2019-12-06","transferQty":160,"mixed":true},"INE280A01028":{"transferDate":"2020-01-15","transferQty":107,"mixed":false},"INE397D01024":{"transferDate":"2020-02-04","transferQty":367,"mixed":false},"INE041025011":{"transferDate":"2020-02-07","transferQty":200,"mixed":false},"INE335Y01020":{"transferDate":"2020-02-13","transferQty":100,"mixed":false},"INE405E01023":{"transferDate":"2020-03-02","transferQty":100,"mixed":false},"INE685A01028":{"transferDate":"2020-03-09","transferQty":114,"mixed":false},"INE018E01016":{"transferDate":"2020-03-12","transferQty":6,"mixed":false},"INE062A01020":{"transferDate":"2020-03-18","transferQty":568,"mixed":true},"INE481G01011":{"transferDate":"2020-04-17","transferQty":11,"mixed":false},"INE002A01018":{"transferDate":"2020-04-24","transferQty":218,"mixed":true},"INE101A01026":{"transferDate":"2020-05-08","transferQty":322,"mixed":false},"INE203G01027":{"transferDate":"2020-05-12","transferQty":150,"mixed":false},"INE040A01034":{"transferDate":"2020-06-05","transferQty":614,"mixed":false},"INE733E01010":{"transferDate":"2020-06-16","transferQty":59,"mixed":true},"INE797F01020":{"transferDate":"2020-06-18","transferQty":200,"mixed":false},"INE129A01019":{"transferDate":"2020-06-30","transferQty":753,"mixed":false},"INE050E01027":{"transferDate":"2020-07-01","transferQty":40,"mixed":false},"INE134E01011":{"transferDate":"2020-07-07","transferQty":500,"mixed":true},"INE752E01010":{"transferDate":"2020-07-13","transferQty":410,"mixed":true},"INE376G01013":{"transferDate":"2020-07-14","transferQty":50,"mixed":true},"INE726G01019":{"transferDate":"2020-07-16","transferQty":297,"mixed":false},"INE172A01027":{"transferDate":"2020-08-24","transferQty":200,"mixed":false},"INE123W01016":{"transferDate":"2020-08-26","transferQty":50,"mixed":false},"INE672A01026":{"transferDate":"2020-08-26","transferQty":250,"mixed":false},"INE115A01026":{"transferDate":"2020-08-28","transferQty":50,"mixed":false},"INE410B01037":{"transferDate":"2020-09-23","transferQty":10,"mixed":false},"INE048G01026":{"transferDate":"2020-09-25","transferQty":10,"mixed":false},"INE669E01016":{"transferDate":"2020-09-28","transferQty":1000,"mixed":false},"INE162A01010":{"transferDate":"2020-10-06","transferQty":100,"mixed":false},"INE031A01017":{"transferDate":"2020-10-07","transferQty":500,"mixed":false},"INE918I01026":{"transferDate":"2020-10-19","transferQty":200,"mixed":false},"INE029A01011":{"transferDate":"2020-10-23","transferQty":300,"mixed":false},"INE274J01014":{"transferDate":"2020-11-02","transferQty":450,"mixed":false},"INE503A01015":{"transferDate":"2020-11-09","transferQty":100,"mixed":false},"INE302A01020":{"transferDate":"2020-11-11","transferQty":100,"mixed":false},"INE030A01027":{"transferDate":"2020-11-12","transferQty":25,"mixed":false},"INE584A01023":{"transferDate":"2020-11-12","transferQty":900,"mixed":false},"INE320J01015":{"transferDate":"2020-11-20","transferQty":200,"mixed":false},"INE009A01021":{"transferDate":"2021-02-22","transferQty":177,"mixed":false},"INE066P01011":{"transferDate":"2021-04-20","transferQty":632,"mixed":false},"INE0FS801015":{"transferDate":"2022-01-21","transferQty":210,"mixed":false},"INE0NNS01018":{"transferDate":"2022-12-01","transferQty":200,"mixed":false},"INE160A01022":{"transferDate":"2023-11-08","transferQty":200,"mixed":false},"INE758E01017":{"transferDate":"2024-03-12","transferQty":109,"mixed":true},"INE410P01011":{"transferDate":"2024-08-13","transferQty":25,"mixed":true},"INE545A01024":{"transferDate":"2024-08-16","transferQty":125,"mixed":false},"INE338I01027":{"transferDate":"2024-08-27","transferQty":50,"mixed":false},"INE377Y01014":{"transferDate":"2024-09-13","transferQty":214,"mixed":false},"INE251B01027":{"transferDate":"2024-10-01","transferQty":30,"mixed":false},"INE848E01016":{"transferDate":"2024-10-24","transferQty":300,"mixed":false},"INE477A01020":{"transferDate":"2024-10-24","transferQty":50,"mixed":false},"INE377N01017":{"transferDate":"2024-10-25","transferQty":9,"mixed":true},"INE119A01028":{"transferDate":"2024-11-01","transferQty":60,"mixed":false},"INE539A01019":{"transferDate":"2024-11-01","transferQty":30,"mixed":false},"INE146L01010":{"transferDate":"2024-11-14","transferQty":20,"mixed":false},"INF457M01133":{"transferDate":"2024-12-24","transferQty":100,"mixed":false},"INE379A01028":{"transferDate":"2025-01-13","transferQty":74,"mixed":false},"INE918Z01012":{"transferDate":"2025-02-05","transferQty":5,"mixed":false},"INE262H01021":{"transferDate":"2025-02-06","transferQty":10,"mixed":true},"INE878B01027":{"transferDate":"2025-02-06","transferQty":10,"mixed":true},"INE271C01023":{"transferDate":"2025-03-25","transferQty":50,"mixed":false},"INF109KC17V7":{"transferDate":"2025-06-03","transferQty":890,"mixed":false},"INF109KC11V0":{"transferDate":"2025-06-03","transferQty":1700,"mixed":false},"INE202E01016":{"transferDate":"2025-06-09","transferQty":4500,"mixed":false},"INE171Z01026":{"transferDate":"2025-06-23","transferQty":50,"mixed":false},"INE066F01020":{"transferDate":"2025-06-23","transferQty":481,"mixed":false},"INE756I01012":{"transferDate":"2025-07-01","transferQty":20,"mixed":false},"INE296A01032":{"transferDate":"2025-07-25","transferQty":1200,"mixed":false},"INE094A01015":{"transferDate":"2025-07-28","transferQty":1500,"mixed":false},"INE121E01018":{"transferDate":"2025-08-05","transferQty":150,"mixed":true},"INE347G01014":{"transferDate":"2025-08-19","transferQty":100,"mixed":true},"INE07Y701011":{"transferDate":"2025-09-02","transferQty":5,"mixed":false},"INE382Z01011":{"transferDate":"2025-09-25","transferQty":300,"mixed":false},"INE2KCE01013":{"transferDate":"2025-12-23","transferQty":25,"mixed":false},"INE213A01029":{"transferDate":"2026-01-19","transferQty":150,"mixed":false},"INF732E01037":{"transferDate":"2026-04-20","transferQty":1.16,"mixed":false}},"AONDCP0007":{"INF179K01YV8":{"transferDate":"2019-05-02","transferQty":78128.17,"mixed":false},"INF174K01LS2":{"transferDate":"2019-05-29","transferQty":733419.07,"mixed":false},"INF109K01Z48":{"transferDate":"2021-07-05","transferQty":47711.11,"mixed":false}},"NDAS0001":{"INF200K01QU0":{"transferDate":"2024-06-21","transferQty":284902.33,"mixed":false},"INF174K01LC6":{"transferDate":"2024-06-21","transferQty":1779258.84,"mixed":false},"P8178":{"transferDate":"2024-06-21","transferQty":5864921.29,"mixed":false},"INF789FB1RG6":{"transferDate":"2024-07-21","transferQty":630218.3,"mixed":false},"INF194KB1DV7":{"transferDate":"2024-09-30","transferQty":1236079.73,"mixed":false},"INF247L01502":{"transferDate":"2024-09-30","transferQty":199004.39,"mixed":true},"INF879O01027":{"transferDate":"2024-09-30","transferQty":153201.66,"mixed":true},"INF769K01JP9":{"transferDate":"2024-10-03","transferQty":181713,"mixed":true},"INF769K01KG6":{"transferDate":"2024-10-03","transferQty":56998,"mixed":true},"INF090I01JR0":{"transferDate":"2024-10-09","transferQty":492160.93,"mixed":false},"INF789F1AYK6":{"transferDate":"2024-10-21","transferQty":13500,"mixed":false},"INF174K01KE4":{"transferDate":"2025-08-20","transferQty":90662.14,"mixed":false},"INF179K01UT0":{"transferDate":"2025-08-20","transferQty":6516.31,"mixed":true},"INF789F1AUT5":{"transferDate":"2025-08-20","transferQty":809049.19,"mixed":false},"INF247L01718":{"transferDate":"2025-08-20","transferQty":56646.3,"mixed":false},"120F9D1":{"transferDate":"2025-08-20","transferQty":694635.34,"mixed":true},"INF843K01AU1":{"transferDate":"2025-08-20","transferQty":242465.02,"mixed":false},"INF843K01KC8":{"transferDate":"2025-08-20","transferQty":834784.16,"mixed":false},"INF769K01IX5":{"transferDate":"2025-08-20","transferQty":793021.48,"mixed":false}},"AONDLV0004":{"INF194KB1DV7":{"transferDate":"2024-07-16","transferQty":814919.75,"mixed":false},"INF109KC1LJ8":{"transferDate":"2024-07-16","transferQty":237081.66,"mixed":false},"HCORGT":{"transferDate":"2024-07-16","transferQty":52143.26,"mixed":false}},"AONDLV0009":{"HCORGT":{"transferDate":"2024-07-18","transferQty":52100.61,"mixed":false},"INF204K01XI3":{"transferDate":"2024-07-18","transferQty":72505.34,"mixed":false}},"ANGNR0004":{"INF754K01EA4":{"transferDate":"2025-07-31","transferQty":1924880.98,"mixed":false},"INF740KA1DN4":{"transferDate":"2025-07-31","transferQty":4472960.73,"mixed":false}},"AONDCP0008":{"INF174K01LS2":{"transferDate":"2026-04-10","transferQty":67125.26,"mixed":false}},"AONDCP0009":{"INF209K01XX1":{"transferDate":"2026-04-17","transferQty":14496.09,"mixed":false},"INF754K01EA4":{"transferDate":"2026-04-22","transferQty":9125588.08,"mixed":false},"INF194KB1DV7":{"transferDate":"2026-05-14","transferQty":970561.4,"mixed":false},"INF109KC1R14":{"transferDate":"2026-05-19","transferQty":1537596.11,"mixed":false}}};
+
+// Real per-fund XIRR (money-weighted return), computed from NDPMS Transactions.xlsx's dated
+// BY-/BYX/NF-/SL+/DI0/DI1 cash flows per (client, ISIN) plus current market value as the terminal
+// flow, via bisection on the XIRR equation. Keyed ndas -> isin -> {xirrPct, daysHeld, tooShort}.
+// Positions with ANY transfer-in (OPI) transaction are excluded entirely (no valuation exists at
+// the transfer date to build a valid cash flow from) — see TRANSFER_IN_DATA for those. `tooShort`
+// (daysHeld < 180) flags positions where annualizing is statistically noisy/misleading (a recent
+// large purchase up modestly can annualize to 300%+ even though nothing unusual happened) — the
+// UI should show "—" rather than the raw number for tooShort entries, not hide the flag itself.
+const FUND_XIRR_DATA = {"NDAS0002":{"INF247L01CW5":{"xirrPct":215.18,"daysHeld":450,"tooShort":false},"INF109KC1RH9":{"xirrPct":132.27,"daysHeld":440,"tooShort":false},"HCORGT":{"xirrPct":133.18,"daysHeld":433,"tooShort":false},"INF204K01XI3":{"xirrPct":118.07,"daysHeld":415,"tooShort":false},"INF0R8F01034":{"xirrPct":5.2,"daysHeld":75,"tooShort":true}},"NDAS0008":{"INF789F1AUT5":{"xirrPct":116.7,"daysHeld":349,"tooShort":false},"INF194KB1DV7":{"xirrPct":110.05,"daysHeld":349,"tooShort":false},"INF204KB12Z0":{"xirrPct":212.06,"daysHeld":191,"tooShort":false},"INF109KC1NT3":{"xirrPct":334.69,"daysHeld":154,"tooShort":true},"INF204KC1402":{"xirrPct":340.65,"daysHeld":154,"tooShort":true},"INF109KC19W1":{"xirrPct":469.71,"daysHeld":154,"tooShort":true},"INF174K01LC6":{"xirrPct":453.16,"daysHeld":153,"tooShort":true}},"AONDCP0001":{"INF200KA1FS1":{"xirrPct":-8.23,"daysHeld":253,"tooShort":false},"INF03VN01761":{"xirrPct":10.41,"daysHeld":253,"tooShort":false},"INF194KB1AL4":{"xirrPct":15.01,"daysHeld":231,"tooShort":false},"INF740KA1TE9":{"xirrPct":22.57,"daysHeld":121,"tooShort":true}},"NDAS0001":{"INF247L01445":{"xirrPct":210.65,"daysHeld":229,"tooShort":false},"INF846K01Y39":{"xirrPct":301.05,"daysHeld":229,"tooShort":false},"INF760K01KI1":{"xirrPct":268.89,"daysHeld":226,"tooShort":false},"INF204KB1V68":{"xirrPct":579.53,"daysHeld":162,"tooShort":true},"INF109KC19W1":{"xirrPct":402.35,"daysHeld":162,"tooShort":true},"INF769K01FA9":{"xirrPct":645.97,"daysHeld":161,"tooShort":true},"INF204KB12Z0":{"xirrPct":279.51,"daysHeld":161,"tooShort":true},"INF109KC1NT3":{"xirrPct":451.58,"daysHeld":128,"tooShort":true}},"AONDLV0001":{"INF174KA1LV5":{"xirrPct":4.4,"daysHeld":208,"tooShort":false},"INF109KC19W1":{"xirrPct":30.49,"daysHeld":208,"tooShort":false},"INF194KB1DV7":{"xirrPct":-4.46,"daysHeld":205,"tooShort":false},"INF200K30049":{"xirrPct":5.33,"daysHeld":205,"tooShort":false},"INF760K01KI1":{"xirrPct":22.09,"daysHeld":205,"tooShort":false},"INF205K013T3":{"xirrPct":40.04,"daysHeld":205,"tooShort":false},"INF204KB12Z0":{"xirrPct":-15.75,"daysHeld":205,"tooShort":false},"INF789F1AUT5":{"xirrPct":-0.09,"daysHeld":205,"tooShort":false},"INF754K30011":{"xirrPct":11.02,"daysHeld":205,"tooShort":false},"INF247L01445":{"xirrPct":11.32,"daysHeld":205,"tooShort":false},"INF740K01QD1":{"xirrPct":38.2,"daysHeld":205,"tooShort":false},"INF174K01LS2":{"xirrPct":0.47,"daysHeld":205,"tooShort":false},"INF200K01RP8":{"xirrPct":5.32,"daysHeld":205,"tooShort":false},"INF109KC1Y98":{"xirrPct":-21.73,"daysHeld":204,"tooShort":false},"INF0RR622217":{"xirrPct":15.76,"daysHeld":190,"tooShort":false},"INF109KC1Y56":{"xirrPct":-14.63,"daysHeld":119,"tooShort":true},"INF204KC1402":{"xirrPct":-9.07,"daysHeld":117,"tooShort":true},"INF247L01BU1":{"xirrPct":5.32,"daysHeld":35,"tooShort":true}},"AONDLV0002":{"INF109KC19W1":{"xirrPct":17.65,"daysHeld":196,"tooShort":false},"INF200K30049":{"xirrPct":4.78,"daysHeld":196,"tooShort":false},"INF200K01RP8":{"xirrPct":6.07,"daysHeld":196,"tooShort":false},"INF754K30011":{"xirrPct":10.65,"daysHeld":196,"tooShort":false},"INF179KC1ET7":{"xirrPct":5.58,"daysHeld":196,"tooShort":false},"INF109KC1Y98":{"xirrPct":-19.74,"daysHeld":196,"tooShort":false},"INF194KB1DV7":{"xirrPct":-7.26,"daysHeld":196,"tooShort":false},"INF760K01KI1":{"xirrPct":18.79,"daysHeld":196,"tooShort":false},"INF205K013T3":{"xirrPct":36.48,"daysHeld":196,"tooShort":false},"INF204KB12Z0":{"xirrPct":-16.68,"daysHeld":196,"tooShort":false},"INF789F1AUT5":{"xirrPct":-1.47,"daysHeld":196,"tooShort":false},"INF740K01QD1":{"xirrPct":36.56,"daysHeld":196,"tooShort":false},"INF174K01LS2":{"xirrPct":-2.45,"daysHeld":196,"tooShort":false},"INF247L01445":{"xirrPct":10.6,"daysHeld":196,"tooShort":false},"INF0RR622217":{"xirrPct":15.85,"daysHeld":189,"tooShort":false},"INF247L01BU1":{"xirrPct":7.88,"daysHeld":35,"tooShort":true}},"NDAS0010":{"INF754K30011":{"xirrPct":308.35,"daysHeld":194,"tooShort":false},"INF0R8F01034":{"xirrPct":667.76,"daysHeld":171,"tooShort":true}},"NDAS0011":{"INE0CCU25019":{"xirrPct":357.28,"daysHeld":161,"tooShort":true},"INE0NHL23019":{"xirrPct":433.02,"daysHeld":161,"tooShort":true},"INF109KC19W1":{"xirrPct":404,"daysHeld":161,"tooShort":true},"INF789F1AUT5":{"xirrPct":340.29,"daysHeld":161,"tooShort":true},"INF205K013T3":{"xirrPct":520.31,"daysHeld":161,"tooShort":true},"INF846K01Y39":{"xirrPct":437.24,"daysHeld":161,"tooShort":true},"INF090I01JR0":{"xirrPct":597.9,"daysHeld":161,"tooShort":true},"INF194KB1DV7":{"xirrPct":338.93,"daysHeld":161,"tooShort":true},"INF200K01RP8":{"xirrPct":288.73,"daysHeld":161,"tooShort":true},"INF109KC1R14":{"xirrPct":385.33,"daysHeld":161,"tooShort":true},"INF204KB12Z0":{"xirrPct":287.57,"daysHeld":161,"tooShort":true},"INF754K30011":{"xirrPct":442.67,"daysHeld":161,"tooShort":true},"INF769K01FA9":{"xirrPct":455.46,"daysHeld":160,"tooShort":true},"INF200KA1507":{"xirrPct":52.73,"daysHeld":8,"tooShort":true}},"NDAS0012":{"INE0CCU25019":{"xirrPct":357.28,"daysHeld":161,"tooShort":true},"INE0NHL23019":{"xirrPct":433.02,"daysHeld":161,"tooShort":true},"INF109KC19W1":{"xirrPct":404,"daysHeld":161,"tooShort":true},"INF109KC1R14":{"xirrPct":385.33,"daysHeld":161,"tooShort":true},"INF204KB12Z0":{"xirrPct":287.57,"daysHeld":161,"tooShort":true},"INF754K30011":{"xirrPct":442.67,"daysHeld":161,"tooShort":true},"INF789F1AUT5":{"xirrPct":340.29,"daysHeld":161,"tooShort":true},"INF205K013T3":{"xirrPct":520.31,"daysHeld":161,"tooShort":true},"INF846K01Y39":{"xirrPct":437.24,"daysHeld":161,"tooShort":true},"INF090I01JR0":{"xirrPct":597.9,"daysHeld":161,"tooShort":true},"INF194KB1DV7":{"xirrPct":338.93,"daysHeld":161,"tooShort":true},"INF200K01RP8":{"xirrPct":288.73,"daysHeld":161,"tooShort":true},"INF769K01FA9":{"xirrPct":455.46,"daysHeld":160,"tooShort":true},"INF200KA1507":{"xirrPct":52.73,"daysHeld":8,"tooShort":true}},"NDAS0013":{"INE0CCU25019":{"xirrPct":404.93,"daysHeld":154,"tooShort":true},"INE0NHL23019":{"xirrPct":488.62,"daysHeld":154,"tooShort":true},"INF109KC19W1":{"xirrPct":469.71,"daysHeld":154,"tooShort":true},"INF789F1AUT5":{"xirrPct":366.68,"daysHeld":154,"tooShort":true},"INF769K01FA9":{"xirrPct":497.42,"daysHeld":154,"tooShort":true},"INF205K013T3":{"xirrPct":587.19,"daysHeld":154,"tooShort":true},"INF846K01Y39":{"xirrPct":498.29,"daysHeld":154,"tooShort":true},"INF090I01JR0":{"xirrPct":683.78,"daysHeld":154,"tooShort":true},"INF194KB1DV7":{"xirrPct":371.48,"daysHeld":154,"tooShort":true},"INF200K01RP8":{"xirrPct":348.83,"daysHeld":154,"tooShort":true},"INF109KC1R14":{"xirrPct":426.35,"daysHeld":154,"tooShort":true},"INF204KB12Z0":{"xirrPct":324.93,"daysHeld":154,"tooShort":true},"INF754K30011":{"xirrPct":476.34,"daysHeld":154,"tooShort":true},"INF200KA1507":{"xirrPct":52.73,"daysHeld":8,"tooShort":true}},"AONDCP0004":{"INF205K013T3":{"xirrPct":35.32,"daysHeld":154,"tooShort":true},"INF789F1AUT5":{"xirrPct":-11.42,"daysHeld":154,"tooShort":true},"INF769K01FA9":{"xirrPct":18.98,"daysHeld":154,"tooShort":true},"INF109KC19W1":{"xirrPct":5.93,"daysHeld":154,"tooShort":true},"INF03VN01597":{"xirrPct":29.07,"daysHeld":154,"tooShort":true},"INF204KB12Z0":{"xirrPct":-22.72,"daysHeld":154,"tooShort":true},"INF109KC1Y98":{"xirrPct":-14.78,"daysHeld":154,"tooShort":true},"INF200K01RP8":{"xirrPct":-14.68,"daysHeld":154,"tooShort":true},"INF194KB1DV7":{"xirrPct":-10.88,"daysHeld":154,"tooShort":true},"INF582M01BU9":{"xirrPct":42.22,"daysHeld":148,"tooShort":true},"INF247L01916":{"xirrPct":11.89,"daysHeld":148,"tooShort":true},"INF109KC1Y56":{"xirrPct":-38.29,"daysHeld":145,"tooShort":true},"INF769K01JP9":{"xirrPct":-30.31,"daysHeld":145,"tooShort":true},"INE775A01035":{"xirrPct":88.46,"daysHeld":85,"tooShort":true},"INE406A01037":{"xirrPct":52.62,"daysHeld":85,"tooShort":true},"INE090A01021":{"xirrPct":53.92,"daysHeld":85,"tooShort":true},"INE04I401011":{"xirrPct":-73.75,"daysHeld":85,"tooShort":true},"INE551W01018":{"xirrPct":111.49,"daysHeld":85,"tooShort":true},"INE342G01023":{"xirrPct":-73.3,"daysHeld":85,"tooShort":true},"INE055A01016":{"xirrPct":160.69,"daysHeld":35,"tooShort":true},"INE510A01028":{"xirrPct":-43.91,"daysHeld":35,"tooShort":true},"INE306R01017":{"xirrPct":-8.54,"daysHeld":35,"tooShort":true},"INE08NE01025":{"xirrPct":-32.66,"daysHeld":35,"tooShort":true},"INF200KA1507":{"xirrPct":52.73,"daysHeld":8,"tooShort":true}},"AONDCP0009":{"INF769K01JP9":{"xirrPct":-24.47,"daysHeld":78,"tooShort":true}},"AONDLV0009":{"INF204KB12Z0":{"xirrPct":-10.85,"daysHeld":77,"tooShort":true},"INF789F1AUT5":{"xirrPct":-5.82,"daysHeld":77,"tooShort":true},"INF769K01JP9":{"xirrPct":-25.06,"daysHeld":77,"tooShort":true},"INF109KC19W1":{"xirrPct":-19.18,"daysHeld":77,"tooShort":true}},"AONDCP0008":{"INF090I01IZ5":{"xirrPct":29.67,"daysHeld":77,"tooShort":true},"INF090I01JR0":{"xirrPct":21.94,"daysHeld":77,"tooShort":true}},"AONDCP0011":{"INF090I01IZ5":{"xirrPct":29.67,"daysHeld":77,"tooShort":true},"INF090I01JR0":{"xirrPct":21.94,"daysHeld":77,"tooShort":true}},"AONDCP0006":{"INF209K01XX1":{"xirrPct":22.54,"daysHeld":76,"tooShort":true},"INF090I01IZ5":{"xirrPct":20.87,"daysHeld":76,"tooShort":true},"INF090I01JR0":{"xirrPct":24.78,"daysHeld":76,"tooShort":true},"INF109KC1Y56":{"xirrPct":-55.74,"daysHeld":76,"tooShort":true},"INF769K01JP9":{"xirrPct":-30.71,"daysHeld":76,"tooShort":true},"INE0NHL23019":{"xirrPct":-6.22,"daysHeld":76,"tooShort":true},"INE055A01016":{"xirrPct":81.46,"daysHeld":57,"tooShort":true},"INE376G01013":{"xirrPct":-2.68,"daysHeld":57,"tooShort":true},"INE306R01017":{"xirrPct":35.26,"daysHeld":57,"tooShort":true},"INE551W01018":{"xirrPct":216.34,"daysHeld":57,"tooShort":true},"INE552Z01027":{"xirrPct":140.74,"daysHeld":57,"tooShort":true},"INE08NE01025":{"xirrPct":12.65,"daysHeld":57,"tooShort":true},"INE1NPP01017":{"xirrPct":-0.58,"daysHeld":57,"tooShort":true},"INF109KC11W8":{"xirrPct":25.43,"daysHeld":51,"tooShort":true},"INF179KC1FB2":{"xirrPct":56.82,"daysHeld":51,"tooShort":true},"INE510A01028":{"xirrPct":-67.38,"daysHeld":33,"tooShort":true}},"NDAS0014":{"INE04I401011":{"xirrPct":859.94,"daysHeld":71,"tooShort":true}},"AONDLV0012":{"INF740K01QL4":{"xirrPct":8.61,"daysHeld":55,"tooShort":true},"INF846K01CX4":{"xirrPct":7.44,"daysHeld":55,"tooShort":true},"INF789F1AUT5":{"xirrPct":3.32,"daysHeld":43,"tooShort":true},"INF754K30011":{"xirrPct":17.94,"daysHeld":43,"tooShort":true},"INF194KB1DV7":{"xirrPct":30.93,"daysHeld":43,"tooShort":true},"INF109KC1Y56":{"xirrPct":-57.04,"daysHeld":43,"tooShort":true},"INF277KA1976":{"xirrPct":-47.6,"daysHeld":43,"tooShort":true},"INF200KA1FS1":{"xirrPct":7.38,"daysHeld":36,"tooShort":true},"INF109KC11W8":{"xirrPct":21.21,"daysHeld":36,"tooShort":true},"INF179KC1FB2":{"xirrPct":48.44,"daysHeld":36,"tooShort":true},"INE0BWS23018":{"xirrPct":34.4,"daysHeld":34,"tooShort":true}},"AONDCP0007":{"INF109KC1Y56":{"xirrPct":-22.24,"daysHeld":28,"tooShort":true},"INF277KA1976":{"xirrPct":-12.94,"daysHeld":28,"tooShort":true},"INF194KB1DV7":{"xirrPct":17.99,"daysHeld":28,"tooShort":true},"INF204KB12Z0":{"xirrPct":-4.12,"daysHeld":28,"tooShort":true},"INF789F1AUT5":{"xirrPct":-16.14,"daysHeld":28,"tooShort":true},"INF247L01916":{"xirrPct":17.88,"daysHeld":28,"tooShort":true},"INF109KA11J9":{"xirrPct":7.3,"daysHeld":23,"tooShort":true},"INE0NHL23019":{"xirrPct":18.19,"daysHeld":21,"tooShort":true}},"AONDCP0012":{"INE219X23014":{"xirrPct":16.48,"daysHeld":22,"tooShort":true},"INE0NHL23019":{"xirrPct":30.39,"daysHeld":22,"tooShort":true},"INF846K01CX4":{"xirrPct":5.66,"daysHeld":22,"tooShort":true},"INE0BUS07CN4":{"xirrPct":-6.18,"daysHeld":21,"tooShort":true},"INE01YL07458":{"xirrPct":-5.42,"daysHeld":20,"tooShort":true}},"AONDLV0004":{"INF109KC19W1":{"xirrPct":-8.08,"daysHeld":9,"tooShort":true},"INF789F1AUT5":{"xirrPct":12.57,"daysHeld":9,"tooShort":true},"INF277KA1976":{"xirrPct":-19.98,"daysHeld":9,"tooShort":true}}};
 
 const ATTRIBUTION_DATA = {
   "ANGNR0004": {
@@ -19446,6 +19452,20 @@ const CONCENTRATION_MATERIALITY_FLOOR_PCT = 10;
 function isConcentrationBreachMaterial(bothPctResult) {
   return !bothPctResult || bothPctResult.pctPortfolio >= CONCENTRATION_MATERIALITY_FLOOR_PCT;
 }
+// Single source of truth for IPS band thresholds per risk profile — every place that checks a
+// client's allocation against their IPS (dashboard IPS Summary, per-client IPS detail, Client
+// Checklist, and the PPT's "Portfolio Contours" slide) must read from THIS object, not keep its
+// own copy. Found 2026-07-21: buildIPSSummary()'s inline `t`, buildClientIPS()'s `TMPL2`,
+// buildChecklist()'s `TMPL`, and the PPT's riskBands()/buildIpsRows() had all drifted into four
+// different band sets — e.g. the PPT's own thresholds (Aggressive equity 80-100%) didn't match
+// the dashboard's (65-100%), so the SAME client could show compliant on the dashboard and
+// "breached" on the PPT slide for the exact same number. Never hand-edit a second copy of this —
+// every consumer should destructure from `IPS_BAND_TEMPLATE[c.risk_profile]`.
+const IPS_BAND_TEMPLATE = {
+  Aggressive:  {equity:{min:65,max:100,label:"65-100%"},debt_alt:{min:0, max:35,label:"0-35%"},amc:{max:25},scheme:{max:15},lc:{min:50,label:">50%"},mc:{max:40,label:"<40%"},sc:{max:20,label:"<20%"},lockin:{max:20},commodity:{min:10,max:15,label:"10-15%"},intl_eq:{min:0,max:30,label:"Up to 30%"},dur:"1-6 yrs",credit:"No BBB- or below",review:"Yearly"},
+  Moderate:    {equity:{min:40,max:65, label:"40-65%"},debt_alt:{min:35,max:60,label:"35-60%"},amc:{max:25},scheme:{max:15},lc:{min:50,label:">50%"},mc:{max:30,label:"<30%"},sc:{max:20,label:"<20%"},lockin:{max:20},commodity:{min:10,max:15,label:"10-15%"},intl_eq:{min:0,max:30,label:"Up to 30%"},dur:"1-6 yrs",credit:"No BBB- or below",review:"Yearly"},
+  Conservative:{equity:{min:0, max:40, label:"0-40%"}, debt_alt:{min:60,max:100,label:"60-100%"},amc:{max:25},scheme:{max:15},lc:{min:50,label:">50%"},mc:{max:30,label:"<30%"},sc:{max:20,label:"<20%"},lockin:{max:20},commodity:{min:10,max:15,label:"10-15%"},intl_eq:{min:0,max:30,label:"Up to 30%"},dur:"1-6 yrs",credit:"No BBB- or below",review:"Yearly"}
+};
 function computeManagementSplit(clients) {
   const mk = () => ({ count:0, aum:0, outCount:0, outAum:0, underCount:0, underAum:0 });
   const active = mk(), passive = mk();
@@ -20888,8 +20908,7 @@ function showMainView() {
   document.getElementById('topbar-meta').innerHTML =
     'Data as of 15 July 2026</strong> &middot; covers Allocate Select, LVPMS &amp; CoPilot';
   document.getElementById('topbar-actions').innerHTML =
-    '<a class="refresh-btn" href="#" onclick="askRefresh();return false;">&#x21bb; &nbsp;Refresh Dashboard</a>' +
-    '<a class="refresh-btn" id="ips-btn" href="#" onclick="toggleIPSView();return false;" style="margin-left:8px">&#128203; IPS Review</a>' +
+    '<a class="refresh-btn" id="ips-btn" href="#" onclick="toggleIPSView();return false;">&#128203; IPS Review</a>' +
     '<a class="refresh-btn" id="checklist-btn" href="#" onclick="toggleChecklistView();return false;" style="margin-left:8px">&#9776; Client Checklist</a>' +
     '<a class="refresh-btn" id="calls-btn" href="#" onclick="toggleCallsView();return false;" style="margin-left:8px">&#128200; Thematic Calls</a>' +
     '<a class="refresh-btn" id="export-deviations-btn" href="#" onclick="downloadDeviationsExcel();return false;" style="margin-left:8px">&#11015; Export Deviations</a>';
@@ -20900,16 +20919,6 @@ function showMainView() {
   // Rebuild main charts (they were destroyed)
   renderMainView();
   window.scrollTo({top: 0, behavior: 'instant'});
-}
-
-function askRefresh() {
-  const prompt = "Refresh the NDPMS MANCOM dashboard — re-parse the Portfolio Appraisal and Portfolio Performance PDFs in the Select, LVPMS and CoPilot folders, then rebuild the three MIS Excel files and regenerate the dashboard HTML in each folder.";
-  if (typeof window.cowork !== 'undefined' && window.cowork.askClaude) {
-    window.cowork.askClaude(prompt);
-    return;
-  }
-  alert("To refresh, open Cowork and paste this prompt:\n\n" + prompt);
-  if (navigator.clipboard) { navigator.clipboard.writeText(prompt); }
 }
 
 renderMainView();
@@ -21362,12 +21371,17 @@ function renderCallsView(){
     const withTa = d.holders.filter(h=>h.tradeAttr);
     const goodCallPct = withTa.length ? withTa.filter(h=>h.tradeAttr.verdict==="Good Call").length : null;
     const tradeNote = withTa.length ? ` &middot; ${goodCallPct}/${withTa.length} "Good Call" on entry timing` : '';
+    // Even a fully-exited call is worth surfacing what clients actually gained while they held it
+    // — per user request 2026-07-21 ("even if chemicals is exited at least what clients gained in
+    // it") — rather than just a bare exited-count with no performance read at all.
+    const exitedAvgContribution = nExited ? d.exited.reduce((a,x)=>a+(x.totalContribution||0),0) / nExited : null;
+    const exitedNote = nExited ? ` &middot; avg contribution while held <strong style="color:${exitedAvgContribution>=0?'var(--green)':'var(--red)'}">${exitedAvgContribution>=0?'+':''}${exitedAvgContribution.toFixed(2)}%</strong>` : '';
     return `<tr>
       <td style="text-align:left">${d.theme.label}</td>
       <td>${nHolders}</td>
       <td style="color:${aggReturn==null?'var(--muted)':(aggReturn>=0?'var(--green)':'var(--red)')};font-weight:600">${aggReturn==null?'—':(aggReturn>=0?'+':'')+aggReturn.toFixed(2)+'%'}</td>
       <td style="color:${nHolders===0?'var(--muted)':(aggReturn>=0?'var(--green)':'var(--red)')};font-weight:700">${verdict}</td>
-      <td style="font-size:11px;color:var(--muted)">${nHolders ? `${upCount} up / ${downCount} down &middot; ${fmtCr(totalMv)} total exposure${tradeNote}` : (nExited ? `${nExited} client${nExited===1?'':'s'} exited historically` : 'No client has ever held this call')}</td>
+      <td style="font-size:11px;color:var(--muted)">${nHolders ? `${upCount} up / ${downCount} down &middot; ${fmtCr(totalMv)} total exposure${tradeNote}${exitedNote}` : (nExited ? `${nExited} client${nExited===1?'':'s'} exited historically${exitedNote}` : 'No client has ever held this call')}</td>
     </tr>`;
   }).join('');
 
@@ -21382,7 +21396,94 @@ function renderCallsView(){
     <tbody>${summaryRows}</tbody></table>
   </div>`;
 
-  root.innerHTML = html;
+  // Broader instrument-category aggregates (AIF, SIF, liquid funds, debt funds, etc.) and a
+  // unique-direct-equity-stocks table — per user request 2026-07-21 ("an aggregate of everything
+  // on an overall level"), so this view isn't limited to just the 8 named factor/sector calls.
+  const catData = buildInstrumentCategoryData();
+  const catRows = catData.map(d => {
+    const nHolders = d.holders.length;
+    const nClients = new Set(d.holders.map(h=>h.ndas)).size;
+    const totalMv = d.holders.reduce((a,h)=>a+h.mvCr,0);
+    const aggReturn = nHolders ? d.holders.reduce((a,h)=>a+(h.glPct||0)*h.mvCr,0) / (totalMv||1) : null;
+    return `<tr>
+      <td style="text-align:left">${d.label}</td>
+      <td>${nClients}</td>
+      <td style="color:${aggReturn==null?'var(--muted)':(aggReturn>=0?'var(--green)':'var(--red)')};font-weight:600">${aggReturn==null?'—':(aggReturn>=0?'+':'')+aggReturn.toFixed(2)+'%'}</td>
+      <td style="font-size:11px;color:var(--muted)">${nHolders ? `${nHolders} holding${nHolders===1?'':'s'} &middot; ${fmtCr(totalMv)} total exposure` : 'No client currently holds any fund in this category'}</td>
+    </tr>`;
+  }).join('');
+  const catHtml = `<div class="chart-card" style="margin-bottom:20px">
+    <h3>Instrument Categories — Summary <span style="font-weight:400;color:var(--muted);font-size:12px">(AIF/SIF, liquid, debt, hybrid, commodity, REIT/InvIT, equity funds — market-cap tilts detected by name)</span></h3>
+    <table><thead><tr><th style="text-align:left">Category</th><th>Clients</th><th>Aggregate Return</th><th>Detail</th></tr></thead>
+    <tbody>${catRows}</tbody></table>
+  </div>`;
+
+  const stockData = buildDirectEquityAggregateData();
+  const stockRows = stockData.map(x => `<tr>
+      <td style="text-align:left">${x.security}</td>
+      <td>${x.nClients}</td>
+      <td>${fmtCr(x.totalMvCr)}</td>
+      <td style="color:${x.wtdGlPct==null?'var(--muted)':(x.wtdGlPct>=0?'var(--green)':'var(--red)')};font-weight:600">${x.wtdGlPct==null?'—':(x.wtdGlPct>=0?'+':'')+x.wtdGlPct.toFixed(2)+'%'}</td>
+    </tr>`).join('');
+  const stockHtml = `<div class="chart-card" style="margin-bottom:20px">
+    <h3>Direct Equity Stocks — Summary <span style="font-weight:400;color:var(--muted);font-size:12px">(${stockData.length} unique listed stocks across all clients)</span></h3>
+    <div style="max-height:480px;overflow-y:auto"><table><thead><tr><th style="text-align:left">Stock</th><th>Clients</th><th>Total Exposure</th><th>Wtd. Gain/Loss</th></tr></thead>
+    <tbody>${stockRows}</tbody></table></div>
+  </div>`;
+
+  root.innerHTML = html + catHtml + stockHtml;
+}
+
+// Aggregates every non-cash, non-direct-equity holding across the whole book into broader
+// instrument-category buckets (classifyInstrument()'s finer categories collapsed into the labels
+// an advisor thinks in) PLUS three market-cap-tilt buckets detected by fund name (Large/Mid/Small
+// Cap) — there's no per-holding SEBI market-cap tag at runtime, so this is a name-pattern read,
+// not a certified classification; treat it as directional.
+const INSTRUMENT_CATEGORY_LABELS = {
+  'AIF': 'AIF', 'SIF': 'SIF', 'Liquid / Overnight': 'Liquid / Overnight Funds', 'Debt Fund': 'Debt Funds',
+  'Arbitrage Fund': 'Arbitrage Funds', 'Hybrid': 'Hybrid Funds', 'Commodity Fund': 'Commodity Funds',
+  'Commodity ETF': 'Commodity ETFs', 'REIT / InvIT': 'REIT / InvIT', 'Domestic Equity Fund': 'Domestic Equity Funds',
+  'Domestic Equity ETF': 'Domestic Equity ETFs', 'International Equity Fund': 'International Equity Funds',
+  'International Equity ETF': 'International Equity ETFs'
+};
+const MARKET_CAP_NAME_THEMES = [
+  {label:'Large Cap Funds (by name)', pattern:/large.?cap|bluechip/i},
+  {label:'Mid Cap Funds (by name)', pattern:/mid.?cap/i},
+  {label:'Small Cap Funds (by name)', pattern:/small.?cap/i}
+];
+function buildInstrumentCategoryData() {
+  const labels = Object.values(INSTRUMENT_CATEGORY_LABELS).concat(MARKET_CAP_NAME_THEMES.map(t=>t.label));
+  const buckets = {};
+  labels.forEach(l => { buckets[l] = []; });
+  STRATEGY_DATA.forEach(strat => strat.clients.forEach(c => {
+    (c.holdings || []).forEach(h => {
+      if (!h.security || h.security === 'Cash') return;
+      const holder = { client: c.name, ndas: c.ndas, security: h.security, mvCr: (h.market_value||0)/1e7, glPct: h.gl_pct };
+      const catLabel = INSTRUMENT_CATEGORY_LABELS[classifyInstrument(h)];
+      if (catLabel) buckets[catLabel].push(holder);
+      MARKET_CAP_NAME_THEMES.forEach(t => { if (t.pattern.test(h.security)) buckets[t.label].push(holder); });
+    });
+  }));
+  return labels.map(label => ({ label, holders: buckets[label] }));
+}
+// Unique direct-equity (listed share) stocks across the whole book, aggregated — a summary-level
+// complement to Browse's per-client drill-down for the same instrument-filter category.
+function buildDirectEquityAggregateData() {
+  const map = {};
+  STRATEGY_DATA.forEach(strat => strat.clients.forEach(c => {
+    (c.holdings || []).forEach(h => {
+      if (classifyInstrument(h) !== 'Domestic Equity') return;
+      if (!map[h.security]) map[h.security] = { security: h.security, clients: new Set(), totalMv: 0, wtdSum: 0 };
+      const e = map[h.security];
+      e.clients.add(c.ndas);
+      e.totalMv += (h.market_value||0);
+      e.wtdSum += (h.gl_pct||0) * (h.market_value||0);
+    });
+  }));
+  return Object.values(map).map(e => ({
+    security: e.security, nClients: e.clients.size, totalMvCr: e.totalMv/1e7,
+    wtdGlPct: e.totalMv ? e.wtdSum/e.totalMv : null
+  })).sort((a,b) => b.totalMvCr - a.totalMvCr);
 }
 
 // ============ Client-level Thematic Calls — which of the firm's named calls has THIS client
@@ -21776,13 +21877,6 @@ function classifyAssetX(h){
   return null;
 }
 
-function riskBands(profile){
-  const p = (profile||"Aggressive").toLowerCase();
-  if (p.startsWith("aggr")) return {eq:[80,100], fi:[0,20]};
-  if (p.startsWith("mod")) return {eq:[50,70], fi:[30,50]};
-  return {eq:[30,50], fi:[50,70]};
-}
-
 // Turns IPS breaches into plain-language suggested actions — feeds Next Steps alongside
 // the advisor's manually-logged action items, so the slide isn't just a raw notes dump.
 function ipsDeviationActions(ips){
@@ -21794,28 +21888,35 @@ function ipsDeviationActions(ips){
     else if (r.param.startsWith("International") && r.status==="gap") out.push(`Add international equity exposure — currently 0%, house view supports selective global allocation`);
     else if (r.param.startsWith("Commodities") && r.status==="gap") out.push(`Add commodities/gold exposure — currently 0%, ideal 5%-15%`);
     else if (r.param.startsWith("Asset Allocation")) out.push(`Rebalance equity allocation toward the ${ips.risk_profile} band — currently ${pct(ips.eq_pct)}, ideal ${r.ideal}`);
-    else if (r.param.startsWith("Mid + Small")) out.push(`Rebalance market-cap mix — mid+small currently ${pct(ips.mc_pct+ips.sc_pct)}, ideal ${r.ideal}`);
+    else if (r.param.startsWith("Mid-cap") || r.param.startsWith("Small-cap")) out.push(`Rebalance market-cap mix — ${r.param.split(' ')[0].toLowerCase()} currently ${r.current}, ideal ${r.ideal}`);
     else out.push(`${r.param}: currently ${r.current}, ideal ${r.ideal}`);
   });
   return out;
 }
 
+// Reads from the same IPS_BAND_TEMPLATE the dashboard's buildClientIPS()/buildChecklist() use —
+// fixed 2026-07-21 after the PPT's own hardcoded riskBands() (Aggressive equity 80-100%!) was
+// found to disagree with the dashboard (65-100%) for the same client. Same materiality gate on
+// AMC/scheme concentration as the dashboard too (isConcentrationBreachMaterial) — don't drop that
+// if you touch this again, or the PPT will re-flag breaches the dashboard correctly suppresses.
 function buildIpsRows(ips){
-  const bands = riskBands(ips.risk_profile);
-  const inBand = (v,[lo,hi]) => v>=lo && v<=hi;
+  const tm = IPS_BAND_TEMPLATE[ips.risk_profile] || IPS_BAND_TEMPLATE.Aggressive;
+  const inBand = (v,mn,mx) => v>=mn && v<=mx;
   const rows = [];
-  rows.push({param:"Asset Allocation — Equity", ideal:`${bands.eq[0]}% – ${bands.eq[1]}%`, current:pct(ips.eq_pct), status: inBand(ips.eq_pct,bands.eq)?"ok":(ips.eq_pct>bands.eq[1]?"over":"under")});
-  rows.push({param:"Fixed Income & Alternates", ideal:`${bands.fi[0]}% – ${bands.fi[1]}%`, current:pct(ips.debt_alt_pct), status: inBand(ips.debt_alt_pct,bands.fi)?"ok":(ips.debt_alt_pct>bands.fi[1]?"over":"under")});
+  rows.push({param:"Asset Allocation — Equity", ideal:tm.equity.label, current:pct(ips.eq_pct), status: inBand(ips.eq_pct,tm.equity.min,tm.equity.max)?"ok":(ips.eq_pct>tm.equity.max?"over":"under")});
+  rows.push({param:"Fixed Income & Alternates", ideal:tm.debt_alt.label, current:pct(ips.debt_alt_pct), status: inBand(ips.debt_alt_pct,tm.debt_alt.min,tm.debt_alt.max)?"ok":(ips.debt_alt_pct>tm.debt_alt.max?"over":"under")});
   const bir_schemeBoth = typeof schemeExposureBothPct === "function" ? schemeExposureBothPct(ips.top_scheme, ips.full_name) : null;
   const bir_amcBoth = typeof amcExposureBothPct === "function" ? amcExposureBothPct(ips.top_amc, ips.full_name) : null;
   const bir_schemeMaterial = typeof isConcentrationBreachMaterial === "function" ? isConcentrationBreachMaterial(bir_schemeBoth) : true;
   const bir_amcMaterial = typeof isConcentrationBreachMaterial === "function" ? isConcentrationBreachMaterial(bir_amcBoth) : true;
-  rows.push({param:"Single scheme — max allocation", ideal:"≤ 15%", current:`${pct(ips.top_scheme_pct)} (${ips.top_scheme})`, status: (ips.top_scheme_pct<=15||!bir_schemeMaterial)?"ok":"over"});
-  rows.push({param:"Single AMC — max allocation", ideal:"≤ 25%", current:`${pct(ips.top_amc_pct)} (${ips.top_amc})`, status: (ips.top_amc_pct<=25||!bir_amcMaterial)?"ok":"over"});
-  rows.push({param:"Large-cap allocation (of equity)", ideal:"40% – 60%", current:pct(ips.lc_pct), status: inBand(ips.lc_pct,[40,60])?"ok":(ips.lc_pct>60?"over":"under")});
-  rows.push({param:"Mid + Small-cap allocation (of equity)", ideal:"40% – 60%", current:pct(ips.mc_pct+ips.sc_pct), status: inBand(ips.mc_pct+ips.sc_pct,[40,60])?"ok":((ips.mc_pct+ips.sc_pct)>60?"over":"under")});
-  rows.push({param:"International equity", ideal:"≤ 25%", current:pct(ips.intl_eq_pct), status: ips.intl_eq_pct===0?"gap":(ips.intl_eq_pct<=25?"ok":"over")});
-  rows.push({param:"Commodities / Gold", ideal:"5% – 15%", current:pct(ips.commodity_pct), status: ips.commodity_pct===0?"gap":(inBand(ips.commodity_pct,[5,15])?"ok":(ips.commodity_pct>15?"over":"under"))});
+  rows.push({param:"Single scheme — max allocation", ideal:`≤ ${tm.scheme.max}%`, current:`${pct(ips.top_scheme_pct)} (${ips.top_scheme})`, status: (ips.top_scheme_pct<=tm.scheme.max||!bir_schemeMaterial)?"ok":"over"});
+  rows.push({param:"Single AMC — max allocation", ideal:`≤ ${tm.amc.max}%`, current:`${pct(ips.top_amc_pct)} (${ips.top_amc})`, status: (ips.top_amc_pct<=tm.amc.max||!bir_amcMaterial)?"ok":"over"});
+  rows.push({param:"Large-cap allocation (of equity)", ideal:tm.lc.label, current:pct(ips.lc_pct), status: ips.lc_pct>=tm.lc.min?"ok":"under"});
+  rows.push({param:"Mid-cap allocation (of equity)", ideal:tm.mc.label, current:pct(ips.mc_pct), status: ips.mc_pct<=tm.mc.max?"ok":"over"});
+  rows.push({param:"Small-cap allocation (of equity)", ideal:tm.sc.label, current:pct(ips.sc_pct), status: ips.sc_pct<=tm.sc.max?"ok":"over"});
+  rows.push({param:"International equity", ideal:tm.intl_eq.label, current:pct(ips.intl_eq_pct), status: ips.intl_eq_pct===0?"gap":(inBand(ips.intl_eq_pct,tm.intl_eq.min,tm.intl_eq.max)?"ok":"over")});
+  rows.push({param:"Commodities / Gold", ideal:tm.commodity.label, current:pct(ips.commodity_pct), status: ips.commodity_pct===0?"gap":(inBand(ips.commodity_pct,tm.commodity.min,tm.commodity.max)?"ok":(ips.commodity_pct>tm.commodity.max?"over":"under"))});
+  rows.push({param:"Products with Hard Lock-in (Max)", ideal:`≤ ${tm.lockin.max}%`, current:pct(ips.locked_pct||0), status: (ips.locked_pct||0)<=tm.lockin.max?"ok":"over"});
   return rows;
 }
 
@@ -21965,7 +22066,9 @@ function buildClientDeck(clientRecord){
       if (r.param.startsWith("Asset Allocation")) return "Equity Allocation Off-Band";
       if (r.param.startsWith("Fixed Income")) return "Fixed Income / Alternates Off-Band";
       if (r.param.startsWith("Large-cap")) return "Market-Cap Mix Off-Band";
-      if (r.param.startsWith("Mid + Small")) return "Market-Cap Mix Off-Band";
+      if (r.param.startsWith("Mid-cap")) return "Market-Cap Mix Off-Band";
+      if (r.param.startsWith("Small-cap")) return "Market-Cap Mix Off-Band";
+      if (r.param.startsWith("Products with Hard Lock-in")) return "Lock-in Exposure Above Limit";
       return r.param;
     };
     const noteFor = r => {
@@ -22094,18 +22197,26 @@ function buildClientDeck(clientRecord){
       s.addText("Fund-level Rolling Return / RAR / Up-Down-Total Capture data is not yet embedded in this dashboard build.\nThis table will populate automatically once the monthly-update pipeline embeds FUND_METRICS_DATA (from advisory v2).",
         {x:0.8,y:2.8,w:11.7,h:1.4,fontFace:BRAND.FONT,fontSize:13,color:"9C6500",valign:"middle"});
     } else {
+      const xirrFor = h => (typeof FUND_XIRR_DATA !== "undefined" && FUND_XIRR_DATA[sc.ndas]) ? FUND_XIRR_DATA[sc.ndas][h.isin] : null;
       const funds = (sc.holdings||[]).filter(h=>h.asset_class==="Equity").map(h=>{
         const m = fm[normalizeSchemeName(h.security)] || {};
-        return {n:h.security, al:h.assets_pct, ...m};
+        return {n:h.security, al:h.assets_pct, xr:xirrFor(h), ...m};
       });
       // "SI vs Bench" is the one period Advisory V2 actually gives a matching benchmark figure
       // for (siBenchmark) — 3M/6M/1Y/3Y have no per-period benchmark column in the source, so
       // those can't be honestly color-coded against a benchmark; Up/Down/Total Capture (already
       // color-scaled below) are the closest available proxy for "vs benchmark" across all periods.
+      // XIRR is a real money-weighted return computed from actual dated cash flows (FUND_XIRR_DATA,
+      // built from NDPMS Transactions.xlsx) — a different (and often more meaningful) number than
+      // the NAV-based TWRR periods to its left, so it's NOT diffed against SI vs Bench's pp figure;
+      // shown on its own with directional (green/red) coloring, "—" when too recent to annualize
+      // sensibly (<180 days) or when the position includes shares transferred in (no valid cash-
+      // flow basis exists for those — see TRANSFER_IN_DATA).
       const hdr=[C("Scheme",{b:1,color:BRAND.WHITE,fill:BRAND.BLUE,align:"left",size:7.5}),C("Alloc%",{b:1,color:BRAND.WHITE,fill:BRAND.BLUE,size:7.5}),
         C("3M",{b:1,color:BRAND.WHITE,fill:BRAND.BLUE,size:7.5}),C("6M",{b:1,color:BRAND.WHITE,fill:BRAND.BLUE,size:7.5}),
         C("1Y",{b:1,color:BRAND.WHITE,fill:BRAND.BLUE,size:7.5}),C("3Y",{b:1,color:BRAND.WHITE,fill:BRAND.BLUE,size:7.5}),
         C("SI vs Bench",{b:1,color:BRAND.WHITE,fill:BRAND.BLUE,size:7.5}),
+        C("XIRR",{b:1,color:BRAND.WHITE,fill:BRAND.BLUE,size:7.5}),
         C("Rolling Ret (1Y/3Y)",{b:1,color:BRAND.WHITE,fill:BRAND.BLUE,size:7.5}),C("SD %",{b:1,color:BRAND.WHITE,fill:BRAND.BLUE,size:7.5}),C("RAR",{b:1,color:BRAND.WHITE,fill:BRAND.BLUE,size:7.5}),C("Up Capture",{b:1,color:BRAND.WHITE,fill:BRAND.BLUE,size:7.5}),
         C("Down Capture",{b:1,color:BRAND.WHITE,fill:BRAND.BLUE,size:7.5}),C("Total Capture",{b:1,color:BRAND.WHITE,fill:BRAND.BLUE,size:7.5}),C("Benchmark",{b:1,color:BRAND.WHITE,fill:BRAND.BLUE,align:"left",size:7.5})];
       const rows=[hdr];
@@ -22113,10 +22224,12 @@ function buildClientDeck(clientRecord){
       shown.forEach(f=>{
         const siDelta = (f.si!=null && f.siBenchmark!=null) ? f.si - f.siBenchmark : null;
         const siBeat = siDelta!=null && siDelta>=0;
+        const xirrOk = f.xr && !f.xr.tooShort;
         rows.push([C(f.n,{align:"left",size:7}), C(pct(f.al),{size:7}),
           C(pct(f.m3),{size:7}), C(pct(f.m6),{size:7}),
           C(pct(f.y1),{size:7}), C(pct(f.y3),{size:7}),
           C(siDelta!=null?(siBeat?"+":"")+siDelta.toFixed(1)+"pp":"—",{size:7,b:true,color:siDelta==null?BRAND.GREY:(siBeat?BRAND.DGREEN:BRAND.DRED),fill:siDelta==null?BRAND.WHITE:(siBeat?BRAND.LGREEN:BRAND.LRED)}),
+          C(xirrOk?(f.xr.xirrPct>=0?"+":"")+f.xr.xirrPct.toFixed(1)+"%":"—",{size:7,b:true,color:!xirrOk?BRAND.GREY:(f.xr.xirrPct>=0?BRAND.DGREEN:BRAND.DRED),fill:!xirrOk?BRAND.WHITE:(f.xr.xirrPct>=0?BRAND.LGREEN:BRAND.LRED)}),
           C(f.rollingReturn!=null?f.rollingReturn.toFixed(1)+"%":"—",{size:7}),
           C(f.sd!=null?f.sd.toFixed(1):"—",{size:7,color:BRAND.GREY}),
           C(f.rar!=null?f.rar.toFixed(2):"—",{size:7,b:true,color:txtOn(scale3(f.rar,0.8,1.8,BRAND.SCALE_RWB)),fill:scale3(f.rar,0.8,1.8,BRAND.SCALE_RWB)}),
@@ -22133,10 +22246,14 @@ function buildClientDeck(clientRecord){
         const siDeltas = shown.filter(f=>f.si!=null&&f.siBenchmark!=null).map(f=>({d:f.si-f.siBenchmark, w:f.al||0}));
         const wSiSum = siDeltas.reduce((a,x)=>a+x.w,0);
         const wSiDelta = wSiSum ? siDeltas.reduce((a,x)=>a+x.d*x.w,0)/wSiSum : null;
+        const xirrVals = shown.filter(f=>f.xr && !f.xr.tooShort).map(f=>({v:f.xr.xirrPct, w:f.al||0}));
+        const wXirrSum = xirrVals.reduce((a,x)=>a+x.w,0);
+        const wXirr = wXirrSum ? xirrVals.reduce((a,x)=>a+x.v*x.w,0)/wXirrSum : null;
         rows.push([C("Total (alloc-weighted avg)",{b:1,align:"left",fill:BRAND.PANEL,size:7}), C(pct(wsum),{b:1,fill:BRAND.PANEL,size:7}),
           C(pct(wavg("m3")),{b:1,fill:BRAND.PANEL,size:7}), C(pct(wavg("m6")),{b:1,fill:BRAND.PANEL,size:7}),
           C(pct(wavg("y1")),{b:1,fill:BRAND.PANEL,size:7}), C(pct(wavg("y3")),{b:1,fill:BRAND.PANEL,size:7}),
           C(wSiDelta!=null?(wSiDelta>=0?"+":"")+wSiDelta.toFixed(1)+"pp":"—",{b:1,fill:BRAND.PANEL,size:7,color:wSiDelta==null?BRAND.INK:(wSiDelta>=0?BRAND.DGREEN:BRAND.DRED)}),
+          C(wXirr!=null?(wXirr>=0?"+":"")+wXirr.toFixed(1)+"%":"—",{b:1,fill:BRAND.PANEL,size:7,color:wXirr==null?BRAND.INK:(wXirr>=0?BRAND.DGREEN:BRAND.DRED)}),
           C(wavg("rollingReturn")!=null?wavg("rollingReturn").toFixed(1)+"%":"—",{b:1,fill:BRAND.PANEL,size:7}),
           C(wavg("sd")!=null?wavg("sd").toFixed(1):"—",{b:1,fill:BRAND.PANEL,size:7}),
           C(wavg("rar")!=null?wavg("rar").toFixed(2):"—",{b:1,fill:BRAND.PANEL,size:7}),
@@ -22145,9 +22262,9 @@ function buildClientDeck(clientRecord){
           C(wavg("tot")!=null?wavg("tot").toFixed(2):"—",{b:1,fill:BRAND.PANEL,size:7}),
           C("",{fill:BRAND.PANEL,size:7})]);
       }
-      s.addTable(rows,{x:0.15,y:1.5,w:13.0,colW:[2.3,0.6,0.65,0.65,0.65,0.65,0.95,0.95,0.6,0.6,0.85,0.85,0.85,1.85],rowH:0.36,border:{type:"solid",color:BRAND.LINE,pt:1}});
-      s.addText("RAR (Rolling Return ÷ SD) is risk-adjusted return — higher is better per unit of volatility. Rolling Return = 1-year return, daily step, over 3 years. SI vs Bench = since-inception return minus the fund's own benchmark's since-inception return (green = beating it) — this is the only period Advisory V2 provides a matching benchmark figure for; 3M/6M/1Y/3Y have no per-period benchmark data available, so Up/Down/Total Capture (below) are the closest available proxy for those periods.",
-        {x:0.15,y:6.55,w:13.0,h:0.5,fontFace:BRAND.FONT,italic:true,fontSize:8,color:BRAND.GREY});
+      s.addTable(rows,{x:0.15,y:1.5,w:12.85,colW:[2.1,0.55,0.55,0.55,0.55,0.55,0.85,0.85,0.8,0.5,0.7,0.7,0.7,0.7,1.6],rowH:0.36,border:{type:"solid",color:BRAND.LINE,pt:1}});
+      s.addText("RAR (Rolling Return ÷ SD) is risk-adjusted return — higher is better per unit of volatility. Rolling Return = 1-year return, daily step, over 3 years. SI vs Bench = since-inception return minus the fund's own benchmark's since-inception return (green = beating it) — this is the only period Advisory V2 provides a matching benchmark figure for; 3M/6M/1Y/3Y have no per-period benchmark data available, so Up/Down/Total Capture (below) are the closest available proxy for those periods. XIRR = real money-weighted return computed from this fund's actual dated buy/sell/dividend cash flows plus current value — shown blank if held under 6 months (annualizing a short period is statistically noisy) or if the position includes shares transferred in at onboarding (no valid cash-flow basis for those).",
+        {x:0.15,y:6.55,w:13.0,h:0.6,fontFace:BRAND.FONT,italic:true,fontSize:7.5,color:BRAND.GREY});
     }
     footer(s,"");
   })();
@@ -22400,11 +22517,7 @@ function toggleIPSView(){
 
 function buildIPSSummary(){
   var d=IPS_DATA, pc=d.profile_counts;
-  var t={
-    Aggressive:  {equity:{min:65,max:100},debt_alt:{min:0, max:35},amc:{max:25},scheme:{max:15},lc:{min:50},mc:{max:40},sc:{max:20},lockin:{max:20}},
-    Moderate:    {equity:{min:40,max:65}, debt_alt:{min:35,max:60},amc:{max:25},scheme:{max:15},lc:{min:50},mc:{max:30},sc:{max:20},lockin:{max:20}},
-    Conservative:{equity:{min:0, max:40}, debt_alt:{min:60,max:100},amc:{max:25},scheme:{max:15},lc:{min:50},mc:{max:30},sc:{max:20},lockin:{max:20}}
-  };
+  var t=IPS_BAND_TEMPLATE;
   var totalAll=d.clients.length+d.no_ips.length+2;
   var el=document.getElementById('ips-root');
   var s='';
@@ -22426,8 +22539,8 @@ function buildIPSSummary(){
     var b=0;
     if(c.eq_pct<tm.equity.min||c.eq_pct>tm.equity.max) b++;
     if(c.debt_alt_pct<tm.debt_alt.min||c.debt_alt_pct>tm.debt_alt.max) b++;
-    if(c.top_amc_pct>tm.amc.max) b++;
-    if(c.top_scheme_pct>tm.scheme.max) b++;
+    if(c.top_amc_pct>tm.amc.max && isConcentrationBreachMaterial(amcExposureBothPct(c.top_amc, c.full_name))) b++;
+    if(c.top_scheme_pct>tm.scheme.max && isConcentrationBreachMaterial(schemeExposureBothPct(c.top_scheme, c.full_name))) b++;
     if(c.lc_pct<tm.lc.min) b++;
     if(c.mc_pct>tm.mc.max) b++;
     if(c.sc_pct>tm.sc.max) b++;
@@ -22463,12 +22576,7 @@ function buildIPSSummary(){
 
 function buildClientIPS(idx){
   var c=IPS_DATA.clients[idx];
-  var TMPL2={
-    Aggressive:  {equity:{min:65,max:100,label:"65-100%"},debt_alt:{min:0, max:35,label:"0-35%"},amc:{max:25},scheme:{max:15},lc:{min:50,label:">50%"},mc:{max:40,label:"<40%"},sc:{max:20,label:"<20%"},lockin:{max:20},commodity:{min:10,max:15,label:"10-15%"},intl_eq:{min:0,max:30,label:"Up to 30%"},dur:"1-6 yrs",credit:"No BBB- or below",review:"Yearly"},
-    Moderate:    {equity:{min:40,max:65, label:"40-65%"},debt_alt:{min:35,max:60,label:"35-60%"},amc:{max:25},scheme:{max:15},lc:{min:50,label:">50%"},mc:{max:30,label:"<30%"},sc:{max:20,label:"<20%"},lockin:{max:20},commodity:{min:10,max:15,label:"10-15%"},intl_eq:{min:0,max:30,label:"Up to 30%"},dur:"1-6 yrs",credit:"No BBB- or below",review:"Yearly"},
-    Conservative:{equity:{min:0, max:40, label:"0-40%"}, debt_alt:{min:60,max:100,label:"60-100%"},amc:{max:25},scheme:{max:15},lc:{min:50,label:">50%"},mc:{max:30,label:"<30%"},sc:{max:20,label:"<20%"},lockin:{max:20},commodity:{min:10,max:15,label:"10-15%"},intl_eq:{min:0,max:30,label:"Up to 30%"},dur:"1-6 yrs",credit:"No BBB- or below",review:"Yearly"}
-  };
-  var tm=TMPL2[c.risk_profile]||TMPL2.Aggressive;
+  var tm=IPS_BAND_TEMPLATE[c.risk_profile]||IPS_BAND_TEMPLATE.Aggressive;
   var el=document.getElementById('ips-root');
 
   function R(v,mn,mx){
@@ -22671,11 +22779,7 @@ function buildChecklist(){
   var ndasMap=buildNdasMap();
 
   // IPS breach check
-  var TMPL={
-    Aggressive:  {equity:{min:65,max:100,label:"65-100%"},debt_alt:{min:0, max:35,label:"0-35%"},amc:{max:25},scheme:{max:15},lc:{min:50,label:">50%"},mc:{max:40,label:"<40%"},sc:{max:20,label:"<20%"},lockin:{max:20},commodity:{min:10,max:15,label:"10-15%"},intl_eq:{min:0,max:30,label:"Up to 30%"},dur:"1-6 yrs",credit:"No BBB- or below",review:"Yearly"},
-    Moderate:    {equity:{min:40,max:65, label:"40-65%"},debt_alt:{min:35,max:60,label:"35-60%"},amc:{max:25},scheme:{max:15},lc:{min:50,label:">50%"},mc:{max:30,label:"<30%"},sc:{max:20,label:"<20%"},lockin:{max:20},commodity:{min:10,max:15,label:"10-15%"},intl_eq:{min:0,max:30,label:"Up to 30%"},dur:"1-6 yrs",credit:"No BBB- or below",review:"Yearly"},
-    Conservative:{equity:{min:0, max:40, label:"0-40%"}, debt_alt:{min:60,max:100,label:"60-100%"},amc:{max:25},scheme:{max:15},lc:{min:50,label:">50%"},mc:{max:30,label:"<30%"},sc:{max:20,label:"<20%"},lockin:{max:20},commodity:{min:10,max:15,label:"10-15%"},intl_eq:{min:0,max:30,label:"Up to 30%"},dur:"1-6 yrs",credit:"No BBB- or below",review:"Yearly"}
-  };
+  var TMPL=IPS_BAND_TEMPLATE;
   function getBreaches(c){
     var t=TMPL[c.risk_profile]||TMPL.Aggressive, b=[];
     if(c.eq_pct<t.equity.min||c.eq_pct>t.equity.max)
