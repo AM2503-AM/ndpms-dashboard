@@ -8,8 +8,14 @@
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/pptxgenjs@4.0.1/dist/pptxgen.bundle.js"></script>
 <style>
-  :root{--primary:#1F4E78;--primary-light:#2E6FA3;--accent:#4A90D9;--bg:#F7F9FC;
-        --card:#fff;--text:#1a1a1a;--muted:#595959;--border:#E0E5EB;
+  /* Ionic brand palette — matches BRAND.* in deck-builder.js, extracted from the real Ionic
+     PPTX theme (theme10.xml). --primary/--primary-light replace an earlier placeholder blue
+     (#1F4E78/#2E6FA3) that predated the brand extraction; --darknavy/--gold are the two accent
+     tokens the sample deck actually uses. --muted-on-dark is for text placed on a --primary
+     background (e.g. table <thead>, which is globally styled color:#fff) — --muted itself
+     (#595959) is calibrated for body text on white/light backgrounds and is illegible on navy. */
+  :root{--primary:#242BA1;--primary-light:#7BA0FF;--accent:#7BA0FF;--darknavy:#0E2841;--gold:#FFB951;--bg:#F7F9FC;
+        --card:#fff;--text:#1a1a1a;--muted:#595959;--muted-on-dark:rgba(255,255,255,.75);--border:#E0E5EB;
         --green:#2EA260;--green-bg:#C6EFCE;--green-text:#1F6F33;
         --red:#D9534F;--red-bg:#FFC7CE;--red-text:#9C0006;--na:#B0B7BF;}
   *{box-sizing:border-box}
@@ -142,7 +148,8 @@
     <option value="mutual_funds">Mutual Funds</option>
     <option value="commodity">Commodity</option>
     <option value="reit_invit">REIT/InvIT</option>
-    <option value="aif_sif">AIF/SIF</option>
+    <option value="aif">AIF</option>
+    <option value="sif">SIF</option>
     <option value="cash">Cash/Liquid</option>
   </select>
   <a class="refresh-btn" href="#" title="Open a full-page, scrollable view of these results"
@@ -19181,7 +19188,14 @@ function classifyInstrument(h) {
   const name = h.security || '';
   const isETF = /\bETF\b|BEES/i.test(name);
   const isFundName = /Direct-?G$|Direct Growth$|\bGrowth$|\bFoF\b/i.test(name);
-  if (/\bAIF\b|\bA1F\b|SageOne|Sage One/i.test(name)) return 'AIF / SIF';
+  if (/\bAIF\b|\bA1F\b|SageOne|Sage One/i.test(name)) return 'AIF';
+  // SIF (Specialized Investment Fund) — SEBI's newer hedge-style category for HNIs, distinct
+  // from AIF. These funds don't carry "SIF" in the security name itself (only in the AMC/scheme
+  // metadata, which isn't on the holding object at runtime) but are reliably branded "... Long
+  // Short Fund ..." (e.g. "Altiva Hybrid Long Short Fund Direct Plan Growth", "Magnum Hybrid Long
+  // Short Fund Direct Plan Growth") — per user request 2026-07-21, these were previously falling
+  // through to the generic 'Hybrid' bucket below and never surfaced under the AIF/SIF filter.
+  if (/Long[\s-]?Short/i.test(name)) return 'SIF';
   if (h.asset_class === 'Equity') {
     const isIntl = /Nasdaq|Greater China|U\.S\.|International|Off-?shore|Global|Overseas|Asian Equity/i.test(name);
     if (isIntl) return isETF ? 'International Equity ETF' : 'International Equity Fund';
@@ -19317,6 +19331,16 @@ function getAllClientsFlat() {
 // ndpms-monthly-update skill (Step 4) — re-verify both together each month.
 const PASSIVE_NDAS = new Set(["AONDCP0011","AONDCP0008","AONDCP0001","NDAS0010","AONDCP0009","NDAS0016","NDAS0017","ANGNR0004","AONDCP0012"]);
 function isPassivelyManaged(ndas) { return PASSIVE_NDAS.has(ndas); }
+// Shared Active/Passive badge — originally local to buildChecklist()'s Client Checklist table;
+// promoted to global here so showClient()'s info-card row can reuse the identical badge, per
+// user request 2026-07-21. buildChecklist() still declares its own local mgmtBadge() (shadows
+// this one within that function) — left alone rather than risk touching that working table.
+function mgmtBadge(ndas){
+  var passive = ndas && isPassivelyManaged(ndas);
+  return passive
+    ? '<span style="background:#F0F2F5;color:#555;padding:2px 8px;border-radius:4px;font-size:10.5px;font-weight:700">Passive</span>'
+    : '<span style="background:#E5ECFF;color:#222A9C;padding:2px 8px;border-radius:4px;font-size:10.5px;font-weight:700">Active</span>';
+}
 
 // ---- Data-quality flag: a holding with real market value but no recorded cost basis (unit_cost/
 // cost == 0) makes gain/loss silently wrong (shows 0% instead of the real, indeterminate return) —
@@ -19550,7 +19574,7 @@ function buildMainCharts(s, i) {
         type: 'doughnut',
         data: { labels: ['Equity', 'Debt', 'Others'],
           datasets: [{ data: [a.equity||0, a.debt||0, a.others||0],
-            backgroundColor: ['#1F4E78','#F0C040','#9C27B0'], borderColor:'#fff', borderWidth:2 }]},
+            backgroundColor: ['#242BA1','#F0C040','#9C27B0'], borderColor:'#fff', borderWidth:2 }]},
         options: { responsive:true, maintainAspectRatio:false,
           plugins:{ legend:{position:'bottom'},
             tooltip:{callbacks:{label:ctx=>` ${ctx.label}: ${ctx.parsed.toFixed(2)}%`}}}}
@@ -19564,7 +19588,7 @@ function buildMainCharts(s, i) {
         data: { labels: ['Large Cap','Mid Cap','Small Cap'],
           datasets: [{ label:'% of Equity',
             data: [a.large_cap||0, a.mid_cap||0, a.small_cap||0],
-            backgroundColor: ['#1F4E78','#4A90D9','#7E57C2'],
+            backgroundColor: ['#242BA1','#7BA0FF','#7E57C2'],
             borderRadius:4, maxBarThickness:60 }]},
         options: { responsive:true, maintainAspectRatio:false,
           plugins:{ legend:{display:false},
@@ -19578,7 +19602,7 @@ function buildMainCharts(s, i) {
     const mix = [...s.instrument_mix].sort((x,y) => (y.pct||0) - (x.pct||0));
     const labels = mix.map(m => m.category);
     const pcts = mix.map(m => m.pct);
-    const palette = ['#1F4E78','#4A90D9','#7E57C2','#2EA260','#F0C040','#D9534F','#9C27B0','#FF8A65','#6D4C41','#26A69A','#5C6BC0','#EC407A'];
+    const palette = ['#242BA1','#7BA0FF','#7E57C2','#2EA260','#F0C040','#D9534F','#9C27B0','#FF8A65','#6D4C41','#26A69A','#5C6BC0','#EC407A'];
     CHART_INSTANCES[`schemeInstrBar-${i}`] = new Chart(schemeInstrCtx, {
       type: 'bar',
       data: {
@@ -19649,7 +19673,7 @@ function pendingTasksSearchKey(c) {
 }
 function pendingClientLink(c) {
   return `<a href="#" onclick="showClient(${c.strategyIdx},${c.clientIdx});return false;" ` +
-    `style="color:var(--primary);font-weight:600;text-decoration:none;border-bottom:1px dashed #4A90D9;cursor:pointer">${c.name}</a>`;
+    `style="color:var(--primary);font-weight:600;text-decoration:none;border-bottom:1px dashed #7BA0FF;cursor:pointer">${c.name}</a>`;
 }
 function reviewStatusPill(rs) {
   const cfg = {
@@ -19700,11 +19724,11 @@ function renderPendingTasksPanel() {
         Reviews Pending <span style="font-weight:400;color:var(--muted);text-transform:none;letter-spacing:0">(${reviewPending.length})</span>
       </div>
       <div style="overflow-x:auto"><table style="width:100%"><thead><tr>
-        <th style="text-align:left;padding:6px 10px;font-size:11px;color:var(--muted);text-transform:uppercase">Client</th>
-        <th style="text-align:left;padding:6px 10px;font-size:11px;color:var(--muted);text-transform:uppercase">Strategy</th>
-        <th style="text-align:left;padding:6px 10px;font-size:11px;color:var(--muted);text-transform:uppercase">RM</th>
-        <th style="text-align:left;padding:6px 10px;font-size:11px;color:var(--muted);text-transform:uppercase">Advisor</th>
-        <th style="text-align:left;padding:6px 10px;font-size:11px;color:var(--muted);text-transform:uppercase">Status</th>
+        <th style="text-align:left;padding:6px 10px;font-size:11px;color:var(--muted-on-dark);text-transform:uppercase">Client</th>
+        <th style="text-align:left;padding:6px 10px;font-size:11px;color:var(--muted-on-dark);text-transform:uppercase">Strategy</th>
+        <th style="text-align:left;padding:6px 10px;font-size:11px;color:var(--muted-on-dark);text-transform:uppercase">RM</th>
+        <th style="text-align:left;padding:6px 10px;font-size:11px;color:var(--muted-on-dark);text-transform:uppercase">Advisor</th>
+        <th style="text-align:left;padding:6px 10px;font-size:11px;color:var(--muted-on-dark);text-transform:uppercase">Status</th>
       </tr></thead><tbody id="pt-review-body">${reviewRows}</tbody></table></div>
     </div>
     <div>
@@ -19712,11 +19736,11 @@ function renderPendingTasksPanel() {
         Actions Pending <span style="font-weight:400;color:var(--muted);text-transform:none;letter-spacing:0">(${actionPending.length})</span>
       </div>
       <div style="overflow-x:auto"><table style="width:100%"><thead><tr>
-        <th style="text-align:left;padding:6px 10px;font-size:11px;color:var(--muted);text-transform:uppercase">Client</th>
-        <th style="text-align:left;padding:6px 10px;font-size:11px;color:var(--muted);text-transform:uppercase">Strategy</th>
-        <th style="text-align:left;padding:6px 10px;font-size:11px;color:var(--muted);text-transform:uppercase">RM</th>
-        <th style="text-align:left;padding:6px 10px;font-size:11px;color:var(--muted);text-transform:uppercase">Advisor</th>
-        <th style="text-align:left;padding:6px 10px;font-size:11px;color:var(--muted);text-transform:uppercase">Action Items</th>
+        <th style="text-align:left;padding:6px 10px;font-size:11px;color:var(--muted-on-dark);text-transform:uppercase">Client</th>
+        <th style="text-align:left;padding:6px 10px;font-size:11px;color:var(--muted-on-dark);text-transform:uppercase">Strategy</th>
+        <th style="text-align:left;padding:6px 10px;font-size:11px;color:var(--muted-on-dark);text-transform:uppercase">RM</th>
+        <th style="text-align:left;padding:6px 10px;font-size:11px;color:var(--muted-on-dark);text-transform:uppercase">Advisor</th>
+        <th style="text-align:left;padding:6px 10px;font-size:11px;color:var(--muted-on-dark);text-transform:uppercase">Action Items</th>
       </tr></thead><tbody id="pt-action-body">${actionRows}</tbody></table></div>
     </div>
   `;
@@ -20130,6 +20154,7 @@ function showClient(strategyIdx, clientIdx) {
     <div class="info-card"><div class="label">Inception</div><div class="value">${c.inception}</div></div>
     <div class="info-card"><div class="label">Last Review</div><div class="value" style="color:${(MIS_DATA[c.ndas]||{}).last_review?'var(--primary)':'var(--muted)'}">${(MIS_DATA[c.ndas]||{}).last_review || '\u2014'}</div></div>
     <div class="info-card"><div class="label">Advisor</div><div class="value" style="color:${(MIS_DATA[c.ndas]||{}).advisor?'var(--primary)':'var(--muted)'}">${(MIS_DATA[c.ndas]||{}).advisor || '\u2014'}</div></div>
+    <div class="info-card"><div class="label">Management</div><div class="value">${mgmtBadge(c.ndas)}</div></div>
     <div class="info-card"><div class="label">RM</div><div class="value">${(PARKING_DATA[c.ndas]||{}).rm || 'N/A'}</div></div>
     <div class="info-card"><div class="label">SRM</div><div class="value">${(PARKING_DATA[c.ndas]||{}).srm || '\u2014'}</div></div>
     <div class="info-card"><div class="label">Total AUM</div><div class="value">${fmtINR(c.aum)}</div></div>
@@ -20184,6 +20209,10 @@ function showClient(strategyIdx, clientIdx) {
         ? ` <span title="No cost basis on record — gain/loss shown may be wrong (reads as 0% instead of undefined). Likely a corporate action (bonus/demerger) or DP transfer-in without cost basis carried over — verify before relying on this figure." style="cursor:help;color:#B71C1C">&#9888;</span>`
         : '';
       const taxInfo = classifyGainsTax(h, c.ndas);
+      const xferRec = transferInInfo(c.ndas, h.isin);
+      const xferCell = xferRec
+        ? `<span title="Originally acquired ${xferRec.transferDate}${xferRec.mixed?' — also added to since, with new capital':''}" style="cursor:help;color:var(--muted);font-style:italic">Transferred in${xferRec.mixed?' +more':''}</span>`
+        : '<span style="color:var(--na)">—</span>';
       holdingsRows += `
         <tr>
           <td>${cl}</td>
@@ -20196,6 +20225,7 @@ function showClient(strategyIdx, clientIdx) {
           <td class="num">${fmtINR(h.gain_loss)}</td>
           <td class="num" style="color:${glColor}">${pctRaw(h.gl_pct)}</td>
           <td class="num">${pctRaw(h.assets_pct)}</td>
+          <td style="font-size:11.5px">${xferCell}</td>
           <td class="num" title="${escapeHtml(taxInfo.detail)}" style="cursor:help"><span style="background:${taxInfo.fill||'transparent'};color:${taxInfo.color};padding:2px 7px;border-radius:4px;font-size:10.5px;font-weight:700">${taxInfo.label}</span></td>
         </tr>`;
     });
@@ -20209,6 +20239,7 @@ function showClient(strategyIdx, clientIdx) {
         <td class="num">${fmtINR(subGL)}</td>
         <td class="num" style="color:${subPct>=0?'var(--green)':'var(--red)'}">${pctRaw(subPct)}</td>
         <td class="num">${pctRaw(subAssetsPct)}</td>
+        <td></td>
         <td></td>
       </tr>`;
     grandMV += subMV; grandCost += subCost; grandGL += subGL; grandAssetsPct += subAssetsPct;
@@ -20224,6 +20255,7 @@ function showClient(strategyIdx, clientIdx) {
       <td class="num" style="color:${grandPct>=0?'var(--green)':'var(--red)'}">${pctRaw(grandPct)}</td>
       <td class="num">${pctRaw(grandAssetsPct)}</td>
       <td></td>
+      <td></td>
     </tr>`;
 
   const holdingsTable = c.holdings.length ? `
@@ -20231,7 +20263,7 @@ function showClient(strategyIdx, clientIdx) {
       <thead><tr>
         <th>Asset Class</th><th>Security</th><th>Quantity</th><th>Unit Cost</th>
         <th>Cost</th><th>Price</th><th>Market Value</th><th>Gain/Loss</th>
-        <th>% G/L</th><th>% Assets</th><th title="Estimated capital-gains category if sold today — informational only, verify with a tax advisor">Tax (if sold)</th>
+        <th>% G/L</th><th>% Assets</th><th>Transfer In</th><th title="Estimated capital-gains category if sold today — informational only, verify with a tax advisor">Tax (if sold)</th>
       </tr></thead>
       <tbody>${holdingsRows}</tbody>
     </table>` : '<div style="text-align:center;color:var(--muted);padding:24px">No holdings data available.</div>';
@@ -20286,7 +20318,7 @@ function showClient(strategyIdx, clientIdx) {
         <div class="chart-canvas-wrap"><canvas id="instrBar"></canvas></div></div>
       ` : ''}
     </div>` : `
-    <div class="footer-note" style="text-align:center;background:#EAF1F8;color:#1F4E78;border-left-color:#1F4E78">
+    <div class="footer-note" style="text-align:center;background:#EAF1F8;color:#242BA1;border-left-color:#242BA1">
       Asset-class &amp; market-cap allocation data not yet available for this client.
     </div>`;
 
@@ -20667,7 +20699,7 @@ function buildClientCharts(c) {
           labels: ['Equity', 'Debt', 'Others'],
           datasets: [{
             data: [a.equity || 0, a.debt || 0, a.others || 0],
-            backgroundColor: ['#1F4E78', '#F0C040', '#9C27B0'],
+            backgroundColor: ['#242BA1', '#F0C040', '#9C27B0'],
             borderColor: '#fff', borderWidth: 2,
           }],
         },
@@ -20685,7 +20717,7 @@ function buildClientCharts(c) {
           datasets: [{
             label: '% of Equity',
             data: [a.large_cap || 0, a.mid_cap || 0, a.small_cap || 0],
-            backgroundColor: ['#1F4E78', '#4A90D9', '#7E57C2'],
+            backgroundColor: ['#242BA1', '#7BA0FF', '#7E57C2'],
             borderRadius: 4, maxBarThickness: 60,
           }],
         },
@@ -20701,7 +20733,7 @@ function buildClientCharts(c) {
       const mix = [...a.instrument_mix].sort((x,y) => (y.pct||0) - (x.pct||0));
       const labels = mix.map(m => m.category);
       const pcts = mix.map(m => m.pct);
-      const palette = ['#1F4E78','#4A90D9','#7E57C2','#2EA260','#F0C040','#D9534F','#9C27B0','#FF8A65','#6D4C41','#26A69A','#5C6BC0','#EC407A'];
+      const palette = ['#242BA1','#7BA0FF','#7E57C2','#2EA260','#F0C040','#D9534F','#9C27B0','#FF8A65','#6D4C41','#26A69A','#5C6BC0','#EC407A'];
       CHART_INSTANCES['client-instr'] = new Chart(instrCtx, {
         type: 'bar',
         data: {
@@ -20750,7 +20782,7 @@ function buildClientCharts(c) {
       data: {
         labels,
         datasets: [
-          { label:'Market Value (₹)', data: mvs, backgroundColor:'#1F4E78',
+          { label:'Market Value (₹)', data: mvs, backgroundColor:'#242BA1',
             borderRadius:4, maxBarThickness:22, xAxisID:'x' },
           { label:'% G/L', data: glPct, backgroundColor: glColors,
             borderRadius:4, maxBarThickness:22, xAxisID:'x2' },
@@ -20774,7 +20806,7 @@ function buildClientCharts(c) {
           }
         },
         scales: {
-          x:  { position:'bottom', title:{display:true, text:'Market Value (₹)', color:'#1F4E78', font:{size:11}}, ticks:{callback:v=>fmtINR(v)}, grid:{drawOnChartArea:true} },
+          x:  { position:'bottom', title:{display:true, text:'Market Value (₹)', color:'#242BA1', font:{size:11}}, ticks:{callback:v=>fmtINR(v)}, grid:{drawOnChartArea:true} },
           x2: { position:'top',    title:{display:true, text:'% G/L',           color:'#595959', font:{size:11}}, ticks:{callback:v=>v+'%'}, grid:{drawOnChartArea:false} },
           y:  { ticks:{font:{size:11}} },
         }
@@ -20792,7 +20824,7 @@ function buildClientCharts(c) {
           labels: c.monthly.map(m => m.label),
           datasets: [
             { label:'Portfolio (cumulative)', data:c.monthly.map(m => m.pc),
-              borderColor:'#1F4E78', backgroundColor:'rgba(31,78,120,.1)',
+              borderColor:'#242BA1', backgroundColor:'rgba(36,43,161,.1)',
               tension:.25, pointRadius:4, pointHoverRadius:6, borderWidth:2.5, fill:true },
             { label:(c.benchmark_name || 'Benchmark') + ' (cumulative)', data:c.monthly.map(m => m.bc),
               borderColor:'#D9534F', backgroundColor:'rgba(217,83,79,.05)',
@@ -20935,10 +20967,11 @@ const INSTRUMENT_FILTER_GROUPS = {
   mutual_funds: ['Domestic Equity Fund','Domestic Equity ETF','International Equity Fund','International Equity ETF','Debt Fund','Arbitrage Fund','Hybrid'],
   commodity: ['Commodity Fund','Commodity ETF'],
   reit_invit: ['REIT / InvIT'],
-  aif_sif: ['AIF / SIF'],
+  aif: ['AIF'],
+  sif: ['SIF'],
   cash: ['Cash','Liquid / Overnight']
 };
-const INSTRUMENT_FILTER_LABELS = { all:'All', direct_equity:'Direct Equity', mutual_funds:'Mutual Funds', commodity:'Commodity', reit_invit:'REIT/InvIT', aif_sif:'AIF/SIF', cash:'Cash/Liquid' };
+const INSTRUMENT_FILTER_LABELS = { all:'All', direct_equity:'Direct Equity', mutual_funds:'Mutual Funds', commodity:'Commodity', reit_invit:'REIT/InvIT', aif:'AIF', sif:'SIF', cash:'Cash/Liquid' };
 window._searchCategoryFilter = window._searchCategoryFilter || 'all';
 function setSearchCategoryFilter(cat){
   window._searchCategoryFilter = cat;
@@ -20980,14 +21013,14 @@ function renderFundResultCard(f){
     </div>
     <div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;min-width:640px">
       <thead><tr style="border-bottom:1px solid var(--border)">
-        <th style="padding:2px 8px;text-align:left;font-size:9.5px;color:var(--muted);text-transform:uppercase">Client</th>
-        <th style="padding:2px 8px;text-align:left;font-size:9.5px;color:var(--muted);text-transform:uppercase">Strategy</th>
-        <th style="padding:2px 8px;text-align:left;font-size:9.5px;color:var(--muted);text-transform:uppercase">RM</th>
-        <th style="padding:2px 8px;text-align:right;font-size:9.5px;color:var(--muted);text-transform:uppercase">Value</th>
-        <th style="padding:2px 8px;text-align:right;font-size:9.5px;color:var(--muted);text-transform:uppercase">Gain/Loss</th>
-        <th style="padding:2px 8px;text-align:left;font-size:9.5px;color:var(--muted);text-transform:uppercase">Held Since</th>
-        <th style="padding:2px 8px;text-align:left;font-size:9.5px;color:var(--muted);text-transform:uppercase">Tranches</th>
-        <th style="padding:2px 8px;text-align:left;font-size:9.5px;color:var(--muted);text-transform:uppercase">Timing</th>
+        <th style="padding:2px 8px;text-align:left;font-size:9.5px;color:var(--muted-on-dark);text-transform:uppercase">Client</th>
+        <th style="padding:2px 8px;text-align:left;font-size:9.5px;color:var(--muted-on-dark);text-transform:uppercase">Strategy</th>
+        <th style="padding:2px 8px;text-align:left;font-size:9.5px;color:var(--muted-on-dark);text-transform:uppercase">RM</th>
+        <th style="padding:2px 8px;text-align:right;font-size:9.5px;color:var(--muted-on-dark);text-transform:uppercase">Value</th>
+        <th style="padding:2px 8px;text-align:right;font-size:9.5px;color:var(--muted-on-dark);text-transform:uppercase">Gain/Loss</th>
+        <th style="padding:2px 8px;text-align:left;font-size:9.5px;color:var(--muted-on-dark);text-transform:uppercase">Held Since</th>
+        <th style="padding:2px 8px;text-align:left;font-size:9.5px;color:var(--muted-on-dark);text-transform:uppercase">Tranches</th>
+        <th style="padding:2px 8px;text-align:left;font-size:9.5px;color:var(--muted-on-dark);text-transform:uppercase">Timing</th>
       </tr></thead>
       <tbody>${rows}</tbody>
     </table></div>
@@ -21338,45 +21371,16 @@ function renderCallsView(){
     </tr>`;
   }).join('');
 
-  let html = `<div class="chart-card" style="margin-bottom:20px">
+  // Per-client, per-fund breakdown used to live here as a table under every theme — removed per
+  // user request 2026-07-21 ("just include aggregate level all securities in the thematic calls
+  // part"), since the Browse view (openBrowseView/renderBrowseResults) now covers that same
+  // per-client drill-down without duplicating it here. This view stays aggregate-only: one row
+  // per theme, clients count, aggregate return, verdict, and the up/down + "Good Call" detail.
+  const html = `<div class="chart-card" style="margin-bottom:20px">
     <h3>All Calls — Summary</h3>
     <table><thead><tr><th style="text-align:left">Call</th><th>Clients</th><th>Aggregate Return</th><th>Verdict</th><th>Detail</th></tr></thead>
     <tbody>${summaryRows}</tbody></table>
   </div>`;
-
-  data.forEach(d => {
-    const nHolders = d.holders.length;
-    const rows = d.holders.slice().sort((a,b)=>(b.glPct||0)-(a.glPct||0)).map(h => {
-      const ta = h.tradeAttr;
-      const heldSince = ta && ta.first_buy_date ? `${ta.first_buy_date}${monthsHeldSince(ta.first_buy_date)!=null?` (${monthsHeldSince(ta.first_buy_date)}mo)`:''}` : formatHeldSinceEntry(h.entry, h.ndas, h.isin);
-      const tranches = (ta ? (ta.n_tranches>1 ? `<span title="${escapeHtml(ta.stagger_label||'')}" style="cursor:help">${ta.n_tranches} staggered</span>` : `${ta.n_tranches||1} lump sum`) : '—') + (ta ? legacyBadge(h.ndas, h.isin) : '');
-      const vc = ta ? (VERDICT_COLOR[ta.verdict]||["var(--muted)","#F0F2F5"]) : null;
-      const timing = ta ? `<span onclick="showVerdictDetail(${jsAttr(h.ndas)},${jsAttr(h.security)})" title="Click for the full verdict breakdown" style="cursor:pointer;background:${vc[1]};color:${vc[0]};padding:2px 7px;border-radius:4px;font-weight:700;font-size:10.5px">${ta.verdict}</span>` : '<span style="color:var(--muted)">—</span>';
-      return `<tr>
-      <td style="text-align:left">${h.client}</td>
-      <td style="text-align:left">${h.security}</td>
-      <td>${fmtCr(h.mvCr)}</td>
-      <td style="color:${h.glPct>=0?'var(--green)':'var(--red)'};font-weight:600">${h.glPct>=0?'+':''}${h.glPct.toFixed(2)}%</td>
-      <td style="font-size:11px;color:var(--muted);white-space:nowrap">${heldSince}</td>
-      <td style="font-size:11px;color:var(--muted);white-space:nowrap">${tranches}</td>
-      <td style="font-size:11px;color:var(--muted)">${timing}</td>
-    </tr>`;
-    }).join('');
-    const exitedRows = d.exited.map(x => `<tr>
-      <td style="text-align:left">${x.client}</td>
-      <td style="text-align:left">${x.security}</td>
-      <td style="font-size:11px;color:var(--muted)">${x.firstMonthHeld||'—'} &rarr; ${x.lastMonthHeld||'—'}</td>
-      <td style="color:${x.totalContribution>=0?'var(--green)':'var(--red)'};font-weight:600">${x.totalContribution>=0?'+':''}${x.totalContribution.toFixed(2)}%</td>
-      <td colspan="3" style="font-size:11px;color:var(--muted);font-style:italic">EXITED</td>
-    </tr>`).join('');
-    html += `<div class="chart-card" style="margin-bottom:20px">
-      <h3>${d.theme.label} <span class="small" style="font-weight:400">(${nHolders} current holder${nHolders===1?'':'s'}${d.exited.length?`, ${d.exited.length} exited`:''})</span></h3>
-      ${nHolders ? `<table><thead><tr><th style="text-align:left">Client</th><th style="text-align:left">Security</th><th>Market Value</th><th>Gain/Loss</th><th>Held Since</th><th>Tranches</th><th>Timing</th></tr></thead><tbody>${rows}</tbody></table>`
-        : '<div class="attr-empty">No client currently holds a fund matching this call.</div>'}
-      ${d.exited.length ? `<div style="margin-top:12px"><div class="small" style="font-weight:700;color:var(--muted);margin-bottom:6px">Exited</div>
-        <table><thead><tr><th style="text-align:left">Client</th><th style="text-align:left">Security</th><th>Held</th><th>Contribution</th><th colspan="3"></th></tr></thead><tbody>${exitedRows}</tbody></table></div>` : ''}
-    </div>`;
-  });
 
   root.innerHTML = html;
 }
@@ -21556,11 +21560,11 @@ function showRmDetail(rmName) {
     </div>
     <div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;min-width:520px">
       <thead><tr style="border-bottom:1px solid var(--border)">
-        <th style="padding:4px 10px;text-align:left;font-size:10.5px;color:var(--muted);text-transform:uppercase">Client</th>
-        <th style="padding:4px 10px;text-align:left;font-size:10.5px;color:var(--muted);text-transform:uppercase">Strategy</th>
-        <th style="padding:4px 10px;text-align:right;font-size:10.5px;color:var(--muted);text-transform:uppercase">AUM</th>
-        <th style="padding:4px 10px;text-align:right;font-size:10.5px;color:var(--muted);text-transform:uppercase">Status</th>
-        <th style="padding:4px 10px;text-align:right;font-size:10.5px;color:var(--muted);text-transform:uppercase">SI Alpha</th>
+        <th style="padding:4px 10px;text-align:left;font-size:10.5px;color:var(--muted-on-dark);text-transform:uppercase">Client</th>
+        <th style="padding:4px 10px;text-align:left;font-size:10.5px;color:var(--muted-on-dark);text-transform:uppercase">Strategy</th>
+        <th style="padding:4px 10px;text-align:right;font-size:10.5px;color:var(--muted-on-dark);text-transform:uppercase">AUM</th>
+        <th style="padding:4px 10px;text-align:right;font-size:10.5px;color:var(--muted-on-dark);text-transform:uppercase">Status</th>
+        <th style="padding:4px 10px;text-align:right;font-size:10.5px;color:var(--muted-on-dark);text-transform:uppercase">SI Alpha</th>
       </tr></thead>
       <tbody>${rows}</tbody>
     </table></div>
@@ -22764,13 +22768,13 @@ function buildChecklist(){
     var nameCell;
     if(entry){
       nameCell='<a href="#" onclick="showMainView();setTimeout(function(){showClient('+entry.stratIdx+','+entry.clientIdx+')},50);return false;" '+
-        'style="color:#1F4E78;font-weight:600;text-decoration:none;border-bottom:1px dashed #4A90D9;cursor:pointer">'+name+'</a>';
+        'style="color:#242BA1;font-weight:600;text-decoration:none;border-bottom:1px dashed #7BA0FF;cursor:pointer">'+name+'</a>';
     } else if(c.full_name && c.full_name.indexOf('Shah Family')>=0){
       // Shah family — link to Jay (NDAS0011)
       var jayEntry=ndasMap['NDAS0011'];
       if(jayEntry){
         nameCell='<a href="#" onclick="showMainView();setTimeout(function(){showClient('+jayEntry.stratIdx+','+jayEntry.clientIdx+')},50);return false;" '+
-          'style="color:#1F4E78;font-weight:600;text-decoration:none;border-bottom:1px dashed #4A90D9;cursor:pointer">'+name+'</a>';
+          'style="color:#242BA1;font-weight:600;text-decoration:none;border-bottom:1px dashed #7BA0FF;cursor:pointer">'+name+'</a>';
       } else { nameCell='<span style="font-weight:600">'+name+'</span>'; }
     } else {
       nameCell='<span style="font-weight:600">'+name+'</span>';
@@ -22832,7 +22836,7 @@ function buildChecklist(){
     var nameCell;
     if(entry){
       nameCell='<a href="#" onclick="showMainView();setTimeout(function(){showClient('+entry.stratIdx+','+entry.clientIdx+')},50);return false;" '+
-        'style="color:#1F4E78;font-weight:600;text-decoration:none;border-bottom:1px dashed #4A90D9;cursor:pointer">'+name+'</a>';
+        'style="color:#242BA1;font-weight:600;text-decoration:none;border-bottom:1px dashed #7BA0FF;cursor:pointer">'+name+'</a>';
     } else {
       nameCell='<span style="font-weight:600">'+name+'</span>';
     }
