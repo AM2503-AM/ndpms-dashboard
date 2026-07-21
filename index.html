@@ -135,6 +135,16 @@
       oninput="globalSearchInput(this.value)" onfocus="globalSearchInput(this.value)" onkeydown="globalSearchKeydown(event)">
     <div id="global-search-results" style="display:none;position:absolute;top:calc(100% + 6px);left:0;right:0;background:#fff;border-radius:8px;box-shadow:0 6px 20px rgba(0,0,0,.25);max-height:420px;overflow-y:auto;z-index:200;text-align:left;color:var(--text)"></div>
   </div>
+  <select id="search-cat-filter" onchange="setSearchCategoryFilter(this.value)" title="Filter fund/security search by instrument type"
+    style="padding:9px 10px;border-radius:6px;border:none;font-size:12px;box-shadow:0 2px 4px rgba(0,0,0,.1);outline:none;cursor:pointer;background:#fff;color:var(--text)">
+    <option value="all">All Instruments</option>
+    <option value="direct_equity">Direct Equity</option>
+    <option value="mutual_funds">Mutual Funds</option>
+    <option value="commodity">Commodity</option>
+    <option value="reit_invit">REIT/InvIT</option>
+    <option value="aif_sif">AIF/SIF</option>
+    <option value="cash">Cash/Liquid</option>
+  </select>
   <div id="topbar-actions" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
     <a class="refresh-btn" href="#" onclick="askRefresh();return false;">&#x21bb; &nbsp;Refresh Dashboard</a>
     <a class="refresh-btn" id="ips-btn" href="#" onclick="toggleIPSView();return false;">&#128203; IPS Review</a>
@@ -19367,6 +19377,35 @@ function amcConcentrationLabel(topAmc, topAmcPct, fullNameOrNdas) {
     ? `${both.pctPortfolio.toFixed(1)}% of portfolio (approx.) &middot; ${topAmcPct.toFixed(1)}% of MF/AIF/Bond/SIF book (${topAmc})`
     : `${topAmcPct.toFixed(1)}% (${topAmc})`;
 }
+// Scheme concentration — same two-number treatment as AMC above, but exact rather than a name-
+// prefix heuristic since we can look the scheme up directly by name in the client's holdings.
+function schemeExposureBothPct(topScheme, fullNameOrNdas) {
+  const m = String(fullNameOrNdas||'').match(/([A-Z]+\d+)\s*$/);
+  const ndas = m ? m[1] : null;
+  if (!ndas) return null;
+  let client = null;
+  STRATEGY_DATA.forEach(s => s.clients.forEach(cl => { if (cl.ndas === ndas) client = cl; }));
+  if (!client || !client.holdings || !client.aum) return null;
+  const holding = client.holdings.find(h => h.security === topScheme);
+  if (!holding) return null;
+  return { pctPortfolio: holding.market_value / client.aum * 100 };
+}
+function schemeConcentrationLabel(topScheme, topSchemePct, fullNameOrNdas) {
+  const both = schemeExposureBothPct(topScheme, fullNameOrNdas);
+  return both
+    ? `${both.pctPortfolio.toFixed(1)}% of portfolio (approx.) &middot; ${topSchemePct.toFixed(1)}% of non-listed scheme book (${String(topScheme).substring(0,35)})`
+    : `${topSchemePct.toFixed(1)}% (${String(topScheme).substring(0,35)})`;
+}
+// Whether an AMC/Scheme concentration "breach" (sub-book % over the 25%/15% threshold) is
+// actually material, per user request 2026-07-21: a manager or scheme dominating 80%+ of the
+// MF/AIF/Bond/SIF-only book can still be a non-issue if that whole book is under 10% of the
+// client's real portfolio (the rest being direct stock-picking or other instrument types) — the
+// tiny sliver just looks alarming in isolation. Suppress the flag below this floor; if the true
+// %-of-portfolio can't be computed, fall back to flagging (safe default, don't hide a real risk).
+const CONCENTRATION_MATERIALITY_FLOOR_PCT = 10;
+function isConcentrationBreachMaterial(bothPctResult) {
+  return !bothPctResult || bothPctResult.pctPortfolio >= CONCENTRATION_MATERIALITY_FLOOR_PCT;
+}
 function computeManagementSplit(clients) {
   const mk = () => ({ count:0, aum:0, outCount:0, outAum:0, underCount:0, underAum:0 });
   const active = mk(), passive = mk();
@@ -20303,8 +20342,10 @@ function showClient(strategyIdx, clientIdx) {
 
     // ── PORTFOLIO SECTION ──
     rows += SEC('Portfolio Level','#FFF3E0');
-    rows += TR('AMC Concentration (Max)','≤'+tm.amc.max+'%',amcConcentrationLabel(ic.top_amc,ic.top_amc_pct,ic.full_name),chkMx(ic.top_amc_pct,tm.amc.max),false);
-    rows += TR('Scheme Concentration (Max)','≤'+tm.scheme.max+'%',ic.top_scheme_pct.toFixed(1)+'% ('+ic.top_scheme.substring(0,45)+')',chkMx(ic.top_scheme_pct,tm.scheme.max),false);
+    const ic_amcBoth = amcExposureBothPct(ic.top_amc, ic.full_name);
+    const ic_schemeBoth = schemeExposureBothPct(ic.top_scheme, ic.full_name);
+    rows += TR('AMC Concentration (Max)','≤'+tm.amc.max+'%',amcConcentrationLabel(ic.top_amc,ic.top_amc_pct,ic.full_name),isConcentrationBreachMaterial(ic_amcBoth)?chkMx(ic.top_amc_pct,tm.amc.max):[false,'var(--green)','✓ OK'],false);
+    rows += TR('Scheme Concentration (Max)','≤'+tm.scheme.max+'%',schemeConcentrationLabel(ic.top_scheme,ic.top_scheme_pct,ic.full_name),isConcentrationBreachMaterial(ic_schemeBoth)?chkMx(ic.top_scheme_pct,tm.scheme.max):[false,'var(--green)','✓ OK'],false);
     rows += TR('Commodities (% of Portfolio)',tm.commodity.label,ic.commodity_pct.toFixed(1)+'%',chk(ic.commodity_pct,tm.commodity.min,tm.commodity.max),true);
     var lkStr=ic.locked_pct>0?ic.locked_pct.toFixed(1)+'% ('+ic.locked_names.join(', ').substring(0,80)+')':'0.0%';
     rows += TR('Products with Hard Lock-in (Max)','≤'+tm.lockin.max+'%',lkStr,chkMx(ic.locked_pct,tm.lockin.max),false);
@@ -20400,8 +20441,8 @@ function downloadDeviationsExcel() {
     const t = TMPL[c.risk_profile] || TMPL.Aggressive, b = [];
     if (c.eq_pct < t.equity.min || c.eq_pct > t.equity.max) b.push('Equity ' + c.eq_pct.toFixed(1) + '% vs ' + t.equity.label);
     if (c.debt_alt_pct < t.debt_alt.min || c.debt_alt_pct > t.debt_alt.max) b.push('Debt+Alt ' + c.debt_alt_pct.toFixed(1) + '% vs ' + t.debt_alt.label);
-    if (c.top_amc_pct > t.amc.max) b.push('AMC: ' + c.top_amc_pct.toFixed(1) + '% (' + c.top_amc + ') > ' + t.amc.max + '%');
-    if (c.top_scheme_pct > t.scheme.max) b.push('Scheme: ' + c.top_scheme_pct.toFixed(1) + '% > ' + t.scheme.max + '%');
+    if (c.top_amc_pct > t.amc.max && isConcentrationBreachMaterial(amcExposureBothPct(c.top_amc, c.full_name))) b.push('AMC: ' + c.top_amc_pct.toFixed(1) + '% (' + c.top_amc + ') > ' + t.amc.max + '%');
+    if (c.top_scheme_pct > t.scheme.max && isConcentrationBreachMaterial(schemeExposureBothPct(c.top_scheme, c.full_name))) b.push('Scheme: ' + c.top_scheme_pct.toFixed(1) + '% > ' + t.scheme.max + '%');
     if (c.lc_pct < t.lc.min) b.push('LC: ' + c.lc_pct.toFixed(1) + '% < ' + t.lc.min + '%');
     if (c.mc_pct > t.mc.max) b.push('MC: ' + c.mc_pct.toFixed(1) + '% > ' + t.mc.max + '%');
     if (c.sc_pct > t.sc.max) b.push('SC: ' + c.sc_pct.toFixed(1) + '% > ' + t.sc.max + '%');
@@ -20546,8 +20587,10 @@ function downloadClientExcel(strategyIdx, clientIdx) {
     ipsAoa.push(['Debt & Alternates', 'Debt + Alternates', tm.debt_alt.label, ic.debt_alt_pct.toFixed(1)+'% (Debt '+ic.debt_pct.toFixed(1)+'% + Others '+ic.oth_pct.toFixed(1)+'%)', chk(ic.debt_alt_pct, tm.debt_alt.min, tm.debt_alt.max)]);
     ipsAoa.push(['Debt & Alternates', 'Duration of Portfolio', tm.dur, ic.debt_pct>10 ? 'Review required' : 'N/A (minimal fixed income)', '—']);
     ipsAoa.push(['Debt & Alternates', 'Credit Quality', tm.credit, ic.debt_pct>10 ? 'Review required' : 'N/A', '—']);
-    ipsAoa.push(['Portfolio Level', 'AMC Concentration (Max)', '≤'+tm.amc.max+'%', ic.top_amc_pct.toFixed(1)+'% ('+ic.top_amc+')', chkMx(ic.top_amc_pct, tm.amc.max)]);
-    ipsAoa.push(['Portfolio Level', 'Scheme Concentration (Max)', '≤'+tm.scheme.max+'%', ic.top_scheme_pct.toFixed(1)+'% ('+ic.top_scheme+')', chkMx(ic.top_scheme_pct, tm.scheme.max)]);
+    const exp_amcBoth = amcExposureBothPct(ic.top_amc, c.ndas);
+    const exp_schemeBoth = schemeExposureBothPct(ic.top_scheme, c.ndas);
+    ipsAoa.push(['Portfolio Level', 'AMC Concentration (Max)', '≤'+tm.amc.max+'%', ic.top_amc_pct.toFixed(1)+'% ('+ic.top_amc+')', isConcentrationBreachMaterial(exp_amcBoth) ? chkMx(ic.top_amc_pct, tm.amc.max) : '✓ OK']);
+    ipsAoa.push(['Portfolio Level', 'Scheme Concentration (Max)', '≤'+tm.scheme.max+'%', ic.top_scheme_pct.toFixed(1)+'% ('+ic.top_scheme+')', isConcentrationBreachMaterial(exp_schemeBoth) ? chkMx(ic.top_scheme_pct, tm.scheme.max) : '✓ OK']);
     ipsAoa.push(['Portfolio Level', 'Commodities (% of Portfolio)', tm.commodity.label, ic.commodity_pct.toFixed(1)+'%', chk(ic.commodity_pct, tm.commodity.min, tm.commodity.max)]);
     const lkStr = ic.locked_pct > 0 ? ic.locked_pct.toFixed(1)+'% ('+ic.locked_names.join(', ')+')' : '0.0%';
     ipsAoa.push(['Portfolio Level', 'Products with Hard Lock-in (Max)', '≤'+tm.lockin.max+'%', lkStr, chkMx(ic.locked_pct, tm.lockin.max)]);
@@ -20835,15 +20878,19 @@ function buildSearchIndex(){
       (c.holdings||[]).forEach(h => {
         if (!h.security || h.security === 'Cash') return;
         const key = h.security;
-        if (!SEARCH_SECURITY_INDEX[key]) SEARCH_SECURITY_INDEX[key] = { security: key, clients: [] };
+        const category = typeof classifyInstrument === "function" ? classifyInstrument(h) : (h.asset_class||'Other');
+        if (!SEARCH_SECURITY_INDEX[key]) SEARCH_SECURITY_INDEX[key] = { security: key, category, clients: [] };
         if (!SEARCH_SECURITY_INDEX[key].clients.some(x => x.stratIdx===si && x.clientIdx===ci)) {
-          // Carry enough per-holding context (RM, strategy, value, performance) so a fund search
-          // can show where it's deployed and how it's performing everywhere at once — not just
-          // which clients hold it.
+          // Carry enough per-holding context (RM, strategy, value, performance, entry/tranche/
+          // timing) so a fund search shows where it's deployed, how it's performing, whether it
+          // was bought in tranches, and whether entry timing was good — everywhere at once.
+          const tradeAttr = typeof getTradeAttrForSecurity === "function" ? getTradeAttrForSecurity(c.ndas, h.security) : null;
           SEARCH_SECURITY_INDEX[key].clients.push({
-            stratIdx: si, clientIdx: ci, name: c.name, strategyName: s.name,
+            stratIdx: si, clientIdx: ci, name: c.name, strategyName: s.name, ndas: c.ndas,
             rm_name: c.rm_name||'', srm_name: c.srm_name||'',
-            market_value: h.market_value||0, gl_pct: h.gl_pct, assets_pct: h.assets_pct
+            market_value: h.market_value||0, gl_pct: h.gl_pct, assets_pct: h.assets_pct,
+            entry: typeof callEntryMonth === "function" ? callEntryMonth(c.ndas, h.security) : null,
+            tradeAttr
           });
         }
       });
@@ -20855,25 +20902,54 @@ function escapeHtml(s){
   return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
 }
 
+// Instrument-type filter for the fund/security search — "just direct equity or just mutual
+// funds across clients", per user request 2026-07-21. Groups classifyInstrument()'s finer
+// categories into the buckets an advisor actually thinks in; "all" disables the filter.
+const INSTRUMENT_FILTER_GROUPS = {
+  all: null,
+  direct_equity: ['Domestic Equity'],
+  mutual_funds: ['Domestic Equity Fund','Domestic Equity ETF','International Equity Fund','International Equity ETF','Debt Fund','Arbitrage Fund','Hybrid'],
+  commodity: ['Commodity Fund','Commodity ETF'],
+  reit_invit: ['REIT / InvIT'],
+  aif_sif: ['AIF / SIF'],
+  cash: ['Cash','Liquid / Overnight']
+};
+const INSTRUMENT_FILTER_LABELS = { all:'All', direct_equity:'Direct Equity', mutual_funds:'Mutual Funds', commodity:'Commodity', reit_invit:'REIT/InvIT', aif_sif:'AIF/SIF', cash:'Cash/Liquid' };
+window._searchCategoryFilter = window._searchCategoryFilter || 'all';
+function setSearchCategoryFilter(cat){
+  window._searchCategoryFilter = cat;
+  globalSearchInput(document.getElementById('global-search-input').value);
+  document.getElementById('global-search-input').focus();
+}
+
 function globalSearchInput(qRaw){
   const q = (qRaw||'').trim().toLowerCase();
   const resultsEl = document.getElementById('global-search-results');
-  if (!q) { resultsEl.style.display='none'; resultsEl.innerHTML=''; return; }
+  const catFilter = window._searchCategoryFilter || 'all';
+  const catList = INSTRUMENT_FILTER_GROUPS[catFilter];
+  if (!q && catFilter === 'all') { resultsEl.style.display='none'; resultsEl.innerHTML=''; return; }
 
   // Check if query matches an RM name
-  const rmQuery = SEARCH_CLIENT_INDEX.filter(c => c.rm_name && c.rm_name.toLowerCase().includes(q));
+  const rmQuery = q ? SEARCH_CLIENT_INDEX.filter(c => c.rm_name && c.rm_name.toLowerCase().includes(q)) : [];
   const isRmSearch = rmQuery.length > 0 && rmQuery.length < SEARCH_CLIENT_INDEX.length;
 
-  const clientMatches = SEARCH_CLIENT_INDEX.filter(c =>
+  const clientMatches = (q && !catList) ? SEARCH_CLIENT_INDEX.filter(c =>
     c.name.toLowerCase().includes(q) || (c.ndas||'').toLowerCase().includes(q) ||
     String(c.account||'').toLowerCase().includes(q) ||
     (c.rm_name||'').toLowerCase().includes(q) || (c.srm_name||'').toLowerCase().includes(q)
-  ).slice(0, isRmSearch ? 20 : 8);
+  ).slice(0, isRmSearch ? 20 : 8) : [];
 
-  const fundMatches = Object.values(SEARCH_SECURITY_INDEX).filter(f => f.security.toLowerCase().includes(q)).slice(0, 8);
+  // With a category filter active, browse ALL matching instruments across the book even with no
+  // search text typed (that's the point — "just direct equity across clients" without knowing a
+  // specific fund name); text further narrows within that category.
+  let fundMatches = Object.values(SEARCH_SECURITY_INDEX).filter(f =>
+    (!catList || catList.includes(f.category)) && (!q || f.security.toLowerCase().includes(q))
+  );
+  fundMatches.sort((a,b) => b.clients.reduce((s,cl)=>s+(cl.market_value||0),0) - a.clients.reduce((s,cl)=>s+(cl.market_value||0),0));
+  fundMatches = fundMatches.slice(0, catList && !q ? 30 : 8);
 
   if (!clientMatches.length && !fundMatches.length) {
-    resultsEl.innerHTML = `<div style="padding:14px;color:var(--muted);font-size:13px">No matches for "${escapeHtml(qRaw)}"</div>`;
+    resultsEl.innerHTML = `<div style="padding:14px;color:var(--muted);font-size:13px">No matches for "${escapeHtml(qRaw)}"${catList?` in ${INSTRUMENT_FILTER_LABELS[catFilter]}`:''}</div>`;
     resultsEl.style.display = 'block';
     return;
   }
@@ -20912,7 +20988,8 @@ function globalSearchInput(qRaw){
     });
   }
   if (fundMatches.length) {
-    html += '<div style="padding:8px 14px;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--border)">Funds / Securities — where it\'s deployed &amp; how it\'s performing</div>';
+    const headerLabel = catList && !q ? `Funds / Securities — ${INSTRUMENT_FILTER_LABELS[catFilter]} across all clients` : 'Funds / Securities — where it\'s deployed &amp; how it\'s performing';
+    html += `<div style="padding:8px 14px;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--border)">${headerLabel}</div>`;
     fundMatches.forEach(f => {
       const totalMv = f.clients.reduce((a,cl)=>a+(cl.market_value||0),0);
       const strategies = new Set(f.clients.map(cl=>cl.strategyName));
@@ -20921,30 +20998,41 @@ function globalSearchInput(qRaw){
       const wtdReturn = withGl.length ? withGl.reduce((a,cl)=>a+cl.gl_pct*(cl.market_value||0),0) / (withGl.reduce((a,cl)=>a+(cl.market_value||0),0)||1) : null;
       const rows = f.clients.slice().sort((a,b)=>(b.market_value||0)-(a.market_value||0)).map(cl => {
         const up = cl.gl_pct!=null && cl.gl_pct>=0;
+        const ta = cl.tradeAttr;
+        const heldSince = ta && ta.first_buy_date ? `${ta.first_buy_date}${monthsHeldSince(ta.first_buy_date)!=null?` (${monthsHeldSince(ta.first_buy_date)}mo)`:''}` : (cl.entry||'—');
+        const tranches = ta ? (ta.n_tranches>1 ? `<span title="${escapeHtml(ta.stagger_label||'')}" style="cursor:help">${ta.n_tranches} staggered</span>` : `${ta.n_tranches||1} lump sum`) : '—';
+        const vc = ta ? (VERDICT_COLOR[ta.verdict]||["var(--muted)","#F0F2F5"]) : null;
+        const timing = ta ? `<span title="TWRR ${ta.twrr_pct>=0?'+':''}${ta.twrr_pct.toFixed(2)}% vs bench ${ta.bench_twrr_pct>=0?'+':''}${ta.bench_twrr_pct.toFixed(2)}%" style="cursor:help;background:${vc[1]};color:${vc[0]};padding:1px 6px;border-radius:4px;font-weight:700;font-size:9.5px">${ta.verdict}</span>` : '<span style="color:var(--muted)">—</span>';
         return `<tr class="search-result-row" onclick="globalSearchGoToClient(${cl.stratIdx},${cl.clientIdx})" style="cursor:pointer">
           <td style="padding:4px 8px;font-size:11.5px;font-weight:600;color:var(--text)">${escapeHtml(cl.name)}</td>
           <td style="padding:4px 8px;font-size:11px;color:var(--muted)">${escapeHtml(cl.strategyName)}</td>
           <td style="padding:4px 8px;font-size:11px;color:var(--muted)">${escapeHtml(cl.rm_name||'—')}</td>
           <td style="padding:4px 8px;font-size:11px;text-align:right">₹${((cl.market_value||0)/1e7).toFixed(2)}&nbsp;Cr</td>
           <td style="padding:4px 8px;font-size:11px;text-align:right;font-weight:600;color:${cl.gl_pct==null?'var(--muted)':(up?'var(--green)':'var(--red)')}">${cl.gl_pct==null?'—':(up?'+':'')+cl.gl_pct.toFixed(2)+'%'}</td>
+          <td style="padding:4px 8px;font-size:10.5px;color:var(--muted);white-space:nowrap">${heldSince}</td>
+          <td style="padding:4px 8px;font-size:10.5px;color:var(--muted);white-space:nowrap">${tranches}</td>
+          <td style="padding:4px 8px;font-size:10.5px">${timing}</td>
         </tr>`;
       }).join('');
       html += `<div style="padding:10px 14px;border-bottom:1px solid var(--border)">
-        <div style="font-weight:600;font-size:13px;color:var(--text)">${escapeHtml(f.security)}</div>
+        <div style="font-weight:600;font-size:13px;color:var(--text)">${escapeHtml(f.security)} <span style="font-size:9.5px;font-weight:600;color:var(--muted);background:#F0F2F5;padding:1px 6px;border-radius:4px;text-transform:uppercase">${escapeHtml(f.category||'')}</span></div>
         <div style="font-size:11px;color:var(--muted);margin:2px 0 6px">
           ${f.clients.length} client${f.clients.length===1?'':'s'} &middot; ${strategies.size} strateg${strategies.size===1?'y':'ies'} &middot; ${rms.size} RM${rms.size===1?'':'s'}
           &middot; ₹${(totalMv/1e7).toFixed(2)} Cr total &middot; wtd. gain/loss <strong style="color:${wtdReturn==null?'var(--muted)':(wtdReturn>=0?'var(--green)':'var(--red)')}">${wtdReturn==null?'—':(wtdReturn>=0?'+':'')+wtdReturn.toFixed(2)+'%'}</strong>
         </div>
-        <table style="width:100%;border-collapse:collapse">
+        <div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;min-width:640px">
           <thead><tr style="border-bottom:1px solid var(--border)">
             <th style="padding:2px 8px;text-align:left;font-size:9.5px;color:var(--muted);text-transform:uppercase">Client</th>
             <th style="padding:2px 8px;text-align:left;font-size:9.5px;color:var(--muted);text-transform:uppercase">Strategy</th>
             <th style="padding:2px 8px;text-align:left;font-size:9.5px;color:var(--muted);text-transform:uppercase">RM</th>
             <th style="padding:2px 8px;text-align:right;font-size:9.5px;color:var(--muted);text-transform:uppercase">Value</th>
             <th style="padding:2px 8px;text-align:right;font-size:9.5px;color:var(--muted);text-transform:uppercase">Gain/Loss</th>
+            <th style="padding:2px 8px;text-align:left;font-size:9.5px;color:var(--muted);text-transform:uppercase">Held Since</th>
+            <th style="padding:2px 8px;text-align:left;font-size:9.5px;color:var(--muted);text-transform:uppercase">Tranches</th>
+            <th style="padding:2px 8px;text-align:left;font-size:9.5px;color:var(--muted);text-transform:uppercase">Timing</th>
           </tr></thead>
           <tbody>${rows}</tbody>
-        </table>
+        </table></div>
       </div>`;
     });
   }
@@ -20976,7 +21064,8 @@ function globalSearchKeydown(e){
 
 document.addEventListener('click', function(e){
   const wrap = document.getElementById('topbar-search-wrap');
-  if (wrap && !wrap.contains(e.target)) {
+  const catFilterEl = document.getElementById('search-cat-filter');
+  if (wrap && !wrap.contains(e.target) && e.target !== catFilterEl) {
     const resultsEl = document.getElementById('global-search-results');
     if (resultsEl) resultsEl.style.display = 'none';
   }
@@ -21087,7 +21176,8 @@ function buildCallThemeData() {
           holders.push({
             client: c.name, ndas: c.ndas, strategyName: strat.name, security: h.security,
             mvCr: (h.market_value || 0) / 1e7, costCr: (h.cost || 0) / 1e7, glPct: h.gl_pct,
-            entry: callEntryMonth(c.ndas, h.security)
+            entry: callEntryMonth(c.ndas, h.security),
+            tradeAttr: typeof getTradeAttrForSecurity === "function" ? getTradeAttrForSecurity(c.ndas, h.security) : null
           });
         }
       });
@@ -21125,12 +21215,18 @@ function renderCallsView(){
     const nExited = d.exited.length;
     const verdict = nHolders===0 ? (nExited ? `Exited (${nExited})` : 'Not held')
       : (aggReturn>=0 ? '&#9989; Working' : '&#10060; Not working');
+    // "Good Call" tally from Trade Decisions verdicts, where available — a second, execution-
+    // aware read alongside the raw return (a theme can show a good return but still have been a
+    // "Lagging" entry if the timing/staggering cost more than the theme's own move).
+    const withTa = d.holders.filter(h=>h.tradeAttr);
+    const goodCallPct = withTa.length ? withTa.filter(h=>h.tradeAttr.verdict==="Good Call").length : null;
+    const tradeNote = withTa.length ? ` &middot; ${goodCallPct}/${withTa.length} "Good Call" on entry timing` : '';
     return `<tr>
       <td style="text-align:left">${d.theme.label}</td>
       <td>${nHolders}</td>
       <td style="color:${aggReturn==null?'var(--muted)':(aggReturn>=0?'var(--green)':'var(--red)')};font-weight:600">${aggReturn==null?'—':(aggReturn>=0?'+':'')+aggReturn.toFixed(2)+'%'}</td>
       <td style="color:${nHolders===0?'var(--muted)':(aggReturn>=0?'var(--green)':'var(--red)')};font-weight:700">${verdict}</td>
-      <td class="small">${nHolders ? `${upCount} up / ${downCount} down &middot; ${fmtCr(totalMv)} total exposure` : (nExited ? `${nExited} client${nExited===1?'':'s'} exited historically` : 'No client has ever held this call')}</td>
+      <td class="small">${nHolders ? `${upCount} up / ${downCount} down &middot; ${fmtCr(totalMv)} total exposure${tradeNote}` : (nExited ? `${nExited} client${nExited===1?'':'s'} exited historically` : 'No client has ever held this call')}</td>
     </tr>`;
   }).join('');
 
@@ -21142,25 +21238,35 @@ function renderCallsView(){
 
   data.forEach(d => {
     const nHolders = d.holders.length;
-    const rows = d.holders.slice().sort((a,b)=>(b.glPct||0)-(a.glPct||0)).map(h => `<tr>
+    const rows = d.holders.slice().sort((a,b)=>(b.glPct||0)-(a.glPct||0)).map(h => {
+      const ta = h.tradeAttr;
+      const heldSince = ta && ta.first_buy_date ? `${ta.first_buy_date}${monthsHeldSince(ta.first_buy_date)!=null?` (${monthsHeldSince(ta.first_buy_date)}mo)`:''}` : (h.entry||'—');
+      const tranches = ta ? (ta.n_tranches>1 ? `<span title="${escapeHtml(ta.stagger_label||'')}" style="cursor:help">${ta.n_tranches} staggered</span>` : `${ta.n_tranches||1} lump sum`) : '—';
+      const vc = ta ? (VERDICT_COLOR[ta.verdict]||["var(--muted)","#F0F2F5"]) : null;
+      const timing = ta ? `<span title="TWRR ${ta.twrr_pct>=0?'+':''}${ta.twrr_pct.toFixed(2)}% vs bench ${ta.bench_twrr_pct>=0?'+':''}${ta.bench_twrr_pct.toFixed(2)}%" style="cursor:help;background:${vc[1]};color:${vc[0]};padding:2px 7px;border-radius:4px;font-weight:700;font-size:10.5px">${ta.verdict}</span>` : '<span style="color:var(--muted)">—</span>';
+      return `<tr>
       <td style="text-align:left">${h.client}</td>
       <td style="text-align:left">${h.security}</td>
       <td>${fmtCr(h.mvCr)}</td>
       <td style="color:${h.glPct>=0?'var(--green)':'var(--red)'};font-weight:600">${h.glPct>=0?'+':''}${h.glPct.toFixed(2)}%</td>
-      <td class="small">${h.entry||'—'}</td>
-    </tr>`).join('');
+      <td class="small" style="white-space:nowrap">${heldSince}</td>
+      <td class="small" style="white-space:nowrap">${tranches}</td>
+      <td class="small">${timing}</td>
+    </tr>`;
+    }).join('');
     const exitedRows = d.exited.map(x => `<tr>
       <td style="text-align:left">${x.client}</td>
       <td style="text-align:left">${x.security}</td>
       <td class="small">${x.firstMonthHeld||'—'} &rarr; ${x.lastMonthHeld||'—'}</td>
       <td style="color:${x.totalContribution>=0?'var(--green)':'var(--red)'};font-weight:600">${x.totalContribution>=0?'+':''}${x.totalContribution.toFixed(2)}%</td>
+      <td colspan="3" class="small" style="font-style:italic;color:var(--muted)">EXITED</td>
     </tr>`).join('');
     html += `<div class="chart-card" style="margin-bottom:20px">
       <h3>${d.theme.label} <span class="small" style="font-weight:400">(${nHolders} current holder${nHolders===1?'':'s'}${d.exited.length?`, ${d.exited.length} exited`:''})</span></h3>
-      ${nHolders ? `<table><thead><tr><th style="text-align:left">Client</th><th style="text-align:left">Security</th><th>Market Value</th><th>Gain/Loss</th><th>Entry</th></tr></thead><tbody>${rows}</tbody></table>`
+      ${nHolders ? `<table><thead><tr><th style="text-align:left">Client</th><th style="text-align:left">Security</th><th>Market Value</th><th>Gain/Loss</th><th>Held Since</th><th>Tranches</th><th>Timing</th></tr></thead><tbody>${rows}</tbody></table>`
         : '<div class="attr-empty">No client currently holds a fund matching this call.</div>'}
       ${d.exited.length ? `<div style="margin-top:12px"><div class="small" style="font-weight:700;color:var(--muted);margin-bottom:6px">Exited</div>
-        <table><thead><tr><th style="text-align:left">Client</th><th style="text-align:left">Security</th><th>Held</th><th>Contribution</th></tr></thead><tbody>${exitedRows}</tbody></table></div>` : ''}
+        <table><thead><tr><th style="text-align:left">Client</th><th style="text-align:left">Security</th><th>Held</th><th>Contribution</th><th colspan="3"></th></tr></thead><tbody>${exitedRows}</tbody></table></div>` : ''}
     </div>`;
   });
 
@@ -21169,13 +21275,38 @@ function renderCallsView(){
 
 // ============ Client-level Thematic Calls — which of the firm's named calls has THIS client
 // held (and exited), how has each fared ============
+// Pull Preet's Trade Decisions data (tranches, VWAP, TWRR, alpha, verdict) for one security —
+// this is exactly the "was it a timing issue / done in tranches" data the user asked Thematic
+// Calls to surface, so join it in rather than recomputing anything. SI window has the fullest
+// history; fall back through shorter windows only if SI has no record for this security.
+function getTradeAttrForSecurity(ndas, security) {
+  const cdata = typeof TRADE_ATTRIBUTION_DATA !== "undefined" ? TRADE_ATTRIBUTION_DATA[ndas] : null;
+  if (!cdata) return null;
+  for (const w of ['SI','12M','6M','3M','1M']) {
+    if (!cdata[w] || !cdata[w].buys) continue;
+    const match = cdata[w].buys.find(b => b.name === security);
+    if (match) return match;
+  }
+  return null;
+}
+function monthsHeldSince(dateStr) {
+  const d = new Date(dateStr);
+  if (isNaN(d)) return null;
+  const now = new Date();
+  return (now.getFullYear()-d.getFullYear())*12 + (now.getMonth()-d.getMonth());
+}
+const VERDICT_COLOR = {
+  "Good Call": ["var(--green)","var(--green-bg, #C6EFCE)"], "Lagging": ["var(--red)","var(--red-bg, #FFC7CE)"],
+  "In Line": ["#222A9C","#E5ECFF"], "Review": ["#856404","#FFF3CD"],
+  "Exited": ["var(--muted)","#F0F2F5"], "Insufficient data": ["var(--muted)","#F0F2F5"]
+};
 function renderClientCallsSection(c) {
   const holdings = c.holdings || [];
   const held = [];
   CALL_THEMES.forEach(theme => holdings.forEach(h => {
     if (theme.pattern.test(h.security)) held.push({
       theme: theme.label, security: h.security, mvCr: (h.market_value||0)/1e7, glPct: h.gl_pct,
-      entry: callEntryMonth(c.ndas, h.security)
+      entry: callEntryMonth(c.ndas, h.security), tradeAttr: getTradeAttrForSecurity(c.ndas, h.security)
     });
   }));
   const heldThemeLabels = new Set(held.map(h=>h.theme));
@@ -21199,38 +21330,59 @@ function renderClientCallsSection(c) {
     return collapseSection('&#128200; Thematic Calls — How These Have Fared', '<div class="attr-empty">This client doesn\'t currently hold, and has never held, any of the firm\'s named thematic calls (Factor Strategy, Metals, Chemicals, Gold, Silver, Banking &amp; Financial).</div>', { open: false });
   }
   const totalMv = held.reduce((a,h)=>a+h.mvCr,0);
-  // Notes column = the current Asset X house-view stance for this holding's asset class bucket,
-  // so the table isn't left with a blank column — reuses deck-builder.js's own classifier.
-  const noteFor = security => {
-    const h = holdings.find(x => x.security === security);
-    const bucket = h && typeof classifyAssetX === "function" ? classifyAssetX(h) : null;
-    const view = bucket ? ASSET_X_VIEWS[bucket] : null;
-    return view ? {text: `Asset X: ${view.stance}`, color: STANCE_COLOR[view.stance] || 'var(--muted)'} : {text: '—', color: 'var(--muted)'};
+  // Held Since: prefer the exact first_buy_date from Trade Decisions data (day-level) over the
+  // month-only ATTRIBUTION_DATA entry detection, since it's more precise and already has the
+  // "how long" answer built in via monthsHeldSince().
+  const heldSinceFor = h => {
+    if (h.tradeAttr && h.tradeAttr.first_buy_date) {
+      const mo = monthsHeldSince(h.tradeAttr.first_buy_date);
+      return `${h.tradeAttr.first_buy_date}${mo!=null?` (${mo}mo)`:''}`;
+    }
+    return (h.entry||'—').replace(/^before /, '&le; ');
   };
-  const entryFor = entry => (entry||'—').replace(/^before /, '&le; ');
-  const rows = held.map(h => { const note = noteFor(h.security); return `<tr>
+  const tranchesFor = h => {
+    if (!h.tradeAttr) return '<span style="color:var(--muted)">—</span>';
+    const n = h.tradeAttr.n_tranches || 1;
+    return n > 1
+      ? `<span title="${escapeHtml(h.tradeAttr.stagger_label||'')}${h.tradeAttr.stagger_benefit_pct!=null?' · staggering vs lump-sum: '+(h.tradeAttr.stagger_benefit_pct>=0?'+':'')+h.tradeAttr.stagger_benefit_pct.toFixed(2)+'%':''}" style="cursor:help">${n} &middot; staggered</span>`
+      : `${n} &middot; lump sum`;
+  };
+  const timingFor = h => {
+    if (!h.tradeAttr) {
+      // Fall back to Asset X house-view stance when there's no trade-level data to judge timing by
+      const hd = holdings.find(x => x.security === h.security);
+      const bucket = hd && typeof classifyAssetX === "function" ? classifyAssetX(hd) : null;
+      const view = bucket ? ASSET_X_VIEWS[bucket] : null;
+      return view ? `<span style="font-style:italic;color:${STANCE_COLOR[view.stance]||'var(--muted)'}">Asset X: ${view.stance}</span>` : '<span style="color:var(--muted)">—</span>';
+    }
+    const ta = h.tradeAttr;
+    const vc = VERDICT_COLOR[ta.verdict] || ["var(--muted)","#F0F2F5"];
+    return `<span title="TWRR ${ta.twrr_pct>=0?'+':''}${ta.twrr_pct.toFixed(2)}% vs benchmark ${ta.bench_twrr_pct>=0?'+':''}${ta.bench_twrr_pct.toFixed(2)}% (alpha ${ta.alpha_pct>=0?'+':''}${ta.alpha_pct.toFixed(2)}%)" style="cursor:help;background:${vc[1]};color:${vc[0]};padding:2px 7px;border-radius:4px;font-weight:700;font-size:10.5px">${ta.verdict}</span>`;
+  };
+  const rows = held.map(h => `<tr>
       <td style="text-align:left">${h.theme}</td>
       <td style="text-align:left">${h.security}</td>
       <td>${'₹'+h.mvCr.toFixed(2)+' Cr'}</td>
       <td style="color:${h.glPct>=0?'var(--green)':'var(--red)'};font-weight:600">${h.glPct>=0?'+':''}${h.glPct.toFixed(2)}%</td>
-      <td class="small" style="white-space:nowrap">${entryFor(h.entry)}</td>
-      <td class="small" style="font-style:italic;color:${note.color}">${note.text}</td>
-    </tr>`; }).join('');
+      <td class="small" style="white-space:nowrap">${heldSinceFor(h)}</td>
+      <td class="small" style="white-space:nowrap">${tranchesFor(h)}</td>
+      <td class="small">${timingFor(h)}</td>
+    </tr>`).join('');
   const totalRow = held.length ? `<tr style="font-weight:700;border-top:2px solid var(--border)">
       <td style="text-align:left" colspan="2">Total (held calls)</td>
       <td>${'₹'+totalMv.toFixed(2)+' Cr'}</td>
-      <td colspan="3"></td>
+      <td colspan="4"></td>
     </tr>` : '';
   const exitedRows = exited.map(x => `<tr>
       <td style="text-align:left">${x.theme}</td>
       <td style="text-align:left">${x.security}</td>
       <td colspan="2" class="small" style="white-space:nowrap">Exited ${x.lastMonthHeld||''}</td>
-      <td style="color:${x.totalContribution>=0?'var(--green)':'var(--red)'};font-weight:600">${x.totalContribution>=0?'+':''}${x.totalContribution.toFixed(2)}%</td>
+      <td style="color:${x.totalContribution>=0?'var(--green)':'var(--red)'};font-weight:600" colspan="2">${x.totalContribution>=0?'+':''}${x.totalContribution.toFixed(2)}%</td>
       <td class="small" style="font-style:italic;color:var(--muted)">EXITED</td>
     </tr>`).join('');
   const body = `<table style="table-layout:fixed;width:100%">
-    <colgroup><col style="width:15%"><col style="width:26%"><col style="width:11%"><col style="width:12%"><col style="width:13%"><col style="width:23%"></colgroup>
-    <thead><tr><th style="text-align:left">Call</th><th style="text-align:left">Security</th><th>Value</th><th>Gain/Loss</th><th>Entry</th><th style="text-align:left">Notes</th></tr></thead>
+    <colgroup><col style="width:12%"><col style="width:20%"><col style="width:9%"><col style="width:10%"><col style="width:15%"><col style="width:15%"><col style="width:19%"></colgroup>
+    <thead><tr><th style="text-align:left">Call</th><th style="text-align:left">Security</th><th>Value</th><th>Gain/Loss</th><th>Held Since</th><th>Tranches</th><th>Timing</th></tr></thead>
     <tbody>${rows}${totalRow}${exitedRows}</tbody>
   </table>`;
   return collapseSection('&#128200; Thematic Calls — How These Have Fared', body, { open: false, sub: `${held.length} named call${held.length===1?'':'s'} held${exited.length?`, ${exited.length} exited`:''}` });
@@ -21378,8 +21530,12 @@ function buildIpsRows(ips){
   const rows = [];
   rows.push({param:"Asset Allocation — Equity", ideal:`${bands.eq[0]}% – ${bands.eq[1]}%`, current:pct(ips.eq_pct), status: inBand(ips.eq_pct,bands.eq)?"ok":(ips.eq_pct>bands.eq[1]?"over":"under")});
   rows.push({param:"Fixed Income & Alternates", ideal:`${bands.fi[0]}% – ${bands.fi[1]}%`, current:pct(ips.debt_alt_pct), status: inBand(ips.debt_alt_pct,bands.fi)?"ok":(ips.debt_alt_pct>bands.fi[1]?"over":"under")});
-  rows.push({param:"Single scheme — max allocation", ideal:"≤ 15%", current:`${pct(ips.top_scheme_pct)} (${ips.top_scheme})`, status: ips.top_scheme_pct<=15?"ok":"over"});
-  rows.push({param:"Single AMC — max allocation", ideal:"≤ 25%", current:`${pct(ips.top_amc_pct)} (${ips.top_amc})`, status: ips.top_amc_pct<=25?"ok":"over"});
+  const bir_schemeBoth = typeof schemeExposureBothPct === "function" ? schemeExposureBothPct(ips.top_scheme, ips.full_name) : null;
+  const bir_amcBoth = typeof amcExposureBothPct === "function" ? amcExposureBothPct(ips.top_amc, ips.full_name) : null;
+  const bir_schemeMaterial = typeof isConcentrationBreachMaterial === "function" ? isConcentrationBreachMaterial(bir_schemeBoth) : true;
+  const bir_amcMaterial = typeof isConcentrationBreachMaterial === "function" ? isConcentrationBreachMaterial(bir_amcBoth) : true;
+  rows.push({param:"Single scheme — max allocation", ideal:"≤ 15%", current:`${pct(ips.top_scheme_pct)} (${ips.top_scheme})`, status: (ips.top_scheme_pct<=15||!bir_schemeMaterial)?"ok":"over"});
+  rows.push({param:"Single AMC — max allocation", ideal:"≤ 25%", current:`${pct(ips.top_amc_pct)} (${ips.top_amc})`, status: (ips.top_amc_pct<=25||!bir_amcMaterial)?"ok":"over"});
   rows.push({param:"Large-cap allocation (of equity)", ideal:"40% – 60%", current:pct(ips.lc_pct), status: inBand(ips.lc_pct,[40,60])?"ok":(ips.lc_pct>60?"over":"under")});
   rows.push({param:"Mid + Small-cap allocation (of equity)", ideal:"40% – 60%", current:pct(ips.mc_pct+ips.sc_pct), status: inBand(ips.mc_pct+ips.sc_pct,[40,60])?"ok":((ips.mc_pct+ips.sc_pct)>60?"over":"under")});
   rows.push({param:"International equity", ideal:"≤ 25%", current:pct(ips.intl_eq_pct), status: ips.intl_eq_pct===0?"gap":(ips.intl_eq_pct<=25?"ok":"over")});
@@ -21621,11 +21777,15 @@ function buildClientDeck(clientRecord){
     titleBar(s,"Concentration & Tail Analysis","AMC exposure and the long tail of small positions");
     s.addShape(pptx.ShapeType.roundRect,{x:0.5,y:1.5,w:12.33,h:1.0,fill:{color:BRAND.PANEL},line:{color:BRAND.LINE,width:1},rectRadius:0.06});
     const amcBoth = (typeof amcExposureBothPct === "function") ? amcExposureBothPct(ips.top_amc, sc.ndas) : null;
+    const schemeBoth = (typeof schemeExposureBothPct === "function") ? schemeExposureBothPct(ips.top_scheme, sc.ndas) : null;
     const amcLine = amcBoth
       ? `Top AMC: ${ips.top_amc} — ${amcBoth.pctPortfolio.toFixed(1)}% of portfolio · ${pct(ips.top_amc_pct)} of MF/AIF/Bond/SIF book (ideal ≤ 25%)`
       : `Top AMC: ${ips.top_amc} — ${pct(ips.top_amc_pct)} (ideal ≤ 25%)`;
     s.addText(amcLine,{x:0.75,y:1.6,w:11.8,h:0.4,fontFace:BRAND.FONTB,bold:true,fontSize:13,color:BRAND.BLUE});
-    s.addText(`Top single scheme: ${ips.top_scheme} — ${pct(ips.top_scheme_pct)} (ideal ≤ 15%)`,{x:0.75,y:2.0,w:11.8,h:0.4,fontFace:BRAND.FONT,fontSize:12,color:BRAND.INK});
+    const schemeLine = schemeBoth
+      ? `Top single scheme: ${ips.top_scheme} — ${schemeBoth.pctPortfolio.toFixed(1)}% of portfolio · ${pct(ips.top_scheme_pct)} of non-listed scheme book (ideal ≤ 15%)`
+      : `Top single scheme: ${ips.top_scheme} — ${pct(ips.top_scheme_pct)} (ideal ≤ 15%)`;
+    s.addText(schemeLine,{x:0.75,y:2.0,w:11.8,h:0.4,fontFace:BRAND.FONT,fontSize:12,color:BRAND.INK});
     const allHoldings = (sc.holdings||[]).slice().sort((a,b)=>b.assets_pct-a.assets_pct);
     const tail = allHoldings.slice(0,10).reverse();
     s.addChart(pptx.ChartType.bar,[{name:"Holding",labels:tail.map(h=>h.security.slice(0,26)),values:tail.map(h=>h.assets_pct)}],
@@ -21636,9 +21796,13 @@ function buildClientDeck(clientRecord){
     const small = allHoldings.filter(h=>h.assets_pct < 2 && h.security!=="Cash");
     const smallTotal = small.reduce((a,h)=>a+h.assets_pct,0);
     const takeaways2 = [];
-    if (ips.top_amc_pct > 25) takeaways2.push(`${ips.top_amc} at ${pct(ips.top_amc_pct)} breaches the 25% AMC concentration cap — a single manager's decisions have outsized influence here.`);
+    const amcMaterial = (typeof isConcentrationBreachMaterial === "function") ? isConcentrationBreachMaterial(amcBoth) : true;
+    const schemeMaterial = (typeof isConcentrationBreachMaterial === "function") ? isConcentrationBreachMaterial(schemeBoth) : true;
+    if (ips.top_amc_pct > 25 && amcMaterial) takeaways2.push(`${ips.top_amc} at ${pct(ips.top_amc_pct)} breaches the 25% AMC concentration cap — a single manager's decisions have outsized influence here.`);
+    else if (ips.top_amc_pct > 25) takeaways2.push(`${ips.top_amc} is ${pct(ips.top_amc_pct)} of the MF/AIF/Bond/SIF book, but that book is under ${CONCENTRATION_MATERIALITY_FLOOR_PCT}% of the total portfolio — not a material concentration risk.`);
     else takeaways2.push(`No AMC concentration breach — largest exposure (${ips.top_amc}) is within the 25% cap.`);
-    if (ips.top_scheme_pct > 15) takeaways2.push(`${ips.top_scheme} at ${pct(ips.top_scheme_pct)} breaches the 15% single-scheme cap.`);
+    if (ips.top_scheme_pct > 15 && schemeMaterial) takeaways2.push(`${ips.top_scheme} at ${pct(ips.top_scheme_pct)} breaches the 15% single-scheme cap.`);
+    else if (ips.top_scheme_pct > 15) takeaways2.push(`${ips.top_scheme} is ${pct(ips.top_scheme_pct)} of the non-listed scheme book, but that book is under ${CONCENTRATION_MATERIALITY_FLOOR_PCT}% of the total portfolio — not a material concentration risk.`);
     if (small.length >= 3) takeaways2.push(`${small.length} holdings each under 2% of the portfolio, totalling only ${smallTotal.toFixed(1)}% combined — a long tail worth consolidating.`);
     s.addText(takeaways2.map(t=>({text:t,options:{bullet:{code:"2022"},fontSize:10.5,color:BRAND.INK,paraSpaceAfter:10}})),{x:8.65,y:3.3,w:3.95,h:3.5,fontFace:BRAND.FONT,valign:"top"});
     footer(s,"Top 10 holdings by weight");
@@ -22074,8 +22238,10 @@ function buildClientIPS(idx){
   s+=TR('Credit Quality',tm.credit,c.debt_pct>10?'Review required':'N/A',null,true);
 
   s+=SEC('Portfolio Level','#FFF3E0');
-  s+=TR('AMC Concentration (Max)','≤'+tm.amc.max+'%',amcConcentrationLabel(c.top_amc,c.top_amc_pct,c.full_name),Rmx(c.top_amc_pct,tm.amc.max),false);
-  s+=TR('Scheme Concentration (Max)','≤'+tm.scheme.max+'%',c.top_scheme_pct.toFixed(1)+'% ('+c.top_scheme.substring(0,45)+')',Rmx(c.top_scheme_pct,tm.scheme.max),false);
+  const rmx_amcBoth = amcExposureBothPct(c.top_amc, c.full_name);
+  const rmx_schemeBoth = schemeExposureBothPct(c.top_scheme, c.full_name);
+  s+=TR('AMC Concentration (Max)','≤'+tm.amc.max+'%',amcConcentrationLabel(c.top_amc,c.top_amc_pct,c.full_name),isConcentrationBreachMaterial(rmx_amcBoth)?Rmx(c.top_amc_pct,tm.amc.max):[false,'#08AF5C','✓ OK'],false);
+  s+=TR('Scheme Concentration (Max)','≤'+tm.scheme.max+'%',schemeConcentrationLabel(c.top_scheme,c.top_scheme_pct,c.full_name),isConcentrationBreachMaterial(rmx_schemeBoth)?Rmx(c.top_scheme_pct,tm.scheme.max):[false,'#08AF5C','✓ OK'],false);
   s+=TR('Commodities (% of Portfolio)',tm.commodity.label,c.commodity_pct.toFixed(1)+'%',R(c.commodity_pct,tm.commodity.min,tm.commodity.max),true);
   var lk=c.locked_pct>0?c.locked_pct.toFixed(1)+'% ('+c.locked_names.join(', ').substring(0,80)+')':'0.0%';
   s+=TR('Products with Hard Lock-in (Max)','≤'+tm.lockin.max+'%',lk,Rmx(c.locked_pct,tm.lockin.max),false);
@@ -22238,9 +22404,9 @@ function buildChecklist(){
       b.push('Equity '+c.eq_pct.toFixed(1)+'% vs '+t.equity.label);
     if(c.debt_alt_pct<t.debt_alt.min||c.debt_alt_pct>t.debt_alt.max)
       b.push('Debt+Alt '+c.debt_alt_pct.toFixed(1)+'% vs '+t.debt_alt.label);
-    if(c.top_amc_pct>t.amc.max)
+    if(c.top_amc_pct>t.amc.max && isConcentrationBreachMaterial(amcExposureBothPct(c.top_amc, c.full_name)))
       b.push('AMC: '+c.top_amc_pct.toFixed(1)+'% ('+c.top_amc+') > '+t.amc.max+'%');
-    if(c.top_scheme_pct>t.scheme.max)
+    if(c.top_scheme_pct>t.scheme.max && isConcentrationBreachMaterial(schemeExposureBothPct(c.top_scheme, c.full_name)))
       b.push('Scheme: '+c.top_scheme_pct.toFixed(1)+'% > '+t.scheme.max+'%');
     if(c.lc_pct<t.lc.min)
       b.push('LC: '+c.lc_pct.toFixed(1)+'% < '+t.lc.min+'%');
