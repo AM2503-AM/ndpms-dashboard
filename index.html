@@ -236,7 +236,7 @@ const STRATEGY_DATA = [{"name": "Allocate Select", "benchmark": "Nifty 500 TRI",
       "Chittavajhula Venkat Subramanya Sharma": {"eq_pct":0,"debt_pct":97.51,"oth_pct":2.49,"debt_alt_pct":100,"lc_pct":0,"mc_pct":0,"sc_pct":0,"intl_eq_pct":0,"commodity_pct":0,"top_amc":"Axis MF","top_amc_pct":100,"top_scheme":"BHARAT HIGHWAYS INVIT","top_scheme_pct":24.47,"risk_profile":"Conservative"},
       "Shah Family (Jay, Ruchita, Nitin)": {"eq_pct":76.86,"debt_pct":13.83,"oth_pct":9.31,"debt_alt_pct":23.14,"lc_pct":57.6,"mc_pct":26.3,"sc_pct":16.1,"intl_eq_pct":8.84,"commodity_pct":7.85,"top_amc":"ICICI Pru MF","top_amc_pct":13.82,"top_scheme":"Mirae Asset Midcap Direct-G","top_scheme_pct":11.33,"risk_profile":"Aggressive"}
     };
-    IPS_DATA.clients.forEach(c => { const fix = IPS_CORRECTIONS[c.label]; if (fix) Object.assign(c, fix); });
+    IPS_DATA.clients.forEach(c => { const fix = IPS_CORRECTIONS[c.label]; if (fix) { const f = Object.assign({}, fix); delete f.lc_pct; delete f.mc_pct; delete f.sc_pct; Object.assign(c, f); } });  /* lc/mc/sc kept from source-computed IPS_DATA (correct); IPS_CORRECTIONS lc/mc/sc were stale/wrong */
     IPS_DATA.profile_counts = IPS_DATA.clients.reduce((acc,c) => { acc[c.risk_profile] = (acc[c.risk_profile]||0)+1; return acc; }, {});
     // Individual members of a combined-family IPS record (e.g. Jay/Ruchita/Nitin Shah) don't
     // have their own IPS_DATA entry -- IPS_DATA.clients only has "Shah Family (...)" as one
