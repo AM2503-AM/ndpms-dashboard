@@ -19466,6 +19466,30 @@ const IPS_BAND_TEMPLATE = {
   Moderate:    {equity:{min:40,max:65, label:"40-65%"},debt_alt:{min:35,max:60,label:"35-60%"},amc:{max:25},scheme:{max:15},lc:{min:50,label:">50%"},mc:{max:30,label:"<30%"},sc:{max:20,label:"<20%"},lockin:{max:20},commodity:{min:10,max:15,label:"10-15%"},intl_eq:{min:0,max:30,label:"Up to 30%"},dur:"1-6 yrs",credit:"No BBB- or below",review:"Yearly"},
   Conservative:{equity:{min:0, max:40, label:"0-40%"}, debt_alt:{min:60,max:100,label:"60-100%"},amc:{max:25},scheme:{max:15},lc:{min:50,label:">50%"},mc:{max:30,label:"<30%"},sc:{max:20,label:"<20%"},lockin:{max:20},commodity:{min:10,max:15,label:"10-15%"},intl_eq:{min:0,max:30,label:"Up to 30%"},dur:"1-6 yrs",credit:"No BBB- or below",review:"Yearly"}
 };
+// Single source of truth for "which IPS parameters has this client breached" — found 2026-07-21
+// that three separate places (buildIPSSummary's breach count, downloadDeviationsExcel's
+// getBreaches, buildChecklist's getBreaches) each had their own hand-copied breach-check list,
+// and NONE of them checked Commodity or International Equity — only buildClientIPS (the per-
+// client detail page) and the PPT's buildIpsRows did. Real consequence: Rajnish Kumar's 25.22%
+// commodity allocation (vs the 10-15% Aggressive band) is a genuine breach visible on his own
+// IPS detail page, but silently absent from every breach COUNT/LIST (Deviations export, Client
+// Checklist, IPS Summary badge). Every place that lists or counts IPS breaches should call this
+// function — don't hand-roll another copy of this check list.
+function computeIpsBreaches(c) {
+  const t = IPS_BAND_TEMPLATE[c.risk_profile] || IPS_BAND_TEMPLATE.Aggressive;
+  const b = [];
+  if (c.eq_pct < t.equity.min || c.eq_pct > t.equity.max) b.push('Equity ' + c.eq_pct.toFixed(1) + '% vs ' + t.equity.label);
+  if (c.debt_alt_pct < t.debt_alt.min || c.debt_alt_pct > t.debt_alt.max) b.push('Debt+Alt ' + c.debt_alt_pct.toFixed(1) + '% vs ' + t.debt_alt.label);
+  if (c.top_amc_pct > t.amc.max && isConcentrationBreachMaterial(amcExposureBothPct(c.top_amc, c.full_name))) b.push('AMC: ' + c.top_amc_pct.toFixed(1) + '% (' + c.top_amc + ') > ' + t.amc.max + '%');
+  if (c.top_scheme_pct > t.scheme.max && isConcentrationBreachMaterial(schemeExposureBothPct(c.top_scheme, c.full_name))) b.push('Scheme: ' + c.top_scheme_pct.toFixed(1) + '% > ' + t.scheme.max + '%');
+  if (c.lc_pct < t.lc.min) b.push('LC: ' + c.lc_pct.toFixed(1) + '% < ' + t.lc.min + '%');
+  if (c.mc_pct > t.mc.max) b.push('MC: ' + c.mc_pct.toFixed(1) + '% > ' + t.mc.max + '%');
+  if (c.sc_pct > t.sc.max) b.push('SC: ' + c.sc_pct.toFixed(1) + '% > ' + t.sc.max + '%');
+  if (c.commodity_pct != null && (c.commodity_pct < t.commodity.min || c.commodity_pct > t.commodity.max)) b.push('Commodity: ' + c.commodity_pct.toFixed(1) + '% vs ' + t.commodity.label);
+  if (c.intl_eq_pct != null && (c.intl_eq_pct < t.intl_eq.min || c.intl_eq_pct > t.intl_eq.max)) b.push('Intl Equity: ' + c.intl_eq_pct.toFixed(1) + '% vs ' + t.intl_eq.label);
+  if (c.locked_pct > t.lockin.max) b.push('Lock-in: ' + c.locked_pct.toFixed(1) + '% > ' + t.lockin.max + '%');
+  return b;
+}
 function computeManagementSplit(clients) {
   const mk = () => ({ count:0, aum:0, outCount:0, outAum:0, underCount:0, underAum:0 });
   const active = mk(), passive = mk();
@@ -20365,12 +20389,7 @@ function showClient(strategyIdx, clientIdx) {
     if (!ipsClient) return '';
 
     const ic = ipsClient;
-    const _TMPL={
-    Aggressive:  {equity:{min:65,max:100,label:"65-100%"},debt_alt:{min:0, max:35,label:"0-35%"},amc:{max:25},scheme:{max:15},lc:{min:50,label:">50%"},mc:{max:40,label:"<40%"},sc:{max:20,label:"<20%"},lockin:{max:20},commodity:{min:10,max:15,label:"10-15%"},intl_eq:{min:0,max:30,label:"Up to 30%"},dur:"1-6 yrs",credit:"No BBB- or below",review:"Yearly"},
-    Moderate:    {equity:{min:40,max:65, label:"40-65%"},debt_alt:{min:35,max:60,label:"35-60%"},amc:{max:25},scheme:{max:15},lc:{min:50,label:">50%"},mc:{max:30,label:"<30%"},sc:{max:20,label:"<20%"},lockin:{max:20},commodity:{min:10,max:15,label:"10-15%"},intl_eq:{min:0,max:30,label:"Up to 30%"},dur:"1-6 yrs",credit:"No BBB- or below",review:"Yearly"},
-    Conservative:{equity:{min:0, max:40, label:"0-40%"}, debt_alt:{min:60,max:100,label:"60-100%"},amc:{max:25},scheme:{max:15},lc:{min:50,label:">50%"},mc:{max:30,label:"<30%"},sc:{max:20,label:"<20%"},lockin:{max:20},commodity:{min:10,max:15,label:"10-15%"},intl_eq:{min:0,max:30,label:"Up to 30%"},dur:"1-6 yrs",credit:"No BBB- or below",review:"Yearly"}
-  };
-    const tm = _TMPL[ic.risk_profile] || _TMPL.Aggressive;
+    const tm = IPS_BAND_TEMPLATE[ic.risk_profile] || IPS_BAND_TEMPLATE.Aggressive;
     const profileColor = ic.risk_profile === 'Aggressive' ? 'var(--red)' : ic.risk_profile === 'Moderate' ? 'var(--primary)' : 'var(--green)';
 
     function chk(v,mn,mx){
@@ -20500,23 +20519,7 @@ function getClientAumBridge(c) {
 }
 
 function downloadDeviationsExcel() {
-  const TMPL = {
-    Aggressive:  {equity:{min:65,max:100,label:"65-100%"},debt_alt:{min:0, max:35,label:"0-35%"},amc:{max:25},scheme:{max:15},lc:{min:50,label:">50%"},mc:{max:40,label:"<40%"},sc:{max:20,label:"<20%"},lockin:{max:20}},
-    Moderate:    {equity:{min:40,max:65, label:"40-65%"},debt_alt:{min:35,max:60,label:"35-60%"},amc:{max:25},scheme:{max:15},lc:{min:50,label:">50%"},mc:{max:30,label:"<30%"},sc:{max:20,label:"<20%"},lockin:{max:20}},
-    Conservative:{equity:{min:0, max:40, label:"0-40%"}, debt_alt:{min:60,max:100,label:"60-100%"},amc:{max:25},scheme:{max:15},lc:{min:50,label:">50%"},mc:{max:30,label:"<30%"},sc:{max:20,label:"<20%"},lockin:{max:20}}
-  };
-  function getBreaches(c) {
-    const t = TMPL[c.risk_profile] || TMPL.Aggressive, b = [];
-    if (c.eq_pct < t.equity.min || c.eq_pct > t.equity.max) b.push('Equity ' + c.eq_pct.toFixed(1) + '% vs ' + t.equity.label);
-    if (c.debt_alt_pct < t.debt_alt.min || c.debt_alt_pct > t.debt_alt.max) b.push('Debt+Alt ' + c.debt_alt_pct.toFixed(1) + '% vs ' + t.debt_alt.label);
-    if (c.top_amc_pct > t.amc.max && isConcentrationBreachMaterial(amcExposureBothPct(c.top_amc, c.full_name))) b.push('AMC: ' + c.top_amc_pct.toFixed(1) + '% (' + c.top_amc + ') > ' + t.amc.max + '%');
-    if (c.top_scheme_pct > t.scheme.max && isConcentrationBreachMaterial(schemeExposureBothPct(c.top_scheme, c.full_name))) b.push('Scheme: ' + c.top_scheme_pct.toFixed(1) + '% > ' + t.scheme.max + '%');
-    if (c.lc_pct < t.lc.min) b.push('LC: ' + c.lc_pct.toFixed(1) + '% < ' + t.lc.min + '%');
-    if (c.mc_pct > t.mc.max) b.push('MC: ' + c.mc_pct.toFixed(1) + '% > ' + t.mc.max + '%');
-    if (c.sc_pct > t.sc.max) b.push('SC: ' + c.sc_pct.toFixed(1) + '% > ' + t.sc.max + '%');
-    if (c.locked_pct > t.lockin.max) b.push('Lock-in: ' + c.locked_pct.toFixed(1) + '% > ' + t.lockin.max + '%');
-    return b;
-  }
+  const getBreaches = computeIpsBreaches;
 
   const rows = [['Client', 'NDAS / Account', 'Strategy', 'RM', 'Advisor', 'Last Review', 'Review Status',
     'AUM (Cr)', 'Last Month AUM (Cr)', 'AUM Change (Cr)',
@@ -20633,12 +20636,7 @@ function downloadClientExcel(strategyIdx, clientIdx) {
     ipsAoa.push(['—', 'IPS not applicable', '—', '—', noIps.reason]);
   } else if (ipsClient) {
     const ic = ipsClient;
-    const _TMPL = {
-      Aggressive:  {equity:{min:65,max:100,label:"65-100%"},debt_alt:{min:0, max:35,label:"0-35%"},amc:{max:25},scheme:{max:15},lc:{min:50,label:">50%"},mc:{max:40,label:"<40%"},sc:{max:20,label:"<20%"},lockin:{max:20},commodity:{min:10,max:15,label:"10-15%"},intl_eq:{min:0,max:30,label:"Up to 30%"},dur:"1-6 yrs",credit:"No BBB- or below",review:"Yearly"},
-      Moderate:    {equity:{min:40,max:65, label:"40-65%"},debt_alt:{min:35,max:60,label:"35-60%"},amc:{max:25},scheme:{max:15},lc:{min:50,label:">50%"},mc:{max:30,label:"<30%"},sc:{max:20,label:"<20%"},lockin:{max:20},commodity:{min:10,max:15,label:"10-15%"},intl_eq:{min:0,max:30,label:"Up to 30%"},dur:"1-6 yrs",credit:"No BBB- or below",review:"Yearly"},
-      Conservative:{equity:{min:0, max:40, label:"0-40%"}, debt_alt:{min:60,max:100,label:"60-100%"},amc:{max:25},scheme:{max:15},lc:{min:50,label:">50%"},mc:{max:30,label:"<30%"},sc:{max:20,label:"<20%"},lockin:{max:20},commodity:{min:10,max:15,label:"10-15%"},intl_eq:{min:0,max:30,label:"Up to 30%"},dur:"1-6 yrs",credit:"No BBB- or below",review:"Yearly"}
-    };
-    const tm = _TMPL[ic.risk_profile] || _TMPL.Aggressive;
+    const tm = IPS_BAND_TEMPLATE[ic.risk_profile] || IPS_BAND_TEMPLATE.Aggressive;
     const chk = (v,mn,mx) => {
       if (mn!==undefined && v<mn) return (mn-v)<=2 ? '⚠ Marginally below' : '✗ Out of range';
       if (mx!==undefined && v>mx) return (v-mx)<=2 ? '⚠ Marginally above' : '✗ Out of range';
@@ -22535,16 +22533,8 @@ function buildIPSSummary(){
   s+='<table class="scorecard" style="width:100%;margin-bottom:24px"><thead><tr><th>#</th><th>Client</th><th>AUM (Cr)</th><th>Profile</th><th>Equity %</th><th>Top AMC</th><th>Top Scheme</th><th>Breaches</th><th></th></tr></thead><tbody>';
 
   for(var i=0;i<d.clients.length;i++){
-    var c=d.clients[i], tm=t[c.risk_profile];
-    var b=0;
-    if(c.eq_pct<tm.equity.min||c.eq_pct>tm.equity.max) b++;
-    if(c.debt_alt_pct<tm.debt_alt.min||c.debt_alt_pct>tm.debt_alt.max) b++;
-    if(c.top_amc_pct>tm.amc.max && isConcentrationBreachMaterial(amcExposureBothPct(c.top_amc, c.full_name))) b++;
-    if(c.top_scheme_pct>tm.scheme.max && isConcentrationBreachMaterial(schemeExposureBothPct(c.top_scheme, c.full_name))) b++;
-    if(c.lc_pct<tm.lc.min) b++;
-    if(c.mc_pct>tm.mc.max) b++;
-    if(c.sc_pct>tm.sc.max) b++;
-    if(c.locked_pct>tm.lockin.max) b++;
+    var c=d.clients[i];
+    var b=computeIpsBreaches(c).length;
     var pc2=c.risk_profile==='Aggressive'?'#FFE0E0':c.risk_profile==='Moderate'?'#FFF3CD':'#E5ECFF';
     s+='<tr><td>'+(i+1)+'</td>';
     s+='<td style="font-weight:600">'+ipsName(c)+'</td>';
@@ -22779,27 +22769,7 @@ function buildChecklist(){
   var ndasMap=buildNdasMap();
 
   // IPS breach check
-  var TMPL=IPS_BAND_TEMPLATE;
-  function getBreaches(c){
-    var t=TMPL[c.risk_profile]||TMPL.Aggressive, b=[];
-    if(c.eq_pct<t.equity.min||c.eq_pct>t.equity.max)
-      b.push('Equity '+c.eq_pct.toFixed(1)+'% vs '+t.equity.label);
-    if(c.debt_alt_pct<t.debt_alt.min||c.debt_alt_pct>t.debt_alt.max)
-      b.push('Debt+Alt '+c.debt_alt_pct.toFixed(1)+'% vs '+t.debt_alt.label);
-    if(c.top_amc_pct>t.amc.max && isConcentrationBreachMaterial(amcExposureBothPct(c.top_amc, c.full_name)))
-      b.push('AMC: '+c.top_amc_pct.toFixed(1)+'% ('+c.top_amc+') > '+t.amc.max+'%');
-    if(c.top_scheme_pct>t.scheme.max && isConcentrationBreachMaterial(schemeExposureBothPct(c.top_scheme, c.full_name)))
-      b.push('Scheme: '+c.top_scheme_pct.toFixed(1)+'% > '+t.scheme.max+'%');
-    if(c.lc_pct<t.lc.min)
-      b.push('LC: '+c.lc_pct.toFixed(1)+'% < '+t.lc.min+'%');
-    if(c.mc_pct>t.mc.max)
-      b.push('MC: '+c.mc_pct.toFixed(1)+'% > '+t.mc.max+'%');
-    if(c.sc_pct>t.sc.max)
-      b.push('SC: '+c.sc_pct.toFixed(1)+'% > '+t.sc.max+'%');
-    if(c.locked_pct>t.lockin.max)
-      b.push('Lock-in: '+c.locked_pct.toFixed(1)+'% > '+t.lockin.max+'%');
-    return b;
-  }
+  var getBreaches=computeIpsBreaches;
 
   function mgmtBadge(ndas){
     var passive = ndas && typeof isPassivelyManaged === "function" && isPassivelyManaged(ndas);
