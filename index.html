@@ -19738,6 +19738,10 @@ function buildMainCharts(s, i) {
     const labels = mix.map(m => m.category);
     const pcts = mix.map(m => m.pct);
     const palette = ['#242BA1','#7BA0FF','#7E57C2','#2EA260','#F0C040','#D9534F','#9C27B0','#FF8A65','#6D4C41','#26A69A','#5C6BC0','#EC407A'];
+    // Same fix as the client-level instrument chart below — size the wrapper to the actual bar
+    // count instead of a fixed 260px, so strategies with many instrument categories don't get
+    // some labels squeezed into illegibility (2026-07-22).
+    schemeInstrCtx.parentElement.style.height = Math.max(260, labels.length * 32 + 40) + 'px';
     CHART_INSTANCES[`schemeInstrBar-${i}`] = new Chart(schemeInstrCtx, {
       type: 'bar',
       data: {
@@ -20609,6 +20613,20 @@ function getClientAumBridge(c) {
   return { month: lastMonth.m, lastMonthAum: bmvSum };
 }
 
+// Deployment In Progress — a client whose portfolio isn't yet fully deployed (recently funded,
+// still moving cash into target holdings). Unlike Reviews/Actions/Onboarding below, there is NO
+// reliable field anywhere in the data (STRATEGY_DATA/MIS_DATA/PARKING_DATA/UNFUNDED_DATA) that
+// distinguishes "recently funded but still deploying" from "recently funded and already fully
+// invested" — checked eq_pct, inception recency, and cash_pct, none are reliable on their own (a
+// conservative-mandate client can legitimately sit near-100% debt/cash by design, and a same-day
+// deployment is possible). This is therefore a manually maintained list, same pattern as
+// MANUAL_REVIEW_EXEMPT_NDAS above — add/remove entries during each monthly review as accounts
+// move from "still deploying" to "fully invested." Currently just the one case already known from
+// IPS_DATA.no_ips's reason text (see MANUAL_REVIEW_EXEMPT_NDAS comment above).
+const DEPLOYMENT_IN_PROGRESS_NDAS = [
+  { ndas: 'AONDCP0012', reason: 'New account, still deploying capital — revisit once fully invested' }
+];
+
 function downloadDeviationsExcel() {
   const getBreaches = computeIpsBreaches;
 
@@ -20687,21 +20705,62 @@ function downloadDeviationsExcel() {
     grandMissing
   ]);
   summaryRows.push([]);
-  summaryRows.push(['Note: "Last Month AUM" is derived from monthly attribution data (start-of-month holding values). Clients with no prior-month attribution history (new accounts) are excluded from Last Month AUM / AUM Change and counted separately — see the New Clients This Month sheet.']);
+  summaryRows.push(['Note: "Last Month AUM" is derived from monthly attribution data (start-of-month holding values). Clients with no prior-month attribution history (new accounts) are excluded from Last Month AUM / AUM Change and counted separately — see the New Clients Onboarded sheet.']);
 
-  // ── Sheet 3: New Clients This Month ── (inception date falls within the dashboard's reporting month)
+  // ── Sheet: New Clients Onboarded ── (inception date falls within the dashboard's reporting month)
   const newClientRows = [['Client', 'NDAS / Account', 'Strategy', 'AUM (Cr)', 'RM', 'Advisor', 'Inception Date']];
   allClients.filter(c => c.isNewThisMonth).forEach(c => {
     newClientRows.push([c.name, c.ndas || c.account, c.strategyName, +((c.aum||0)/1e7).toFixed(2), c.rm || '—', advisorLabel(c.advisor), c.inception || '—']);
   });
   if (newClientRows.length === 1) newClientRows.push(['—', '—', '—', '—', '—', '—', 'No new clients this reporting month']);
 
+  const todayForReport = new Date();
+  const dstr = todayForReport.toISOString().slice(0,10);
+
+  // ── Sheet: Reviews Pending (as on date) ── clients whose review is overdue, not yet done, or
+  // in-process, excluding accounts explicitly exempt from the review cadence requirement.
+  const reviewRows = [[`Reviews Pending — as on ${dstr}`], ['Client', 'NDAS / Account', 'Strategy', 'RM', 'Advisor', 'Last Review', 'Status', 'Days Since Review']];
+  allClients.filter(c => !c.reviewExempt && c.reviewStatus.code !== 'ok')
+    .sort((a,b) => (b.reviewStatus.daysSince||0) - (a.reviewStatus.daysSince||0))
+    .forEach(c => {
+      reviewRows.push([c.name, c.ndas || c.account, c.strategyName, c.rm || '—', advisorLabel(c.advisor), c.last_review || '—', c.reviewStatus.label, c.reviewStatus.daysSince != null ? c.reviewStatus.daysSince : '—']);
+    });
+  if (reviewRows.length === 2) reviewRows.push(['—', '—', '—', '—', '—', '—', 'No reviews pending', '—']);
+
+  // ── Sheet: Actions Pending ── clients with a logged, unresolved action item from MIS.
+  const actionRows = [['Client', 'NDAS / Account', 'Strategy', 'RM', 'Advisor', 'Last Review', 'Pending Actions']];
+  allClients.filter(c => c.action_items).forEach(c => {
+    actionRows.push([c.name, c.ndas || c.account, c.strategyName, c.rm || '—', advisorLabel(c.advisor), c.last_review || '—', c.action_items.replace(/\n/g, '; ')]);
+  });
+  if (actionRows.length === 1) actionRows.push(['—', '—', '—', '—', '—', '—', 'No pending actions']);
+
+  // ── Sheet: Onboarding In Progress ── UNFUNDED_DATA is the only source for this — accounts
+  // opened but not yet funded. It has no stage/date field (see DEPLOYMENT_IN_PROGRESS_NDAS
+  // comment for the equivalent gap on the deployment side), so this lists everyone currently
+  // unfunded rather than a finer-grained "onboarding stage."
+  const onboardingRows = [['Client', 'Code', 'Strategy', 'RM', 'SRM']];
+  (typeof UNFUNDED_DATA !== 'undefined' ? UNFUNDED_DATA : []).forEach(u => {
+    onboardingRows.push([u.client_name, u.code, u.name || '—', u.rm || '—', u.srm || '—']);
+  });
+  if (onboardingRows.length === 1) onboardingRows.push(['—', '—', '—', '—', 'No accounts currently onboarding']);
+
+  // ── Sheet: Deployment In Progress ── see DEPLOYMENT_IN_PROGRESS_NDAS above for why this is a
+  // manually maintained list rather than a computed filter.
+  const deploymentRows = [['Client', 'NDAS / Account', 'Strategy', 'AUM (Cr)', 'RM', 'Reason']];
+  DEPLOYMENT_IN_PROGRESS_NDAS.forEach(d => {
+    const c = allClients.find(x => x.ndas === d.ndas);
+    deploymentRows.push([c ? c.name : d.ndas, d.ndas, c ? c.strategyName : '—', c ? +((c.aum||0)/1e7).toFixed(2) : '—', c ? (c.rm || '—') : '—', d.reason]);
+  });
+  if (deploymentRows.length === 1) deploymentRows.push(['—', '—', '—', '—', '—', 'No accounts currently deploying']);
+
   const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(rows), 'Deviations Report');
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(rows), 'All Deviations');
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(reviewRows), 'Reviews Pending');
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(actionRows), 'Actions Pending');
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(newClientRows), 'New Clients Onboarded');
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(onboardingRows), 'Onboarding In Progress');
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(deploymentRows), 'Deployment In Progress');
   XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(summaryRows), 'Strategy Summary');
-  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(newClientRows), 'New Clients This Month');
-  const today = new Date();
-  const dstr = today.toISOString().slice(0,10);
   XLSX.writeFile(wb, `NDPMS_Deviations_${dstr}.xlsx`);
 }
 
@@ -20845,6 +20904,14 @@ function buildClientCharts(c) {
       const labels = mix.map(m => m.category);
       const pcts = mix.map(m => m.pct);
       const palette = ['#242BA1','#7BA0FF','#7E57C2','#2EA260','#F0C040','#D9534F','#9C27B0','#FF8A65','#6D4C41','#26A69A','#5C6BC0','#EC407A'];
+      // This horizontal bar chart's category labels ARE its legend (one label per bar, legend
+      // plugin disabled below) — but the wrapper's default fixed height (260px, from
+      // .chart-canvas-wrap) doesn't grow with the category count, so clients with 8+ instrument
+      // categories (AIF/SIF/Liquid/Debt/Arbitrage/Hybrid/Commodity/REIT/domestic+intl equity, plus
+      // the market-cap name-pattern buckets from Step 15) got bars/labels squeezed thin enough to
+      // become illegible — found 2026-07-22 ("legend needs to be made properly i cant see a
+      // few"). Size the wrapper to the actual number of bars instead of a fixed height.
+      instrCtx.parentElement.style.height = Math.max(260, labels.length * 32 + 40) + 'px';
       CHART_INSTANCES['client-instr'] = new Chart(instrCtx, {
         type: 'bar',
         data: {
