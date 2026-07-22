@@ -19516,10 +19516,27 @@ function isConcentrationBreachMaterial(bothPctResult) {
 // "breached" on the PPT slide for the exact same number. Never hand-edit a second copy of this —
 // every consumer should destructure from `IPS_BAND_TEMPLATE[c.risk_profile]`.
 const IPS_BAND_TEMPLATE = {
-  Aggressive:  {equity:{min:65,max:100,label:"65-100%"},debt_alt:{min:0, max:35,label:"0-35%"},amc:{max:25},scheme:{max:15},lc:{min:50,label:">50%"},mc:{max:40,label:"<40%"},sc:{max:20,label:"<20%"},lockin:{max:20},commodity:{min:10,max:15,label:"10-15%"},intl_eq:{min:0,max:30,label:"Up to 30%"},dur:"1-6 yrs",credit:"No BBB- or below",review:"Yearly"},
-  Moderate:    {equity:{min:40,max:65, label:"40-65%"},debt_alt:{min:35,max:60,label:"35-60%"},amc:{max:25},scheme:{max:15},lc:{min:50,label:">50%"},mc:{max:30,label:"<30%"},sc:{max:20,label:"<20%"},lockin:{max:20},commodity:{min:10,max:15,label:"10-15%"},intl_eq:{min:0,max:30,label:"Up to 30%"},dur:"1-6 yrs",credit:"No BBB- or below",review:"Yearly"},
-  Conservative:{equity:{min:0, max:40, label:"0-40%"}, debt_alt:{min:60,max:100,label:"60-100%"},amc:{max:25},scheme:{max:15},lc:{min:50,label:">50%"},mc:{max:30,label:"<30%"},sc:{max:20,label:"<20%"},lockin:{max:20},commodity:{min:10,max:15,label:"10-15%"},intl_eq:{min:0,max:30,label:"Up to 30%"},dur:"1-6 yrs",credit:"No BBB- or below",review:"Yearly"}
+  Aggressive:  {equity:{min:65,max:100,label:"65-100%"},debt_alt:{min:0, max:35,label:"0-35%"},amc:{max:25},scheme:{max:15},lc:{min:50,label:">50%"},mc:{max:40,label:"<40%"},sc:{max:20,label:"<20%"},lockin:{max:20},commodity:{min:10,max:15,label:"10-15%"},intl_eq:{min:0,max:30,label:"Up to 30%"},cash:{max:5,label:"≤5%"},dur:"1-6 yrs",credit:"No BBB- or below",review:"Yearly"},
+  Moderate:    {equity:{min:40,max:65, label:"40-65%"},debt_alt:{min:35,max:60,label:"35-60%"},amc:{max:25},scheme:{max:15},lc:{min:50,label:">50%"},mc:{max:30,label:"<30%"},sc:{max:20,label:"<20%"},lockin:{max:20},commodity:{min:10,max:15,label:"10-15%"},intl_eq:{min:0,max:30,label:"Up to 30%"},cash:{max:5,label:"≤5%"},dur:"1-6 yrs",credit:"No BBB- or below",review:"Yearly"},
+  Conservative:{equity:{min:0, max:40, label:"0-40%"}, debt_alt:{min:60,max:100,label:"60-100%"},amc:{max:25},scheme:{max:15},lc:{min:50,label:">50%"},mc:{max:30,label:"<30%"},sc:{max:20,label:"<20%"},lockin:{max:20},commodity:{min:10,max:15,label:"10-15%"},intl_eq:{min:0,max:30,label:"Up to 30%"},cash:{max:5,label:"≤5%"},dur:"1-6 yrs",credit:"No BBB- or below",review:"Yearly"}
 };
+// Cash & Cash Equivalents — a portfolio-level IPS parameter added 2026-07-22 per user request:
+// "a line item for cash and cash equivalents as a % of portfolio, which includes bank/cash in
+// hand/liquid/overnight/arbitrage funds". PARKING_DATA stores these as four SEPARATE percentages
+// (cash_pct/liquid_pct/overnight_pct/arb_pct), not pre-combined — this is the one shared place
+// that sums them, used by computeIpsBreaches, buildIpsRows, buildClientIPS, and
+// downloadClientExcel so all four surfaces report the identical figure. The 5% ideal-max is flat
+// across all three risk profiles (an idle-cash operational buffer doesn't scale with mandate risk
+// appetite) — same threshold already established for the PPT's Gap Analysis "Excess Parked Cash"
+// check, which this supersedes (see the Gap Analysis IIFE below — it now reads this as a real IPS
+// band row instead of a separate hand-injected check, so cash_pct-only clients that are actually
+// arbitrage-heavy — e.g. a client sitting 50%+ in arbitrage funds with near-zero literal bank cash —
+// now correctly surface too, which the old cash_pct-only check silently missed).
+function cashEquivPct(ndas) {
+  const p = ndas ? PARKING_DATA[ndas] : null;
+  if (!p) return null;
+  return (p.cash_pct||0) + (p.liquid_pct||0) + (p.overnight_pct||0) + (p.arb_pct||0);
+}
 // Single source of truth for "which IPS parameters has this client breached" — found 2026-07-21
 // that three separate places (buildIPSSummary's breach count, downloadDeviationsExcel's
 // getBreaches, buildChecklist's getBreaches) each had their own hand-copied breach-check list,
@@ -19542,6 +19559,8 @@ function computeIpsBreaches(c) {
   if (c.commodity_pct != null && (c.commodity_pct < t.commodity.min || c.commodity_pct > t.commodity.max)) b.push('Commodity: ' + c.commodity_pct.toFixed(1) + '% vs ' + t.commodity.label);
   if (c.intl_eq_pct != null && (c.intl_eq_pct < t.intl_eq.min || c.intl_eq_pct > t.intl_eq.max)) b.push('Intl Equity: ' + c.intl_eq_pct.toFixed(1) + '% vs ' + t.intl_eq.label);
   if (c.locked_pct > t.lockin.max) b.push('Lock-in: ' + c.locked_pct.toFixed(1) + '% > ' + t.lockin.max + '%');
+  const cashPct = cashEquivPct(typeof ipsNdas === "function" ? ipsNdas(c) : null);
+  if (cashPct != null && cashPct > t.cash.max) b.push('Cash & Equivalents: ' + cashPct.toFixed(1) + '% > ' + t.cash.max + '%');
   return b;
 }
 // Data-quality guard: Large/Mid/Small-Cap % and International-Equity % are meant to be mutually
@@ -20732,6 +20751,8 @@ function downloadClientExcel(strategyIdx, clientIdx) {
     ipsAoa.push(['Portfolio Level', 'Commodities (% of Portfolio)', tm.commodity.label, ic.commodity_pct.toFixed(1)+'%', chk(ic.commodity_pct, tm.commodity.min, tm.commodity.max)]);
     const lkStr = ic.locked_pct > 0 ? ic.locked_pct.toFixed(1)+'% ('+ic.locked_names.join(', ')+')' : '0.0%';
     ipsAoa.push(['Portfolio Level', 'Products with Hard Lock-in (Max)', '≤'+tm.lockin.max+'%', lkStr, chkMx(ic.locked_pct, tm.lockin.max)]);
+    const excCashPct = cashEquivPct(c.ndas);
+    if (excCashPct != null) ipsAoa.push(['Portfolio Level', 'Cash & Cash Equivalents (% of Portfolio)', '≤'+tm.cash.max+'%', excCashPct.toFixed(1)+'%', chkMx(excCashPct, tm.cash.max)]);
     ipsAoa.push(['Portfolio Level', 'Frequency of IPS Review', tm.review, tm.review, '—']);
   } else {
     ipsAoa.push(['—', 'No IPS data available', '—', '—', '—']);
@@ -21987,6 +22008,8 @@ function buildIpsRows(ips){
   rows.push({param:"International equity", ideal:tm.intl_eq.label, current:pct(ips.intl_eq_pct), status: ips.intl_eq_pct===0?"gap":(inBand(ips.intl_eq_pct,tm.intl_eq.min,tm.intl_eq.max)?"ok":"over")});
   rows.push({param:"Commodities / Gold", ideal:tm.commodity.label, current:pct(ips.commodity_pct), status: ips.commodity_pct===0?"gap":(inBand(ips.commodity_pct,tm.commodity.min,tm.commodity.max)?"ok":(ips.commodity_pct>tm.commodity.max?"over":"under"))});
   rows.push({param:"Products with Hard Lock-in (Max)", ideal:`≤ ${tm.lockin.max}%`, current:pct(ips.locked_pct||0), status: (ips.locked_pct||0)<=tm.lockin.max?"ok":"over"});
+  const bir_cashPct = cashEquivPct(typeof ipsNdas === "function" ? ipsNdas(ips) : null);
+  if (bir_cashPct != null) rows.push({param:"Cash & Cash Equivalents", ideal: tm.cash.label, current: pct(bir_cashPct), status: bir_cashPct<=tm.cash.max?"ok":"over"});
   return rows;
 }
 
@@ -22132,18 +22155,27 @@ function buildClientDeck(clientRecord){
   (function(){
     const ipsRows = buildIpsRows(ips);
     const breaches = ipsRows.filter(r=>r.status!=="ok");
-    // Excess parked cash is a real "what went wrong" the IPS band checks above don't cover — cash_pct
-    // lives in PARKING_DATA (a separate dataset from IPS_DATA.clients), not in any of the checked
-    // parameters — per user request 2026-07-21 ("cash should be ideally in the what went wrong
-    // column"). CASH_MATERIALITY_PCT is a flat threshold, not risk-profile-banded like the other
-    // checks (an idle cash drag matters the same way regardless of mandate). Severe cases (>2x the
-    // threshold) are unshifted to the front so they always make the top-3 cut even alongside other
-    // breaches; borderline cases are appended normally.
-    const CASH_MATERIALITY_PCT = 5;
+    // Cash & Cash Equivalents is now a real IPS_BAND_TEMPLATE parameter (added 2026-07-22, see
+    // cashEquivPct()/buildIpsRows) — it flows into `breaches` above automatically like every other
+    // parameter, so no separate hand-injected row is needed here anymore. (Previously this slide
+    // hand-built an "Excess Parked Cash" row from PARKING_DATA.cash_pct alone, per user request
+    // 2026-07-21 — that undercounted clients whose idle money sits mostly in arbitrage/liquid/
+    // overnight rather than literal bank cash; superseded now that the same combined figure is a
+    // proper IPS row everyone reads from one place.) `parkingRec` is still needed below for
+    // `fundingNote`'s "fund from existing cash/liquid" check.
     const parkingRec = (typeof PARKING_DATA !== "undefined" && clientRecord.ndas) ? PARKING_DATA[clientRecord.ndas] : null;
-    if (parkingRec && parkingRec.cash_pct > CASH_MATERIALITY_PCT) {
-      const cashRow = { param: "Excess Parked Cash", ideal: `< ${CASH_MATERIALITY_PCT}%`, current: pct(parkingRec.cash_pct), status: "over" };
-      if (parkingRec.cash_pct > CASH_MATERIALITY_PCT*2) breaches.unshift(cashRow); else breaches.push(cashRow);
+    // Preserve the prior severity-based UX for cash specifically: a severely over-threshold cash
+    // position (>2x the ideal) jumps to the front of the top-3 cut below, since idle cash matters
+    // the same way regardless of mandate and would otherwise get crowded out by plain row order —
+    // cash is always the LAST row buildIpsRows produces, so without this a client with 3+ other
+    // breaches (e.g. Suman Agarwal, 66.7% cash) would never see it make the cut.
+    const cashBreachIdx = breaches.findIndex(r => r.param === "Cash & Cash Equivalents");
+    if (cashBreachIdx > 0) {
+      const cashBand = (IPS_BAND_TEMPLATE[ips.risk_profile] || IPS_BAND_TEMPLATE.Aggressive).cash;
+      if (parseFloat(breaches[cashBreachIdx].current) > cashBand.max * 2) {
+        const [cashBreach] = breaches.splice(cashBreachIdx, 1);
+        breaches.unshift(cashBreach);
+      }
     }
     if (!breaches.length) return;
     const s = pptx.addSlide(); s.background = {color: BRAND.WHITE};
@@ -22165,7 +22197,7 @@ function buildClientDeck(clientRecord){
       if (r.param.startsWith("Mid-cap")) return "Reduce Mid-Cap Allocation";
       if (r.param.startsWith("Small-cap")) return "Reduce Small-Cap Allocation";
       if (r.param.startsWith("Products with Hard Lock-in")) return "Reduce Lock-in Exposure";
-      if (r.param === "Excess Parked Cash") return "Deploy Excess Cash";
+      if (r.param === "Cash & Cash Equivalents") return "Deploy Excess Cash";
       return r.param;
     };
     // Concrete, Asset X-tied recommendation for Commodities specifically — per user request
@@ -22196,13 +22228,13 @@ function buildClientDeck(clientRecord){
       return `${cashPart} the remaining ₹${remainingCr.toFixed(2)} Cr would need to come from trimming an overweight position elsewhere in the portfolio.`;
     };
     const noteFor = r => {
-      if (r.param === "Excess Parked Cash") {
-        const cashCr = ((parkingRec.cash||0)+(parkingRec.liquid||0)+(parkingRec.overnight||0))/1e7;
+      if (r.param === "Cash & Cash Equivalents") {
+        const cashCr = aumCr * (parseFloat(r.current)||0) / 100;
         const deployTarget = breaches.find(b => (b.status === "under" || b.status === "gap") && b.param !== r.param);
         const targetNote = deployTarget
           ? `Deploy toward ${deployTarget.param.replace(/\s*\(.*?\)/,'').trim()}, currently ${deployTarget.current} against an ideal of ${deployTarget.ideal}.`
           : `Deploy per the ${ips.risk_profile} profile's target allocation.`;
-        return `₹${cashCr.toFixed(2)} Cr (${r.current} of AUM) is sitting idle in cash/liquid/overnight — above the ${r.ideal} operational buffer typically needed for a fully-invested DPMS mandate. ${targetNote}`;
+        return `₹${cashCr.toFixed(2)} Cr (${r.current} of AUM) is sitting in cash/liquid/overnight/arbitrage — above the ${r.ideal} operational buffer typically needed for a fully-invested DPMS mandate. ${targetNote}`;
       }
       if (r.param.startsWith("Commodities")) {
         const currentCr = aumCr * (ips.commodity_pct||0) / 100;
@@ -22811,6 +22843,8 @@ function buildClientIPS(idx){
   s+=TR('Commodities (% of Portfolio)',tm.commodity.label,c.commodity_pct.toFixed(1)+'%',R(c.commodity_pct,tm.commodity.min,tm.commodity.max),true);
   var lk=c.locked_pct>0?c.locked_pct.toFixed(1)+'% ('+c.locked_names.join(', ').substring(0,80)+')':'0.0%';
   s+=TR('Products with Hard Lock-in (Max)','≤'+tm.lockin.max+'%',lk,Rmx(c.locked_pct,tm.lockin.max),false);
+  var cashPctForRow = cashEquivPct(ipsNdas(c));
+  if (cashPctForRow != null) s+=TR('Cash & Cash Equivalents (% of Portfolio)','≤'+tm.cash.max+'%',cashPctForRow.toFixed(1)+'%',Rmx(cashPctForRow,tm.cash.max),true);
   s+=TR('Frequency of IPS Review',tm.review,tm.review,null,true);
   s+='</tbody></table>';
 
