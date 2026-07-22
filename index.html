@@ -19334,11 +19334,16 @@ function getAllClientsFlat() {
 
 // ============ Main view ============
 // Active vs Passive management split, per user instruction 2026-07-17: "active is the ones
-// which have IPS" — i.e. the clients on the documented No-IPS list (arbitrage/passive-mandate
-// accounts that don't get a full IPS band review) count as Passively Managed; everyone else
-// counts as Actively Managed. Keep this list in sync with the "No IPS clients" list in the
-// ndpms-monthly-update skill (Step 4) — re-verify both together each month.
-const PASSIVE_NDAS = new Set(["AONDCP0011","AONDCP0008","AONDCP0001","NDAS0010","AONDCP0009","NDAS0016","NDAS0017","ANGNR0004","AONDCP0012"]);
+// which have IPS" — i.e. clients without a full IPS band review (arbitrage/passive-mandate
+// accounts) count as Passively Managed; everyone else counts as Actively Managed. As of
+// 2026-07-22 this is sourced directly from an explicit "IPS" Yes/No column the user added to
+// NDPMS MIS.xlsx (UCC + IPS columns) — no more hand-maintained guessing. That column corrected
+// two clients the old hand-maintained list had wrong: Dhiraj Sarna (AONDCP0009) actually has an
+// IPS (was wrongly marked Passive) and Sharad Prem Jagtiani (NDAS0002) does not (was wrongly left
+// as Active by omission). On a future monthly refresh, re-read the MIS sheet's "IPS" column and
+// rebuild this set from it directly rather than eyeballing holdings — see ndpms-monthly-update
+// skill Step 4.
+const PASSIVE_NDAS = new Set(["AONDCP0011","AONDCP0008","AONDCP0001","NDAS0010","NDAS0002","NDAS0016","NDAS0017","ANGNR0004","AONDCP0012"]);
 function isPassivelyManaged(ndas) { return PASSIVE_NDAS.has(ndas); }
 // Shared Active/Passive badge — originally local to buildChecklist()'s Client Checklist table;
 // promoted to global here so showClient()'s info-card row can reuse the identical badge, per
