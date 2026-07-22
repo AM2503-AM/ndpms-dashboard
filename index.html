@@ -22087,6 +22087,114 @@ function buildIpsRows(ips){
   return rows;
 }
 
+// Shared Gap Analysis logic — extracted 2026-07-22 so both the "Executive Summary — Gap
+// Analysis" slide (top-3 cards) and the new "Priority Actions" order-sheet slide (ALL items,
+// with a ₹ Cr amount per row) read from one place instead of duplicating the title/note/amount
+// derivation. Returns EVERY breach (already severity-reordered for cash — see the cash-unshift
+// comment below), each enriched with `title` (action-oriented headline), `note` (the narrative
+// used on the Gap Analysis cards), and `amountCr` (a real ₹ Cr figure: the excess above the band
+// ceiling for "over" rows, the gap below the band floor/target for "under"/"gap" rows — NOT the
+// full position value, since the actionable amount is what needs to move, not what's currently
+// held). Reuses the exact wording already user-approved in noteFor/titleFor — do not restate this
+// logic a third time if a future slide needs it; call this function.
+function buildGapAnalysisItems(clientRecord){
+  const { strategyClient: sc, ips } = clientRecord;
+  const ipsRows = buildIpsRows(ips);
+  const breaches = ipsRows.filter(r=>r.status!=="ok");
+  const parkingRec = (typeof PARKING_DATA !== "undefined" && clientRecord.ndas) ? PARKING_DATA[clientRecord.ndas] : null;
+  // Preserve the prior severity-based UX for cash specifically: a severely over-threshold cash
+  // position (>2x the ideal) jumps to the front so it always makes the top-3 cut even alongside
+  // other breaches — cash is always the LAST row buildIpsRows produces, so without this a client
+  // with 3+ other breaches (e.g. Suman Agarwal, 66.7% cash) would never see it make the cut.
+  const cashBreachIdx = breaches.findIndex(r => r.param === "Cash & Cash Equivalents");
+  if (cashBreachIdx > 0) {
+    const cashBand = (IPS_BAND_TEMPLATE[ips.risk_profile] || IPS_BAND_TEMPLATE.Aggressive).cash;
+    if (parseFloat(breaches[cashBreachIdx].current) > cashBand.max * 2) {
+      const [cashBreach] = breaches.splice(cashBreachIdx, 1);
+      breaches.unshift(cashBreach);
+    }
+  }
+  if (!breaches.length) return [];
+  const titleFor = r => {
+    const isOver = r.status === "over";
+    if (r.param.startsWith("International")) return isOver ? "Reduce International Equity" : "Increase International Equity";
+    if (r.param.startsWith("Commodities")) return isOver ? "Reduce Gold/Silver Allocation" : "Increase Gold/Silver Allocation";
+    if (r.param.startsWith("Single scheme")) return "Reduce Single-Scheme Concentration";
+    if (r.param.startsWith("Single AMC")) return "Reduce Single-AMC Concentration";
+    if (r.param.startsWith("Asset Allocation")) return isOver ? "Reduce Equity Allocation" : "Increase Equity Allocation";
+    if (r.param.startsWith("Fixed Income")) return isOver ? "Reduce Fixed Income / Alternates" : "Increase Fixed Income / Alternates";
+    if (r.param.startsWith("Large-cap")) return "Increase Large-Cap Allocation";
+    if (r.param.startsWith("Mid-cap")) return "Reduce Mid-Cap Allocation";
+    if (r.param.startsWith("Small-cap")) return "Reduce Small-Cap Allocation";
+    if (r.param.startsWith("Products with Hard Lock-in")) return "Reduce Lock-in Exposure";
+    if (r.param === "Cash & Cash Equivalents") return "Deploy Excess Cash";
+    return r.param;
+  };
+  const tmBands = IPS_BAND_TEMPLATE[ips.risk_profile] || IPS_BAND_TEMPLATE.Aggressive;
+  const aumCr = ips.aum_cr || (sc.aum ? sc.aum/1e7 : 0);
+  const GOLD_SILVER_RATIO = 0.85; // Asset X, July 2026: 85% Gold / 15% Silver
+  const fundingNote = (deltaCr, excludeParam) => {
+    if (!parkingRec || deltaCr <= 0.01) return '';
+    const availableCr = ((parkingRec.cash||0)+(parkingRec.liquid||0)+(parkingRec.overnight||0))/1e7;
+    if (availableCr >= deltaCr) return ` Fund from existing cash/liquid holdings (₹${availableCr.toFixed(2)} Cr parked) — no need to trim anything else.`;
+    const remainingCr = deltaCr - availableCr;
+    const cashPart = availableCr > 0.01 ? ` ₹${availableCr.toFixed(2)} Cr of parked cash/liquid covers part of this;` : '';
+    const otherOver = breaches.find(b => b.status === "over" && b.param !== excludeParam);
+    if (otherOver) return `${cashPart} the remaining ₹${remainingCr.toFixed(2)} Cr could come from trimming the ${otherOver.param.replace(/\s*\(.*?\)/,'').trim()} overweight (currently ${otherOver.current}).`;
+    return `${cashPart} the remaining ₹${remainingCr.toFixed(2)} Cr would need to come from trimming an overweight position elsewhere in the portfolio.`;
+  };
+  // Real ₹ Cr amount that needs to MOVE (not the full position value) — the excess above a band
+  // ceiling for "over" rows, or the gap below a band floor/target for "under"/"gap" rows. Mirrors
+  // the same band edge each param's status check in buildIpsRows already used.
+  const amountForRow = r => {
+    const currentPct = parseFloat(r.current) || 0;
+    if (r.param === "Cash & Cash Equivalents") return aumCr * Math.max(0, currentPct - tmBands.cash.max) / 100;
+    if (r.param.startsWith("Commodities")) {
+      if (r.status === "over") return aumCr * Math.max(0, currentPct - tmBands.commodity.max) / 100;
+      return aumCr * Math.max(0, tmBands.commodity.max - currentPct) / 100;
+    }
+    if (r.param.startsWith("Single scheme")) return aumCr * Math.max(0, currentPct - tmBands.scheme.max) / 100;
+    if (r.param.startsWith("Single AMC")) return aumCr * Math.max(0, currentPct - tmBands.amc.max) / 100;
+    if (r.param.startsWith("Large-cap")) return aumCr * Math.max(0, tmBands.lc.min - currentPct) / 100;
+    if (r.param.startsWith("Mid-cap")) return aumCr * Math.max(0, currentPct - tmBands.mc.max) / 100;
+    if (r.param.startsWith("Small-cap")) return aumCr * Math.max(0, currentPct - tmBands.sc.max) / 100;
+    if (r.param.startsWith("Products with Hard Lock-in")) return aumCr * Math.max(0, currentPct - tmBands.lockin.max) / 100;
+    if (r.param.startsWith("International")) {
+      if (r.status === "gap") return aumCr * tmBands.intl_eq.max / 100;
+      return aumCr * Math.max(0, currentPct - tmBands.intl_eq.max) / 100;
+    }
+    if (r.param.startsWith("Asset Allocation")) return aumCr * Math.abs(currentPct - (r.status==="over" ? tmBands.equity.max : tmBands.equity.min)) / 100;
+    if (r.param.startsWith("Fixed Income")) return aumCr * Math.abs(currentPct - (r.status==="over" ? tmBands.debt_alt.max : tmBands.debt_alt.min)) / 100;
+    return aumCr * currentPct / 100;
+  };
+  const noteFor = r => {
+    if (r.param === "Cash & Cash Equivalents") {
+      const cashCr = aumCr * (parseFloat(r.current)||0) / 100;
+      const deployTarget = breaches.find(b => (b.status === "under" || b.status === "gap") && b.param !== r.param);
+      const targetNote = deployTarget
+        ? `Deploy toward ${deployTarget.param.replace(/\s*\(.*?\)/,'').trim()}, currently ${deployTarget.current} against an ideal of ${deployTarget.ideal}.`
+        : `Deploy per the ${ips.risk_profile} profile's target allocation.`;
+      return `₹${cashCr.toFixed(2)} Cr (${r.current} of AUM) is sitting in cash/liquid/overnight/arbitrage — above the ${r.ideal} operational buffer typically needed for a fully-invested DPMS mandate. ${targetNote}`;
+    }
+    if (r.param.startsWith("Commodities")) {
+      const currentCr = aumCr * (ips.commodity_pct||0) / 100;
+      if (r.status === "over") {
+        return `Commodities is currently ${r.current} (₹${currentCr.toFixed(2)} Cr), above the ideal ${r.ideal} — trim toward the band. Asset X's house view still favours an ${(GOLD_SILVER_RATIO*100).toFixed(0)}:${((1-GOLD_SILVER_RATIO)*100).toFixed(0)} Gold:Silver mix within whatever commodity exposure remains.`;
+      }
+      const targetPct = tmBands.commodity.max;
+      const targetCr = aumCr * targetPct / 100;
+      const gapCr = Math.max(0, targetCr - currentCr);
+      const goldCr = gapCr * GOLD_SILVER_RATIO, silverCr = gapCr * (1-GOLD_SILVER_RATIO);
+      return `Commodities is at ${pct(ips.commodity_pct)} (₹${currentCr.toFixed(2)} Cr) against an ideal band of ${r.ideal} — Asset X recommends accumulating on the current pullback (Gold below ~$4,200/oz, Silver below ~$65/oz) in an ${(GOLD_SILVER_RATIO*100).toFixed(0)}:${((1-GOLD_SILVER_RATIO)*100).toFixed(0)} Gold:Silver split. To reach ${targetPct}% of AUM (₹${targetCr.toFixed(2)} Cr), add approx. ₹${goldCr.toFixed(2)} Cr Gold + ₹${silverCr.toFixed(2)} Cr Silver (₹${gapCr.toFixed(2)} Cr total).${fundingNote(gapCr, r.param)}`;
+    }
+    const currentCr = aumCr * (parseFloat(r.current)||0) / 100;
+    if (r.status==="gap") return `${r.param} is at 0% against an ideal band of ${r.ideal} — a structural gap versus the house view (Asset X is constructive on this asset class currently) rather than a tactical one; a diversification opportunity worth discussing, not a compliance breach.`;
+    if (r.status==="over") return `${r.param} is currently ${r.current} (₹${currentCr.toFixed(2)} Cr), above the ideal ${r.ideal} — trim toward the ${ips.risk_profile} profile's band to reduce concentration/tail risk.`;
+    return `${r.param} is currently ${r.current} (₹${currentCr.toFixed(2)} Cr), below the ideal ${r.ideal} — leaves the portfolio under-allocated relative to the ${ips.risk_profile} profile; consider adding exposure to close the gap.`;
+  };
+  return breaches.map(r => ({...r, title: titleFor(r), note: noteFor(r), amountCr: amountForRow(r)}));
+}
+
 function buildClientDeck(clientRecord){
   // clientRecord = { ndas, strategyName, strategyClient, attribution, mis, ips }
   const { strategyClient: sc, ips, mis, attribution } = clientRecord;
@@ -22112,6 +22220,81 @@ function buildClientDeck(clientRecord){
       s.addText(k.label,{x,y:5.2,w:2.7,h:0.35,fontFace:BRAND.FONT,fontSize:10,color:BRAND.LBLUE,align:"center"});
     });
     s.addText(`Inception: ${sc.inception}   |   Benchmark: ${sc.benchmark_name}`, {x:0.8,y:6.55,w:11.7,h:0.4,fontFace:BRAND.FONT,fontSize:11,color:"CBD3FF"});
+  })();
+
+  // ---------- EXECUTIVE SUMMARY (KPI strip + What we found / What we'd do now) ----------
+  // Added 2026-07-22, adapting the "Kordes Family" reference review's front-page format (a KPI
+  // strip plus two plain-language columns) — everything here is derived from the same
+  // buildGapAnalysisItems()/holdings data the rest of the deck already uses; nothing new to
+  // maintain. Sits ahead of the detailed Gap Analysis cards (still the "top-3, deep narrative"
+  // slide) as the 30-second version.
+  (function(){
+    const s = pptx.addSlide(); s.background = {color: BRAND.WHITE};
+    titleBar(s,"Executive Summary","A snapshot of the portfolio and the changes worth making");
+    const items = buildGapAnalysisItems(clientRecord);
+    const holdings = (sc.holdings||[]).slice().sort((a,b)=>(b.assets_pct||0)-(a.assets_pct||0));
+    const top10Pct = holdings.slice(0,10).reduce((a,h)=>a+(h.assets_pct||0),0);
+    const manualItems = (mis && mis.action_items ? mis.action_items.split("\n") : []).filter(Boolean);
+    const kpis = [
+      {label:"AUM Reviewed", value: money(sc.aum)},
+      {label:"Holdings", value: String(holdings.length)},
+      {label:"Top-10 Weight", value: pct(top10Pct)},
+      {label:"IPS Gaps", value: String(items.length)},
+      {label:"Actions Recommended", value: String(items.length + manualItems.length)},
+    ];
+    const kpiW = 12.33/kpis.length - 0.2;
+    kpis.forEach((k,i)=>{ const x = 0.5 + i*(kpiW+0.25);
+      s.addShape(pptx.ShapeType.roundRect,{x,y:1.55,w:kpiW,h:1.15,fill:{color:BRAND.PANEL},line:{color:BRAND.LINE,width:1},rectRadius:0.06});
+      s.addText(k.value,{x,y:1.68,w:kpiW,h:0.6,fontFace:BRAND.FONTB,bold:true,fontSize:22,color:BRAND.BLUE,align:"center"});
+      s.addText(k.label,{x,y:2.28,w:kpiW,h:0.35,fontFace:BRAND.FONT,fontSize:9.5,color:BRAND.GREY,align:"center"});
+    });
+    s.addShape(pptx.ShapeType.rect,{x:0.5,y:3.05,w:5.9,h:0.4,fill:{color:BRAND.BLUE},line:{type:"none"}});
+    s.addText("WHAT WE FOUND",{x:0.65,y:3.05,w:5.6,h:0.4,fontFace:BRAND.FONTB,bold:true,fontSize:12,color:BRAND.WHITE,valign:"middle"});
+    s.addShape(pptx.ShapeType.rect,{x:6.93,y:3.05,w:5.9,h:0.4,fill:{color:BRAND.DGREEN},line:{type:"none"}});
+    s.addText("WHAT WE'D DO NOW",{x:7.08,y:3.05,w:5.6,h:0.4,fontFace:BRAND.FONTB,bold:true,fontSize:12,color:BRAND.WHITE,valign:"middle"});
+    const foundBullets = [];
+    if (top10Pct > 0) foundBullets.push(`The top ten holdings carry ${pct(top10Pct)} of the book.`);
+    items.slice(0,4).forEach(r => foundBullets.push(`${r.param.replace(/\s*—.*/,'')} is ${r.current} against an ideal of ${r.ideal}.`));
+    if (!foundBullets.length) foundBullets.push(`All ${buildIpsRows(ips).length} IPS parameters are within band for the ${ips.risk_profile} profile.`);
+    const doBullets = items.slice(0,4).map(r => r.amountCr > 0.01 ? `${r.title} — about ₹${r.amountCr.toFixed(2)} Cr.` : r.title);
+    if (manualItems.length) doBullets.push(`${manualItems.length} advisor-logged action item${manualItems.length===1?'':'s'} — see Priority Actions.`);
+    if (!doBullets.length) doBullets.push("No IPS-driven actions required this quarter — maintain current allocation.");
+    s.addText(foundBullets.map(t=>({text:t,options:{bullet:{code:"2022"},fontSize:11,color:BRAND.INK,paraSpaceAfter:10}})),
+      {x:0.65,y:3.6,w:5.6,h:3.3,fontFace:BRAND.FONT,valign:"top"});
+    s.addText(doBullets.map(t=>({text:t,options:{bullet:{code:"2022"},fontSize:11,color:BRAND.INK,paraSpaceAfter:10}})),
+      {x:7.08,y:3.6,w:5.6,h:3.3,fontFace:BRAND.FONT,valign:"top"});
+    footer(s, "Source: NDPMS holdings & IPS analysis, as of latest dashboard refresh.");
+  })();
+
+  // ---------- MANDATE & METHOD ----------
+  (function(){
+    const s = pptx.addSlide(); s.background = {color: BRAND.WHITE};
+    titleBar(s,"Mandate & Method","How to read this review");
+    const tmBands = IPS_BAND_TEMPLATE[ips.risk_profile] || IPS_BAND_TEMPLATE.Aggressive;
+    s.addShape(pptx.ShapeType.roundRect,{x:0.5,y:1.6,w:5.9,h:5.2,fill:{color:BRAND.PANEL},line:{color:BRAND.LINE,width:1},rectRadius:0.06});
+    s.addText("THE MANDATE",{x:0.75,y:1.8,w:5.4,h:0.35,fontFace:BRAND.FONTB,bold:true,fontSize:13,color:BRAND.BLUE});
+    const mandateRows = [
+      ["Risk Profile", ips.risk_profile],
+      ["Strategy", clientRecord.strategyName],
+      ["Benchmark", sc.benchmark_name || "—"],
+      ["Construction", "Asset X house view"],
+      ["Inception", sc.inception || "—"],
+    ];
+    mandateRows.forEach(([k,v],i)=>{ const y = 2.3 + i*0.62;
+      s.addText(k,{x:0.75,y,w:2.4,h:0.5,fontFace:BRAND.FONT,fontSize:11,color:BRAND.GREY,valign:"top"});
+      s.addText(String(v),{x:3.15,y,w:3.0,h:0.5,fontFace:BRAND.FONTB,bold:true,fontSize:12,color:BRAND.INK,valign:"top"});
+    });
+    s.addShape(pptx.ShapeType.roundRect,{x:6.93,y:1.6,w:5.9,h:5.2,fill:{color:BRAND.PANEL},line:{color:BRAND.LINE,width:1},rectRadius:0.06});
+    s.addText("THE METHOD",{x:7.18,y:1.8,w:5.4,h:0.35,fontFace:BRAND.FONTB,bold:true,fontSize:13,color:BRAND.BLUE});
+    const methodText = [
+      `Bands below are set for the ${ips.risk_profile} risk profile per the firm's Investment Policy Statement framework, refreshed each month against the latest holdings.`,
+      `AMC and single-scheme concentration are only flagged as a breach when the underlying book is material — under ${CONCENTRATION_MATERIALITY_FLOOR_PCT}% of the total portfolio, a concentrated sub-book is suppressed rather than flagged (see Concentration & Risk, this deck).`,
+      `Cash & Cash Equivalents combines bank cash, liquid funds, overnight funds, and arbitrage funds — all treated as low-conviction "waiting" capital against a ${tmBands.cash.label} operational buffer.`,
+      `Tax character on any recommended sale is informational only (LTCG/STCG by holding period) — always confirm with the client's tax adviser before dealing.`,
+    ];
+    s.addText(methodText.map(t=>({text:t,options:{bullet:{code:"2022"},fontSize:11,color:BRAND.INK,paraSpaceAfter:12}})),
+      {x:7.18,y:2.3,w:5.4,h:4.3,fontFace:BRAND.FONT,valign:"top"});
+    footer(s, "This is a review of existing holdings on a discretionary NDPMS mandate, not a solicitation.");
   })();
 
   // ---------- ASSET X (image, spliced verbatim; masks the internal-use watermark) ----------
@@ -22223,110 +22406,73 @@ function buildClientDeck(clientRecord){
     footer(s, `Concentration flagged from largest single holding · ${ips.num_holdings} holdings`);
   })();
 
+  // ---------- ALLOCATION VS HOUSE VIEW ----------
+  (function(){
+    const s = pptx.addSlide(); s.background = {color: BRAND.WHITE};
+    titleBar(s,"Allocation vs. House View","How the book lines up against Asset X's current positioning");
+    const tmBands = IPS_BAND_TEMPLATE[ips.risk_profile] || IPS_BAND_TEMPLATE.Aggressive;
+    const domesticEqPct = (ips.eq_pct||0) * (100-(ips.intl_eq_pct||0))/100;
+    const stanceFor = key => (typeof ASSET_X_VIEWS !== "undefined" && ASSET_X_VIEWS[key]) ? ASSET_X_VIEWS[key] : null;
+    const domStance = stanceFor("Domestic Equities");
+    const fiStance = stanceFor("Fixed Income");
+    const rows = [
+      {dim:"Domestic Equity", house: domStance ? `${domStance.stance} — ${domStance.note}` : "—", portfolio: `${pct(domesticEqPct)} of AUM`, status: "info"},
+      {dim:"Foreign / Global Equity", house: "~25% of equity, 60:40 DM:EM (Asset X, Jul 2026)", portfolio: `${pct(ips.intl_eq_pct)} of equity`, status: ips.intl_eq_pct===0?"gap":(Math.abs(ips.intl_eq_pct-25)<=5?"ok":"watch")},
+      {dim:"Gold & Silver", house: "85:15 Gold:Silver (Asset X, Jul 2026)", portfolio: `${pct(ips.commodity_pct)} of AUM`, status: ips.commodity_pct===0?"gap":((ips.commodity_pct>=tmBands.commodity.min && ips.commodity_pct<=tmBands.commodity.max)?"ok":"watch")},
+      {dim:"Fixed Income & Alternates", house: fiStance ? `${fiStance.stance} — ${fiStance.note}` : "—", portfolio: `${pct(ips.debt_alt_pct)} of AUM`, status: (ips.debt_alt_pct>=tmBands.debt_alt.min && ips.debt_alt_pct<=tmBands.debt_alt.max)?"ok":"watch"},
+      {dim:"Factor tilt (Momentum/Value)", house: "Trim Value 50%, reallocate to Momentum (Asset X, Jul 2026)", portfolio: "Not tracked per-holding", status: "na"},
+    ];
+    const stColors = {ok:[BRAND.LGREEN,BRAND.DGREEN,"ALIGNED"], gap:["FFF2CC","9C6500","GAP"], watch:[BRAND.LRED,BRAND.DRED,"WATCH"], na:[BRAND.GREYB,BRAND.GREY,"NOT TRACKED"], info:[BRAND.PANEL,BRAND.INK,"—"]};
+    const tRows = [[C("Dimension",{b:1,color:BRAND.WHITE,fill:BRAND.BLUE,align:"left"}),C("House View (Asset X)",{b:1,color:BRAND.WHITE,fill:BRAND.BLUE,align:"left"}),C("Portfolio Today",{b:1,color:BRAND.WHITE,fill:BRAND.BLUE}),C("Status",{b:1,color:BRAND.WHITE,fill:BRAND.BLUE})]];
+    rows.forEach(r=>{ const c = stColors[r.status]||stColors.info;
+      tRows.push([C(r.dim,{align:"left",b:1}), C(r.house,{align:"left",size:10}), C(r.portfolio,{b:1}), C(c[2],{b:1,color:c[1],fill:c[0],size:10})]);
+    });
+    s.addTable(tRows,{x:0.5,y:1.6,w:12.33,colW:[2.6,5.5,2.43,1.8],rowH:0.85,border:{type:"solid",color:BRAND.LINE,pt:1}});
+    footer(s, "Source: Asset X house view, latest monthly deck; client holdings, latest dashboard refresh. Factor tilt is not systematically tagged per-holding in the current data pipeline.");
+  })();
+
+  // ---------- CONCENTRATION & RISK ----------
+  (function(){
+    const s = pptx.addSlide(); s.background = {color: BRAND.WHITE};
+    titleBar(s,"Concentration & Risk","Where single-name and single-manager risk sits in the book");
+    const tmBands = IPS_BAND_TEMPLATE[ips.risk_profile] || IPS_BAND_TEMPLATE.Aggressive;
+    const cnrHoldings = (sc.holdings||[]).filter(h=>h.security!=="Cash").slice().sort((a,b)=>(b.assets_pct||0)-(a.assets_pct||0));
+    const top5Pct = cnrHoldings.slice(0,5).reduce((a,h)=>a+(h.assets_pct||0),0);
+    const top10Pct = cnrHoldings.slice(0,10).reduce((a,h)=>a+(h.assets_pct||0),0);
+    const above8 = cnrHoldings.filter(h=>(h.assets_pct||0)>8).length;
+    const above15 = cnrHoldings.filter(h=>(h.assets_pct||0)>15).length;
+    const cnrAmcBoth = amcExposureBothPct(ips.top_amc, ips.full_name);
+    const cnrAmcMaterial = isConcentrationBreachMaterial(cnrAmcBoth);
+    const cnrSchemeBoth = schemeExposureBothPct(ips.top_scheme, ips.full_name);
+    const cnrSchemeMaterial = isConcentrationBreachMaterial(cnrSchemeBoth);
+    const cnrRows = [
+      {metric:"Top-5 single holdings", val: pct(top5Pct), guideline: "< 25% (informational, not an IPS band)", status: top5Pct>25?"breach":"within"},
+      {metric:"Top-10 single holdings", val: pct(top10Pct), guideline: "< 30% (informational, not an IPS band)", status: top10Pct>30?"watch":"within"},
+      {metric:"Holdings above 8% of AUM", val: String(above8), guideline: "0 (informational)", status: above8>0?"watch":"within"},
+      {metric:"Holdings above 15% of AUM", val: String(above15), guideline: "0 (informational)", status: above15>0?"breach":"within"},
+      {metric:"Largest single AMC", val: `${pct(ips.top_amc_pct)} (${ips.top_amc})`, guideline: `≤ ${tmBands.amc.max}% (IPS band)`, status: (ips.top_amc_pct>tmBands.amc.max && cnrAmcMaterial)?"breach":"within"},
+      {metric:"Largest single scheme", val: `${pct(ips.top_scheme_pct)} (${ips.top_scheme})`, guideline: `≤ ${tmBands.scheme.max}% (IPS band)`, status: (ips.top_scheme_pct>tmBands.scheme.max && cnrSchemeMaterial)?"breach":"within"},
+    ];
+    const cnrColors = {breach:[BRAND.LRED,BRAND.DRED,"BREACH"], watch:["FFF2CC","9C6500","WATCH"], within:[BRAND.LGREEN,BRAND.DGREEN,"WITHIN"]};
+    const cRows = [[C("Metric",{b:1,color:BRAND.WHITE,fill:BRAND.BLUE,align:"left"}),C("Portfolio",{b:1,color:BRAND.WHITE,fill:BRAND.BLUE}),C("Guideline",{b:1,color:BRAND.WHITE,fill:BRAND.BLUE,align:"left"}),C("Status",{b:1,color:BRAND.WHITE,fill:BRAND.BLUE})]];
+    cnrRows.forEach(r=>{ const c = cnrColors[r.status];
+      cRows.push([C(r.metric,{align:"left"}), C(r.val,{b:1}), C(r.guideline,{align:"left",color:BRAND.GREY,size:10}), C(c[2],{b:1,color:c[1],fill:c[0],size:10.5})]);
+    });
+    s.addTable(cRows,{x:0.5,y:1.6,w:12.33,colW:[3.6,3.2,4.03,1.5],rowH:0.75,border:{type:"solid",color:BRAND.LINE,pt:1}});
+    footer(s, "Top-5/Top-10/count-above-threshold rows are general risk-management heuristics, not formal IPS covenants. AMC/scheme rows are the actual IPS bands and use the same materiality gate as the rest of this review.");
+  })();
+
   // ---------- EXECUTIVE SUMMARY — GAP ANALYSIS (numbered takeaway cards) ----------
   // Distills the IPS breaches into the 3 most material, plain-language gaps — the "so what"
   // slide, styled after the numbered gap-analysis format used in the firm's own sample decks.
+  // Title/note/amount derivation now lives in the shared buildGapAnalysisItems() (2026-07-22) —
+  // the Priority Actions order-sheet slide reads the same items with ALL breaches, not just top-3.
   (function(){
-    const ipsRows = buildIpsRows(ips);
-    const breaches = ipsRows.filter(r=>r.status!=="ok");
-    // Cash & Cash Equivalents is now a real IPS_BAND_TEMPLATE parameter (added 2026-07-22, see
-    // cashEquivPct()/buildIpsRows) — it flows into `breaches` above automatically like every other
-    // parameter, so no separate hand-injected row is needed here anymore. (Previously this slide
-    // hand-built an "Excess Parked Cash" row from PARKING_DATA.cash_pct alone, per user request
-    // 2026-07-21 — that undercounted clients whose idle money sits mostly in arbitrage/liquid/
-    // overnight rather than literal bank cash; superseded now that the same combined figure is a
-    // proper IPS row everyone reads from one place.) `parkingRec` is still needed below for
-    // `fundingNote`'s "fund from existing cash/liquid" check.
-    const parkingRec = (typeof PARKING_DATA !== "undefined" && clientRecord.ndas) ? PARKING_DATA[clientRecord.ndas] : null;
-    // Preserve the prior severity-based UX for cash specifically: a severely over-threshold cash
-    // position (>2x the ideal) jumps to the front of the top-3 cut below, since idle cash matters
-    // the same way regardless of mandate and would otherwise get crowded out by plain row order —
-    // cash is always the LAST row buildIpsRows produces, so without this a client with 3+ other
-    // breaches (e.g. Suman Agarwal, 66.7% cash) would never see it make the cut.
-    const cashBreachIdx = breaches.findIndex(r => r.param === "Cash & Cash Equivalents");
-    if (cashBreachIdx > 0) {
-      const cashBand = (IPS_BAND_TEMPLATE[ips.risk_profile] || IPS_BAND_TEMPLATE.Aggressive).cash;
-      if (parseFloat(breaches[cashBreachIdx].current) > cashBand.max * 2) {
-        const [cashBreach] = breaches.splice(cashBreachIdx, 1);
-        breaches.unshift(cashBreach);
-      }
-    }
-    if (!breaches.length) return;
+    const items = buildGapAnalysisItems(clientRecord);
+    if (!items.length) return;
     const s = pptx.addSlide(); s.background = {color: BRAND.WHITE};
     titleBar(s,"Executive Summary — Gap Analysis","Framework for strategy evaluation and action");
-    // Titles are action recommendations ("Increase X"), not just descriptions of the gap ("No X")
-    // — per user feedback 2026-07-21: "if we are saying to increase gold silver we should write
-    // increase not no commodities- thats wrong". Direction comes from r.status where the check can
-    // go either way; Large/Mid/Small-cap and Lock-in only ever breach in one direction (see
-    // buildIpsRows) so those stay fixed.
-    const titleFor = r => {
-      const isOver = r.status === "over";
-      if (r.param.startsWith("International")) return isOver ? "Reduce International Equity" : "Increase International Equity";
-      if (r.param.startsWith("Commodities")) return isOver ? "Reduce Gold/Silver Allocation" : "Increase Gold/Silver Allocation";
-      if (r.param.startsWith("Single scheme")) return "Reduce Single-Scheme Concentration";
-      if (r.param.startsWith("Single AMC")) return "Reduce Single-AMC Concentration";
-      if (r.param.startsWith("Asset Allocation")) return isOver ? "Reduce Equity Allocation" : "Increase Equity Allocation";
-      if (r.param.startsWith("Fixed Income")) return isOver ? "Reduce Fixed Income / Alternates" : "Increase Fixed Income / Alternates";
-      if (r.param.startsWith("Large-cap")) return "Increase Large-Cap Allocation";
-      if (r.param.startsWith("Mid-cap")) return "Reduce Mid-Cap Allocation";
-      if (r.param.startsWith("Small-cap")) return "Reduce Small-Cap Allocation";
-      if (r.param.startsWith("Products with Hard Lock-in")) return "Reduce Lock-in Exposure";
-      if (r.param === "Cash & Cash Equivalents") return "Deploy Excess Cash";
-      return r.param;
-    };
-    // Concrete, Asset X-tied recommendation for Commodities specifically — per user request
-    // 2026-07-21 ("asset x says 85:15 ratio for gold silver- so that should be our recommendation,
-    // with actual amounts, percentages etc... if increasing that needs to be equalled to something
-    // sold"). 85:15 Gold:Silver and the "accumulate on this pullback" framing are Asset X's actual
-    // July 2026 house view (Asset X- July 2026.pptx, slide 9: "85:15 allocation in gold & silver";
-    // slide 3: "We continue to recommend 85% position in Gold and 15% position in Silver"), not
-    // invented — if Asset X's target ratio changes in a future month, update GOLD_SILVER_RATIO
-    // below. Other gap types still get a directional call + the position's rupee value (real,
-    // computed from AUM) but not a fabricated target-rupee-amount, since only Commodities has a
-    // concrete house-view split like this to size against.
-    const tmBands = IPS_BAND_TEMPLATE[ips.risk_profile] || IPS_BAND_TEMPLATE.Aggressive;
-    const aumCr = ips.aum_cr || (sc.aum ? sc.aum/1e7 : 0);
-    const GOLD_SILVER_RATIO = 0.85; // Asset X, July 2026: 85% Gold / 15% Silver
-    // Names the ACTUAL other overweight breach as the trim source when one exists (not a vague
-    // "an overweight position") — per user request 2026-07-21: "if we are increasing that means
-    // needs to be equalled to something sold." Falls back to a generic line only if this client
-    // has no other "over" breach to point to.
-    const fundingNote = (deltaCr, excludeParam) => {
-      if (!parkingRec || deltaCr <= 0.01) return '';
-      const availableCr = ((parkingRec.cash||0)+(parkingRec.liquid||0)+(parkingRec.overnight||0))/1e7;
-      if (availableCr >= deltaCr) return ` Fund from existing cash/liquid holdings (₹${availableCr.toFixed(2)} Cr parked) — no need to trim anything else.`;
-      const remainingCr = deltaCr - availableCr;
-      const cashPart = availableCr > 0.01 ? ` ₹${availableCr.toFixed(2)} Cr of parked cash/liquid covers part of this;` : '';
-      const otherOver = breaches.find(b => b.status === "over" && b.param !== excludeParam);
-      if (otherOver) return `${cashPart} the remaining ₹${remainingCr.toFixed(2)} Cr could come from trimming the ${otherOver.param.replace(/\s*\(.*?\)/,'').trim()} overweight (currently ${otherOver.current}).`;
-      return `${cashPart} the remaining ₹${remainingCr.toFixed(2)} Cr would need to come from trimming an overweight position elsewhere in the portfolio.`;
-    };
-    const noteFor = r => {
-      if (r.param === "Cash & Cash Equivalents") {
-        const cashCr = aumCr * (parseFloat(r.current)||0) / 100;
-        const deployTarget = breaches.find(b => (b.status === "under" || b.status === "gap") && b.param !== r.param);
-        const targetNote = deployTarget
-          ? `Deploy toward ${deployTarget.param.replace(/\s*\(.*?\)/,'').trim()}, currently ${deployTarget.current} against an ideal of ${deployTarget.ideal}.`
-          : `Deploy per the ${ips.risk_profile} profile's target allocation.`;
-        return `₹${cashCr.toFixed(2)} Cr (${r.current} of AUM) is sitting in cash/liquid/overnight/arbitrage — above the ${r.ideal} operational buffer typically needed for a fully-invested DPMS mandate. ${targetNote}`;
-      }
-      if (r.param.startsWith("Commodities")) {
-        const currentCr = aumCr * (ips.commodity_pct||0) / 100;
-        if (r.status === "over") {
-          return `Commodities is currently ${r.current} (₹${currentCr.toFixed(2)} Cr), above the ideal ${r.ideal} — trim toward the band. Asset X's house view still favours an ${(GOLD_SILVER_RATIO*100).toFixed(0)}:${((1-GOLD_SILVER_RATIO)*100).toFixed(0)} Gold:Silver mix within whatever commodity exposure remains.`;
-        }
-        const targetPct = tmBands.commodity.max;
-        const targetCr = aumCr * targetPct / 100;
-        const gapCr = Math.max(0, targetCr - currentCr);
-        const goldCr = gapCr * GOLD_SILVER_RATIO, silverCr = gapCr * (1-GOLD_SILVER_RATIO);
-        return `Commodities is at ${pct(ips.commodity_pct)} (₹${currentCr.toFixed(2)} Cr) against an ideal band of ${r.ideal} — Asset X recommends accumulating on the current pullback (Gold below ~$4,200/oz, Silver below ~$65/oz) in an ${(GOLD_SILVER_RATIO*100).toFixed(0)}:${((1-GOLD_SILVER_RATIO)*100).toFixed(0)} Gold:Silver split. To reach ${targetPct}% of AUM (₹${targetCr.toFixed(2)} Cr), add approx. ₹${goldCr.toFixed(2)} Cr Gold + ₹${silverCr.toFixed(2)} Cr Silver (₹${gapCr.toFixed(2)} Cr total).${fundingNote(gapCr, r.param)}`;
-      }
-      const currentCr = aumCr * (parseFloat(r.current)||0) / 100;
-      if (r.status==="gap") return `${r.param} is at 0% against an ideal band of ${r.ideal} — a structural gap versus the house view (Asset X is constructive on this asset class currently) rather than a tactical one; a diversification opportunity worth discussing, not a compliance breach.`;
-      if (r.status==="over") return `${r.param} is currently ${r.current} (₹${currentCr.toFixed(2)} Cr), above the ideal ${r.ideal} — trim toward the ${ips.risk_profile} profile's band to reduce concentration/tail risk.`;
-      return `${r.param} is currently ${r.current} (₹${currentCr.toFixed(2)} Cr), below the ideal ${r.ideal} — leaves the portfolio under-allocated relative to the ${ips.risk_profile} profile; consider adding exposure to close the gap.`;
-    };
-    const top3 = breaches.slice(0,3);
+    const top3 = items.slice(0,3);
     const cardW = 12.33/top3.length - 0.2;
     top3.forEach((r,i)=>{
       const x = 0.5 + i*(cardW+0.3);
@@ -22335,10 +22481,33 @@ function buildClientDeck(clientRecord){
       // the notes — now longer with concrete Asset X amounts/percentages — have room to breathe
       // and the card bottoms out near the footer instead of leaving a blank strip.
       s.addShape(pptx.ShapeType.roundRect,{x,y:2.5,w:cardW,h:4.3,fill:{color:BRAND.WHITE},line:{color:BRAND.LBLUE,width:1.25},rectRadius:0.08});
-      s.addText(titleFor(r),{x:x+0.22,y:2.68,w:cardW-0.44,h:0.9,fontFace:BRAND.FONTB,bold:true,fontSize:15,color:BRAND.BLUE,valign:"top"});
-      s.addText(noteFor(r),{x:x+0.22,y:3.55,w:cardW-0.44,h:3.1,fontFace:BRAND.FONT,fontSize:11,color:BRAND.INK,valign:"top"});
+      s.addText(r.title,{x:x+0.22,y:2.68,w:cardW-0.44,h:0.9,fontFace:BRAND.FONTB,bold:true,fontSize:15,color:BRAND.BLUE,valign:"top"});
+      s.addText(r.note,{x:x+0.22,y:3.55,w:cardW-0.44,h:3.1,fontFace:BRAND.FONT,fontSize:11,color:BRAND.INK,valign:"top"});
     });
-    if (breaches.length>3) footer(s, `+${breaches.length-3} additional item(s) on the Portfolio Contours slide`);
+    if (items.length>3) footer(s, `+${items.length-3} additional item(s) on the Portfolio Contours slide · full order sheet on Priority Actions`);
+  })();
+
+  // ---------- BEFORE & AFTER (today vs. IPS/house-view target) ----------
+  (function(){
+    const s = pptx.addSlide(); s.background = {color: BRAND.WHITE};
+    titleBar(s,"Before & After","The book, today vs. the IPS/house-view target");
+    const tmBands = IPS_BAND_TEMPLATE[ips.risk_profile] || IPS_BAND_TEMPLATE.Aggressive;
+    const items = buildGapAnalysisItems(clientRecord);
+    const topHolding = (sc.holdings||[]).slice().sort((a,b)=>(b.assets_pct||0)-(a.assets_pct||0))[0];
+    const breachWeightPct = items.filter(r=>r.status==="over").reduce((a,r)=>a+(parseFloat(r.current)||0),0);
+    const cashPctNow = cashEquivPct(typeof ipsNdas === "function" ? ipsNdas(ips) : null);
+    const rows = [
+      {label:"Largest single holding", today: topHolding ? pct(topHolding.assets_pct) : "—", target: `≤ ${tmBands.scheme.max}% (single-scheme guideline)`},
+      {label:"IPS breach weight (sum of over-band positions)", today: pct(breachWeightPct), target: "0% — no position outside its band"},
+      {label:"International equity (% of equity)", today: pct(ips.intl_eq_pct), target: `~25% (Asset X, 60:40 DM:EM)`},
+      {label:"Cash & Cash Equivalents", today: cashPctNow!=null ? pct(cashPctNow) : "—", target: tmBands.cash.label},
+    ];
+    const tRows = [[C("Metric",{b:1,color:BRAND.WHITE,fill:BRAND.BLUE,align:"left"}),C("Today",{b:1,color:BRAND.WHITE,fill:BRAND.BLUE}),C("Proposed / Target",{b:1,color:BRAND.WHITE,fill:BRAND.BLUE})]];
+    rows.forEach(r => tRows.push([C(r.label,{align:"left"}), C(r.today,{b:1}), C(r.target,{color:BRAND.GREY})]));
+    s.addTable(tRows,{x:0.5,y:1.6,w:12.33,colW:[5.5,3.4,3.43],rowH:0.85,border:{type:"solid",color:BRAND.LINE,pt:1}});
+    s.addText("Proposed values are IPS/house-view guidelines, not forecasts of return. See Priority Actions for the specific trades and amounts to get there.",
+      {x:0.5,y:1.6+tRows.length*0.85+0.2,w:12.33,h:0.6,fontFace:BRAND.FONT,fontSize:10.5,color:BRAND.GREY,italic:true});
+    footer(s, `${items.length} IPS parameter(s) currently outside band`);
   })();
 
   // ---------- PERFORMANCE OVERVIEW ----------
@@ -22714,43 +22883,54 @@ function buildClientDeck(clientRecord){
     footer(s, `${flagged.length} holding${flagged.length===1?'':'s'} flagged for a manual PMS/AIF one-pager`);
   })();
 
-  // ---------- NEXT STEPS — "Action Summary" style, per the sample deck ----------
-  // Combines the advisor's logged action items with actions derived from IPS deviations,
-  // so this isn't just a raw notes dump but a synthesised go-forward view.
+  // ---------- PRIORITY ACTIONS (order-sheet style) ----------
+  // Replaced the card-grid "Action Summary" (2026-07-22) with a numbered order sheet — same
+  // spirit as the Kordes Family reference review's closing page. IPS-driven rows come from
+  // buildGapAnalysisItems() (same titles/amounts as the Gap Analysis and Executive Summary
+  // slides — one source of truth), plus a real ₹ Cr amount per row (the excess over band ceiling
+  // or gap to band floor, not the full position value — see amountCr in buildGapAnalysisItems).
+  // Advisor-logged free-text action items still show, compactly, below the order sheet — they're
+  // a different kind of information (RM judgment calls, not derived from IPS bands) and don't
+  // belong mixed into the same numbered rows.
   (function(){
     const s = pptx.addSlide(); s.background = {color: BRAND.WHITE};
-    titleBar(s,"Action Summary", mis && mis.last_review ? `Last reviewed: ${mis.last_review}${mis.advisor?" · Advisor: "+mis.advisor:""}` : "Portfolio Actions");
-    const manual = (mis && mis.action_items ? mis.action_items.split("\n") : []).filter(Boolean)
-      .map(t => ({headline:t, detail:null, source:"Advisor"}));
-    const derived = ipsDeviationActions(ips).map(t => ({headline:t, detail:null, source:"IPS deviation"}));
-    const actions = [...manual, ...derived];
-    if (!actions.length){
-      s.addText("No pending action items or IPS deviations on record.",{x:0.8,y:2.5,w:11,h:0.6,fontFace:BRAND.FONT,fontSize:14,color:BRAND.GREY});
-    } else {
-      // Vertically centered, height-adaptive card grid — with only 1-3 actions the old fixed
-      // 1.2in-tall/1.35in-spaced layout left more than half the slide blank below; scaling the
-      // card height up (capped) and centering the whole grid in the available space keeps a
-      // sparse action list from reading as an unfinished slide.
-      const cols = actions.length > 4 ? 2 : 1;
-      const colW = cols===2 ? 5.95 : 12.33;
-      const shown = actions.slice(0,8);
-      const nRows = Math.ceil(shown.length / cols);
-      const gap = 0.32, availTop = 1.55, availBottom = 6.95;
-      const rowH = Math.min(1.55, Math.max(1.15, ((availBottom-availTop) - (nRows-1)*gap) / nRows));
-      const totalH = nRows*rowH + (nRows-1)*gap;
-      const startY = availTop + Math.max(0, ((availBottom-availTop) - totalH) / 2);
-      shown.forEach((a,i)=>{
-        const col = cols===2 ? i%2 : 0, row = cols===2 ? Math.floor(i/2) : i;
-        const x = 0.5 + col*(colW+0.38);
-        const y = startY + row*(rowH+gap);
-        s.addShape(pptx.ShapeType.roundRect,{x,y,w:colW,h:rowH,fill:{color:BRAND.PANEL},line:{color:BRAND.LINE,width:1},rectRadius:0.06});
-        s.addText(`Action ${i+1}`,{x:x+0.2,y:y+0.1,w:colW-0.4,h:0.3,fontFace:BRAND.FONTB,bold:true,fontSize:12,color:BRAND.BLUE});
-        s.addShape(pptx.ShapeType.roundRect,{x:x+colW-1.7,y:y+0.1,w:1.5,h:0.28,fill:{color: a.source==="IPS deviation" ? "FFF2CC" : BRAND.LBLUE},line:{type:"none"},rectRadius:0.14});
-        s.addText(a.source,{x:x+colW-1.7,y:y+0.1,w:1.5,h:0.28,fontFace:BRAND.FONT,fontSize:8,bold:true,color: a.source==="IPS deviation" ? "9C6500" : BRAND.WHITE,align:"center",valign:"middle"});
-        s.addText(a.headline,{x:x+0.2,y:y+0.42,w:colW-0.4,h:rowH-0.5,fontFace:BRAND.FONT,fontSize:11.5,color:BRAND.INK,valign:"top"});
-      });
-      if (actions.length>8) footer(s, `+${actions.length-8} more action items not shown — see full advisor notes`);
+    titleBar(s,"Priority Actions", mis && mis.last_review ? `Last reviewed: ${mis.last_review}${mis.advisor?" · Advisor: "+mis.advisor:""}` : "Order sheet — amounts indicative pending dealing");
+    const items = buildGapAnalysisItems(clientRecord);
+    const manual = (mis && mis.action_items ? mis.action_items.split("\n") : []).filter(Boolean);
+    if (!items.length && !manual.length){
+      s.addText("No IPS-driven actions or advisor-logged action items on record this quarter.",{x:0.8,y:2.5,w:11,h:0.6,fontFace:BRAND.FONT,fontSize:14,color:BRAND.GREY});
+      footer(s, "");
+      return;
     }
+    let tableBottom = 1.5;
+    const maxRows = 8;
+    if (items.length) {
+      const shown = items.slice(0, maxRows);
+      const rows = [[C("#",{b:1,color:BRAND.WHITE,fill:BRAND.BLUE}),C("ACTION",{b:1,color:BRAND.WHITE,fill:BRAND.BLUE,align:"left"}),C("PARAMETER",{b:1,color:BRAND.WHITE,fill:BRAND.BLUE,align:"left"}),C("AMOUNT (₹ Cr)",{b:1,color:BRAND.WHITE,fill:BRAND.BLUE}),C("INSTRUCTION",{b:1,color:BRAND.WHITE,fill:BRAND.BLUE,align:"left"})]];
+      shown.forEach((r,i)=>{
+        const verb = r.title.split(" ")[0].toUpperCase(); // "Reduce"/"Increase"/"Deploy"
+        rows.push([C(String(i+1),{b:1}), C(verb,{align:"left",b:1,color:BRAND.BLUE}), C(r.param.replace(/\s*—.*/,''),{align:"left",size:10}), C(r.amountCr>0.01?r.amountCr.toFixed(2):'—'), C(r.title,{align:"left",size:9.5})]);
+      });
+      const rowH = Math.min(0.6, Math.max(0.35, 3.9/rows.length));
+      s.addTable(rows,{x:0.4,y:1.5,w:12.5,colW:[0.5,2.0,3.2,1.8,5.0],rowH,border:{type:"solid",color:BRAND.LINE,pt:1}});
+      tableBottom = 1.5 + rows.length*rowH;
+      if (items.length>maxRows) {
+        s.addText(`+${items.length-maxRows} more item(s) — see Executive Summary / Portfolio Contours`,{x:0.4,y:tableBottom+0.05,w:12.5,h:0.3,fontFace:BRAND.FONT,fontSize:9.5,color:BRAND.GREY,italic:true});
+        tableBottom += 0.35;
+      }
+    }
+    let y = tableBottom + 0.3;
+    if (manual.length) {
+      s.addText("ADVISOR-LOGGED ACTION ITEMS",{x:0.4,y,w:12.5,h:0.3,fontFace:BRAND.FONTB,bold:true,fontSize:11,color:BRAND.GREY});
+      y += 0.38;
+      manual.slice(0,4).forEach(m=>{
+        s.addText(`•  ${m}`,{x:0.6,y,w:12.1,h:0.34,fontFace:BRAND.FONT,fontSize:10.5,color:BRAND.INK});
+        y += 0.36;
+      });
+      if (manual.length>4) { s.addText(`+${manual.length-4} more advisor note(s)`,{x:0.6,y,w:12.1,h:0.3,fontFace:BRAND.FONT,fontSize:9.5,color:BRAND.GREY,italic:true}); y += 0.32; }
+    }
+    s.addText("Reviewed with client on ____________________",{x:0.4,y:6.85,w:8,h:0.3,fontFace:BRAND.FONT,fontSize:10,color:BRAND.GREY,italic:true});
+    footer(s, "Amounts are the ₹ Cr that needs to move — the excess over the band ceiling, or the gap to the band floor — not the full position value. Tax character informational only; confirm with the client's tax adviser before dealing.");
   })();
 
   // ---------- CLOSE ----------
