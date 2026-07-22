@@ -19344,7 +19344,14 @@ function getAllClientsFlat() {
         last_review: mis.last_review || null,
         action_items: mis.action_items || null,
         reviewStatus: getReviewStatus(mis.last_review),
-        reviewExempt: isReviewExempt(c.holdings) || MANUAL_REVIEW_EXEMPT_NDAS.includes(c.ndas),
+        // A client with no formal IPS on record is exempt from the review-cadence requirement
+        // regardless of what their holdings composition looks like — per explicit user decision
+        // 2026-07-22 (Sharad Prem Jagtiani case: his portfolio is 81.7% equity, so the holdings-
+        // based isReviewExempt() check alone said "not exempt," but he's flagged No-IPS in MIS,
+        // and the user chose to treat IPS status as authoritative over portfolio composition for
+        // this purpose). PASSIVE_NDAS is the same set IPS_DATA.no_ips is built from — keep both in
+        // sync, they must always agree on membership.
+        reviewExempt: isReviewExempt(c.holdings) || MANUAL_REVIEW_EXEMPT_NDAS.includes(c.ndas) || (typeof PASSIVE_NDAS !== "undefined" && PASSIVE_NDAS.has(c.ndas)),
         isNewThisMonth: isNewThisReportingMonth(c.inception)
       });
     });
