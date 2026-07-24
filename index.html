@@ -20724,23 +20724,6 @@ function downloadDeviationsExcel() {
   const todayForReport = new Date();
   const dstr = todayForReport.toISOString().slice(0,10);
 
-  // ── Sheet: Reviews Pending (as on date) ── clients whose review is overdue, not yet done, or
-  // in-process, excluding accounts explicitly exempt from the review cadence requirement.
-  const reviewRows = [[`Reviews Pending — as on ${dstr}`], ['Client', 'NDAS / Account', 'Strategy', 'RM', 'Advisor', 'Last Review', 'Status', 'Days Since Review']];
-  allClients.filter(c => !c.reviewExempt && c.reviewStatus.code !== 'ok')
-    .sort((a,b) => (b.reviewStatus.daysSince||0) - (a.reviewStatus.daysSince||0))
-    .forEach(c => {
-      reviewRows.push([c.name, c.ndas || c.account, c.strategyName, c.rm || '—', advisorLabel(c.advisor), c.last_review || '—', c.reviewStatus.label, c.reviewStatus.daysSince != null ? c.reviewStatus.daysSince : '—']);
-    });
-  if (reviewRows.length === 2) reviewRows.push(['—', '—', '—', '—', '—', '—', 'No reviews pending', '—']);
-
-  // ── Sheet: Actions Pending ── clients with a logged, unresolved action item from MIS.
-  const actionRows = [['Client', 'NDAS / Account', 'Strategy', 'RM', 'Advisor', 'Last Review', 'Pending Actions']];
-  allClients.filter(c => c.action_items).forEach(c => {
-    actionRows.push([c.name, c.ndas || c.account, c.strategyName, c.rm || '—', advisorLabel(c.advisor), c.last_review || '—', c.action_items.replace(/\n/g, '; ')]);
-  });
-  if (actionRows.length === 1) actionRows.push(['—', '—', '—', '—', '—', '—', 'No pending actions']);
-
   // ── Sheet: Onboarding In Progress ── UNFUNDED_DATA is the only source for this — accounts
   // opened but not yet funded. It has no stage/date field (see DEPLOYMENT_IN_PROGRESS_NDAS
   // comment for the equivalent gap on the deployment side), so this lists everyone currently
@@ -20760,28 +20743,31 @@ function downloadDeviationsExcel() {
   });
   if (deploymentRows.length === 1) deploymentRows.push(['—', '—', '—', '—', '—', 'No accounts currently deploying']);
 
-  // ── Sheet: Client Recon ── added 2026-07-24 per user request for a lean, single-row-per-client
-  // at-a-glance view (Client / Scheme / AUM / Pending Review / Pending Actions / Deviations) —
-  // distinct from "All Deviations" below, which carries the full AUM-bridge/performance columns.
-  // Reuses the exact same ipsClient/noIps/getBreaches lookup as "All Deviations" so the two sheets
-  // can never disagree on what counts as a deviation.
-  const reconRows = [['Client', 'Scheme', 'AUM (Cr)', 'Pending Review', 'Pending Actions', 'Deviations']];
+  // ── Sheet: Client Recon ── added 2026-07-24, reconciled the same day to fold in what were
+  // separate "Reviews Pending" and "Actions Pending" sheets (per user request — those three
+  // sheets were all just the same client/RM/advisor list, filtered differently). Now the single
+  // at-a-glance view: Client / Scheme / RM / Advisor / AUM / Pending Review (clear Yes/No/Exempt
+  // flag) / Days Since Review / Pending Actions (clear Yes/No flag) / Action Detail / Deviations.
+  // "All Deviations" below stays separate — it carries the full AUM-bridge/performance columns
+  // this sheet deliberately omits. Reuses the exact same ipsClient/noIps/getBreaches lookup as
+  // "All Deviations" so the two sheets can never disagree on what counts as a deviation.
+  const reconRows = [[`Client Recon — as on ${dstr}`], ['Client', 'Scheme', 'RM', 'Advisor', 'AUM (Cr)', 'Pending Review', 'Days Since Review', 'Pending Actions', 'Action Detail', 'Deviations']];
   allClients.forEach(c => {
     const ipsClient = IPS_DATA.clients.find(ic => c.ndas && ((ic.full_name && ic.full_name.includes(c.ndas)) || (ic.ndas_codes && ic.ndas_codes.includes(c.ndas))));
     const noIps = IPS_DATA.no_ips.find(ni => ni.full_name && ni.full_name.includes(c.ndas));
     let deviations = '—';
     if (noIps) deviations = 'No IPS: ' + noIps.reason;
     else if (ipsClient) { const breaches = getBreaches(ipsClient); deviations = breaches.length ? breaches.join('; ') : 'No deviations'; }
-    const pendingReview = c.reviewExempt ? 'Exempt' : (c.reviewStatus.code === 'ok' ? 'No' : `Yes — ${c.reviewStatus.label}`);
-    const pendingActions = c.action_items ? c.action_items.replace(/\n/g, '; ') : 'No';
-    reconRows.push([c.name, c.strategyName, +((c.aum || 0) / 1e7).toFixed(2), pendingReview, pendingActions, deviations]);
+    const pendingReview = c.reviewExempt ? 'Exempt' : (c.reviewStatus.code === 'ok' ? 'No' : 'Yes');
+    const pendingActions = c.action_items ? 'Yes' : 'No';
+    reconRows.push([c.name, c.strategyName, c.rm || '—', advisorLabel(c.advisor), +((c.aum || 0) / 1e7).toFixed(2),
+      pendingReview, (!c.reviewExempt && c.reviewStatus.daysSince != null) ? c.reviewStatus.daysSince : '—',
+      pendingActions, c.action_items ? c.action_items.replace(/\n/g, '; ') : '—', deviations]);
   });
 
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(reconRows), 'Client Recon');
   XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(rows), 'All Deviations');
-  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(reviewRows), 'Reviews Pending');
-  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(actionRows), 'Actions Pending');
   XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(newClientRows), 'New Clients Onboarded');
   XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(onboardingRows), 'Onboarding In Progress');
   XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(deploymentRows), 'Deployment In Progress');
