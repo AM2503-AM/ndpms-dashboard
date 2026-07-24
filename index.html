@@ -20760,7 +20760,25 @@ function downloadDeviationsExcel() {
   });
   if (deploymentRows.length === 1) deploymentRows.push(['—', '—', '—', '—', '—', 'No accounts currently deploying']);
 
+  // ── Sheet: Client Recon ── added 2026-07-24 per user request for a lean, single-row-per-client
+  // at-a-glance view (Client / Scheme / AUM / Pending Review / Pending Actions / Deviations) —
+  // distinct from "All Deviations" below, which carries the full AUM-bridge/performance columns.
+  // Reuses the exact same ipsClient/noIps/getBreaches lookup as "All Deviations" so the two sheets
+  // can never disagree on what counts as a deviation.
+  const reconRows = [['Client', 'Scheme', 'AUM (Cr)', 'Pending Review', 'Pending Actions', 'Deviations']];
+  allClients.forEach(c => {
+    const ipsClient = IPS_DATA.clients.find(ic => c.ndas && ((ic.full_name && ic.full_name.includes(c.ndas)) || (ic.ndas_codes && ic.ndas_codes.includes(c.ndas))));
+    const noIps = IPS_DATA.no_ips.find(ni => ni.full_name && ni.full_name.includes(c.ndas));
+    let deviations = '—';
+    if (noIps) deviations = 'No IPS: ' + noIps.reason;
+    else if (ipsClient) { const breaches = getBreaches(ipsClient); deviations = breaches.length ? breaches.join('; ') : 'No deviations'; }
+    const pendingReview = c.reviewExempt ? 'Exempt' : (c.reviewStatus.code === 'ok' ? 'No' : `Yes — ${c.reviewStatus.label}`);
+    const pendingActions = c.action_items ? c.action_items.replace(/\n/g, '; ') : 'No';
+    reconRows.push([c.name, c.strategyName, +((c.aum || 0) / 1e7).toFixed(2), pendingReview, pendingActions, deviations]);
+  });
+
   const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(reconRows), 'Client Recon');
   XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(rows), 'All Deviations');
   XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(reviewRows), 'Reviews Pending');
   XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(actionRows), 'Actions Pending');
