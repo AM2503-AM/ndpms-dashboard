@@ -22074,8 +22074,8 @@ function buildIpsRows(ips){
   const bir_amcBoth = typeof amcExposureBothPct === "function" ? amcExposureBothPct(ips.top_amc, ips.full_name) : null;
   const bir_schemeMaterial = typeof isConcentrationBreachMaterial === "function" ? isConcentrationBreachMaterial(bir_schemeBoth) : true;
   const bir_amcMaterial = typeof isConcentrationBreachMaterial === "function" ? isConcentrationBreachMaterial(bir_amcBoth) : true;
-  rows.push({param:"Single scheme — max allocation", ideal:`≤ ${tm.scheme.max}%`, current:`${pct(ips.top_scheme_pct)} (${ips.top_scheme})`, status: (ips.top_scheme_pct<=tm.scheme.max||!bir_schemeMaterial)?"ok":"over"});
-  rows.push({param:"Single AMC — max allocation", ideal:`≤ ${tm.amc.max}%`, current:`${pct(ips.top_amc_pct)} (${ips.top_amc})`, status: (ips.top_amc_pct<=tm.amc.max||!bir_amcMaterial)?"ok":"over"});
+  rows.push({param:"Single scheme — max allocation", ideal:`≤ ${tm.scheme.max}%`, current:`${pct(ips.top_scheme_pct)}${ips.top_scheme ? ` (${ips.top_scheme})` : ''}`, status: (ips.top_scheme_pct<=tm.scheme.max||!bir_schemeMaterial)?"ok":"over"});
+  rows.push({param:"Single AMC — max allocation", ideal:`≤ ${tm.amc.max}%`, current:`${pct(ips.top_amc_pct)}${ips.top_amc ? ` (${ips.top_amc})` : ''}`, status: (ips.top_amc_pct<=tm.amc.max||!bir_amcMaterial)?"ok":"over"});
   rows.push({param:"Large-cap allocation (of equity)", ideal:tm.lc.label, current:pct(ips.lc_pct), status: ips.lc_pct>=tm.lc.min?"ok":"under"});
   rows.push({param:"Mid-cap allocation (of equity)", ideal:tm.mc.label, current:pct(ips.mc_pct), status: ips.mc_pct<=tm.mc.max?"ok":"over"});
   rows.push({param:"Small-cap allocation (of equity)", ideal:tm.sc.label, current:pct(ips.sc_pct), status: ips.sc_pct<=tm.sc.max?"ok":"over"});
@@ -22415,10 +22415,22 @@ function buildClientDeck(clientRecord){
     const stanceFor = key => (typeof ASSET_X_VIEWS !== "undefined" && ASSET_X_VIEWS[key]) ? ASSET_X_VIEWS[key] : null;
     const domStance = stanceFor("Domestic Equities");
     const fiStance = stanceFor("Fixed Income");
+    // Live Gold vs Silver split — informational only, computed straight from holdings (not a new
+    // IPS breach: the single source of truth for breaches, computeIpsBreaches(), only has the
+    // blended commodity_pct available to it and stays untouched here — see 2026-07-22 notes on
+    // why breach logic isn't duplicated per-slide). Matches by scheme name since neither asset_class
+    // nor the holding object carries a gold/silver tag; REIT/InvIT already excluded via 'Alternative
+    // Assets' + name check, consistent with classifyInstrument().
+    const commodityHoldings = (sc.holdings||[]).filter(h => h.asset_class === "Alternative Assets" && !/REIT|INVIT/i.test(h.security||""));
+    const goldPct = commodityHoldings.filter(h=>/gold/i.test(h.security||"")).reduce((a,h)=>a+(h.assets_pct||0),0);
+    const silverPct = commodityHoldings.filter(h=>/silver/i.test(h.security||"")).reduce((a,h)=>a+(h.assets_pct||0),0);
+    const otherCommodityPct = Math.max(0, (ips.commodity_pct||0) - goldPct - silverPct);
+    const gsTotal = goldPct + silverPct;
+    const gsRatioNote = gsTotal > 0 ? ` — actual split ${Math.round(goldPct/gsTotal*100)}:${Math.round(silverPct/gsTotal*100)} Gold:Silver` : "";
     const rows = [
       {dim:"Domestic Equity", house: domStance ? `${domStance.stance} — ${domStance.note}` : "—", portfolio: `${pct(domesticEqPct)} of AUM`, status: "info"},
       {dim:"Foreign / Global Equity", house: "~25% of equity, 60:40 DM:EM (Asset X, Jul 2026)", portfolio: `${pct(ips.intl_eq_pct)} of equity`, status: ips.intl_eq_pct===0?"gap":(Math.abs(ips.intl_eq_pct-25)<=5?"ok":"watch")},
-      {dim:"Gold & Silver", house: "85:15 Gold:Silver (Asset X, Jul 2026)", portfolio: `${pct(ips.commodity_pct)} of AUM`, status: ips.commodity_pct===0?"gap":((ips.commodity_pct>=tmBands.commodity.min && ips.commodity_pct<=tmBands.commodity.max)?"ok":"watch")},
+      {dim:"Gold & Silver", house: `85:15 Gold:Silver (Asset X, Jul 2026)${gsRatioNote}`, portfolio: `Gold ${pct(goldPct)} · Silver ${pct(silverPct)}${otherCommodityPct>0.05?` · Other ${pct(otherCommodityPct)}`:""} (${pct(ips.commodity_pct)} total)`, status: ips.commodity_pct===0?"gap":((ips.commodity_pct>=tmBands.commodity.min && ips.commodity_pct<=tmBands.commodity.max)?"ok":"watch")},
       {dim:"Fixed Income & Alternates", house: fiStance ? `${fiStance.stance} — ${fiStance.note}` : "—", portfolio: `${pct(ips.debt_alt_pct)} of AUM`, status: (ips.debt_alt_pct>=tmBands.debt_alt.min && ips.debt_alt_pct<=tmBands.debt_alt.max)?"ok":"watch"},
       {dim:"Factor tilt (Momentum/Value)", house: "Trim Value 50%, reallocate to Momentum (Asset X, Jul 2026)", portfolio: "Not tracked per-holding", status: "na"},
     ];
@@ -22450,8 +22462,8 @@ function buildClientDeck(clientRecord){
       {metric:"Top-10 single holdings", val: pct(top10Pct), guideline: "< 30% (informational, not an IPS band)", status: top10Pct>30?"watch":"within"},
       {metric:"Holdings above 8% of AUM", val: String(above8), guideline: "0 (informational)", status: above8>0?"watch":"within"},
       {metric:"Holdings above 15% of AUM", val: String(above15), guideline: "0 (informational)", status: above15>0?"breach":"within"},
-      {metric:"Largest single AMC", val: `${pct(ips.top_amc_pct)} (${ips.top_amc})`, guideline: `≤ ${tmBands.amc.max}% (IPS band)`, status: (ips.top_amc_pct>tmBands.amc.max && cnrAmcMaterial)?"breach":"within"},
-      {metric:"Largest single scheme", val: `${pct(ips.top_scheme_pct)} (${ips.top_scheme})`, guideline: `≤ ${tmBands.scheme.max}% (IPS band)`, status: (ips.top_scheme_pct>tmBands.scheme.max && cnrSchemeMaterial)?"breach":"within"},
+      {metric:"Largest single AMC", val: `${pct(ips.top_amc_pct)}${ips.top_amc ? ` (${ips.top_amc})` : ''}`, guideline: `≤ ${tmBands.amc.max}% (IPS band)`, status: (ips.top_amc_pct>tmBands.amc.max && cnrAmcMaterial)?"breach":"within"},
+      {metric:"Largest single scheme", val: `${pct(ips.top_scheme_pct)}${ips.top_scheme ? ` (${ips.top_scheme})` : ''}`, guideline: `≤ ${tmBands.scheme.max}% (IPS band)`, status: (ips.top_scheme_pct>tmBands.scheme.max && cnrSchemeMaterial)?"breach":"within"},
     ];
     const cnrColors = {breach:[BRAND.LRED,BRAND.DRED,"BREACH"], watch:["FFF2CC","9C6500","WATCH"], within:[BRAND.LGREEN,BRAND.DGREEN,"WITHIN"]};
     const cRows = [[C("Metric",{b:1,color:BRAND.WHITE,fill:BRAND.BLUE,align:"left"}),C("Portfolio",{b:1,color:BRAND.WHITE,fill:BRAND.BLUE}),C("Guideline",{b:1,color:BRAND.WHITE,fill:BRAND.BLUE,align:"left"}),C("Status",{b:1,color:BRAND.WHITE,fill:BRAND.BLUE})]];
@@ -22614,20 +22626,45 @@ function buildClientDeck(clientRecord){
   })();
 
   // ---------- FUND PERFORMANCE (RAR / CAPTURE) — needs FUND_METRICS_DATA ----------
+  // One table per instrument category (Equity / Fixed Income / Hybrid / Commodity), matching the
+  // R.K. Jain reference deck's layout (separate Fund Overview slides per asset class) instead of
+  // an Equity-only table — added 2026-07-22. AIF/SIF/PMS and REIT/InvIT holdings are excluded here
+  // since they already get their own dedicated Overview slides elsewhere in this deck.
+  function fundPerfCategory(h){
+    const name = h.security || '';
+    if (/\bAIF\b|\bA1F\b|SageOne|Sage One|Long[\s-]?Short/i.test(name)) return null;
+    // Guard against a bad source asset_class tag on an obviously international-equity fund (found
+    // during the 2026-07-22 regression sweep: "Motilal Oswal Nasdaq 100 FOF" tagged Fixed Income
+    // in raw holdings for one client) — reuses the same name pattern classifyInstrument() already
+    // uses to detect international equity, so a mistagged fund doesn't land in the wrong category
+    // table instead of silently being excluded like before this restructure.
+    if (h.asset_class !== 'Equity' && /Nasdaq|Greater China|U\.S\.|International|Off-?shore|Global|Overseas|Asian Equity/i.test(name)) return 'Equity';
+    if (h.asset_class === 'Equity') return 'Equity';
+    if (h.asset_class === 'Fixed Income') return 'Fixed Income';
+    if (h.asset_class === 'Hybrid') return 'Hybrid';
+    if (h.asset_class === 'Alternative Assets') return /REIT|INVIT/i.test(name) ? null : 'Commodity';
+    return null;
+  }
   (function(){
-    const s = pptx.addSlide(); s.background = {color: BRAND.WHITE};
-    titleBar(s,"Fund Performance vs Benchmark","Rolling returns, risk-adjusted return & capture ratios");
     const fm = (typeof FUND_METRICS_DATA !== "undefined") ? FUND_METRICS_DATA : null;
     if (!fm){
+      const s = pptx.addSlide(); s.background = {color: BRAND.WHITE};
+      titleBar(s,"Fund Performance vs Benchmark","Rolling returns, risk-adjusted return & capture ratios");
       s.addShape(pptx.ShapeType.roundRect,{x:0.5,y:2.9,w:12.33,h:3.4,fill:{color:"FFF2CC"},line:{color:"9C6500",width:1},rectRadius:0.06});
       s.addText("Fund-level Rolling Return / RAR / Up-Down-Total Capture data is not yet embedded in this dashboard build.\nThis table will populate automatically once the monthly-update pipeline embeds FUND_METRICS_DATA (from advisory v2).",
         {x:0.8,y:3.2,w:11.7,h:2.8,fontFace:BRAND.FONT,fontSize:13,color:"9C6500",valign:"middle"});
-    } else {
-      const xirrFor = h => (typeof FUND_XIRR_DATA !== "undefined" && FUND_XIRR_DATA[sc.ndas]) ? FUND_XIRR_DATA[sc.ndas][h.isin] : null;
-      const funds = (sc.holdings||[]).filter(h=>h.asset_class==="Equity").map(h=>{
+      footer(s,"");
+      return;
+    }
+    const xirrFor = h => (typeof FUND_XIRR_DATA !== "undefined" && FUND_XIRR_DATA[sc.ndas]) ? FUND_XIRR_DATA[sc.ndas][h.isin] : null;
+    ['Equity','Fixed Income','Hybrid','Commodity'].forEach(cat => {
+      const funds = (sc.holdings||[]).filter(h=>fundPerfCategory(h)===cat).map(h=>{
         const m = fm[normalizeSchemeName(h.security)] || {};
         return {n:h.security, al:h.assets_pct, xr:xirrFor(h), ...m};
       });
+      if (!funds.length) return; // client doesn't hold this category — skip the slide entirely
+      const s = pptx.addSlide(); s.background = {color: BRAND.WHITE};
+      titleBar(s,`Fund Performance vs Benchmark — ${cat}`,"Rolling returns, risk-adjusted return & capture ratios");
       // "SI vs Bench" is the one period Advisory V2 actually gives a matching benchmark figure
       // for (siBenchmark) — 3M/6M/1Y/3Y have no per-period benchmark column in the source, so
       // those can't be honestly color-coded against a benchmark; Up/Down/Total Capture (already
@@ -22701,8 +22738,8 @@ function buildClientDeck(clientRecord){
       }
       s.addText("RAR (Rolling Return ÷ SD) is risk-adjusted return — higher is better per unit of volatility. Rolling Return = 1-year return, daily step, over 3 years. SI vs Bench = since-inception return minus the fund's own benchmark's since-inception return (green = beating it) — this is the only period Advisory V2 provides a matching benchmark figure for; 3M/6M/1Y/3Y have no per-period benchmark data available, so Up/Down/Total Capture (below) are the closest available proxy for those periods. XIRR = real money-weighted return computed from this fund's actual dated buy/sell/dividend cash flows plus current value — shown blank if held under 6 months (annualizing a short period is statistically noisy) or if the position includes shares transferred in at onboarding (no valid cash-flow basis for those).",
         {x:0.15,y:6.55,w:13.0,h:0.6,fontFace:BRAND.FONT,italic:true,fontSize:7.5,color:BRAND.GREY});
-    }
-    footer(s,"");
+      footer(s,"");
+    });
   })();
   function txtOn(hex){ const [r,g,b]=h2r(hex); return (0.299*r+0.587*g+0.114*b)<150?BRAND.WHITE:BRAND.INK; }
 
@@ -22711,8 +22748,13 @@ function buildClientDeck(clientRecord){
   // equity, and by asset_class for everything else, showing a 1Y allocation-weighted return
   // per bucket so the client can see which slice of the book is actually driving performance —
   // distinct from the Fund Performance slide, which is scheme-by-scheme.
+  // Blended XIRR column added 2026-07-22 — unlike 1Y return (gated on FUND_METRICS_DATA, so
+  // blank for Fixed Income/Hybrid/Commodity), XIRR comes from FUND_XIRR_DATA (built from actual
+  // dated cash flows) and is available for every category, giving a true asset-class-level
+  // money-weighted return even where the NAV-return feed doesn't reach.
   (function(){
     const fm = (typeof FUND_METRICS_DATA !== "undefined") ? FUND_METRICS_DATA : null;
+    const xd = (typeof FUND_XIRR_DATA !== "undefined") ? FUND_XIRR_DATA[sc.ndas] : null;
     const holdings = sc.holdings || [];
     const buckets = {};
     holdings.forEach(h=>{
@@ -22721,42 +22763,51 @@ function buildClientDeck(clientRecord){
         const m = fm[normalizeSchemeName(h.security)];
         if (m && m.category) cat = m.category;
       }
-      if (!buckets[cat]) buckets[cat] = {value:0, weightedY1:0, y1Weight:0};
+      if (!buckets[cat]) buckets[cat] = {value:0, weightedY1:0, y1Weight:0, weightedXirr:0, xirrWeight:0};
       buckets[cat].value += h.market_value;
       if (fm){
         const m = fm[normalizeSchemeName(h.security)];
         if (m && m.y1!=null){ buckets[cat].weightedY1 += m.y1*h.market_value; buckets[cat].y1Weight += h.market_value; }
       }
+      const xr = xd ? xd[h.isin] : null;
+      if (xr && !xr.tooShort){ buckets[cat].weightedXirr += xr.xirrPct*h.market_value; buckets[cat].xirrWeight += h.market_value; }
     });
     const entries = Object.entries(buckets).sort((a,b)=>b[1].value-a[1].value);
     if (!entries.length) return;
     const s = pptx.addSlide(); s.background = {color: BRAND.WHITE};
-    titleBar(s,"Instrument & Asset-Class Return Breakdown","Which slice of the book is driving performance — 1-year return by category");
+    titleBar(s,"Instrument & Asset-Class Return Breakdown","Which slice of the book is driving performance — 1-year return & blended XIRR by category");
     const rows=[[C("Category",{b:1,color:BRAND.WHITE,fill:BRAND.BLUE,align:"left"}),C("Value",{b:1,color:BRAND.WHITE,fill:BRAND.BLUE}),
-      C("% of Portfolio",{b:1,color:BRAND.WHITE,fill:BRAND.BLUE}),C("1Y Return (wtd.)",{b:1,color:BRAND.WHITE,fill:BRAND.BLUE})]];
+      C("% of Portfolio",{b:1,color:BRAND.WHITE,fill:BRAND.BLUE}),C("1Y Return (wtd.)",{b:1,color:BRAND.WHITE,fill:BRAND.BLUE}),
+      C("Blended XIRR",{b:1,color:BRAND.WHITE,fill:BRAND.BLUE})]];
     let best=null, worst=null;
     entries.forEach(([k,v])=>{
       const y1 = v.y1Weight ? v.weightedY1/v.y1Weight : null;
+      const bx = v.xirrWeight ? v.weightedXirr/v.xirrWeight : null;
       if (y1!=null){ if(!best||y1>best.y1) best={k,y1}; if(!worst||y1<worst.y1) worst={k,y1}; }
       const up = y1!=null && y1>=0;
+      const bxUp = bx!=null && bx>=0;
       rows.push([C(k,{align:"left"}), C(money(v.value)), C(pct(v.value/sc.aum*100)),
-        C(y1!=null?(up?"+":"")+y1.toFixed(1)+"%":"—", y1!=null?{b:true,color:up?BRAND.DGREEN:BRAND.DRED,fill:up?BRAND.LGREEN:BRAND.LRED}:{color:BRAND.GREY})]);
+        C(y1!=null?(up?"+":"")+y1.toFixed(1)+"%":"—", y1!=null?{b:true,color:up?BRAND.DGREEN:BRAND.DRED,fill:up?BRAND.LGREEN:BRAND.LRED}:{color:BRAND.GREY}),
+        C(bx!=null?(bxUp?"+":"")+bx.toFixed(1)+"%":"—", bx!=null?{b:true,color:bxUp?BRAND.DGREEN:BRAND.DRED,fill:bxUp?BRAND.LGREEN:BRAND.LRED}:{color:BRAND.GREY})]);
     });
     const totalVal = entries.reduce((a,[,v])=>a+v.value,0);
-    rows.push([C("Total",{b:1,align:"left",fill:BRAND.PANEL}), C(money(totalVal),{b:1,fill:BRAND.PANEL}), C(pct(totalVal/sc.aum*100),{b:1,fill:BRAND.PANEL}), C("",{fill:BRAND.PANEL})]);
+    const totalXirrW = entries.reduce((a,[,v])=>a+v.xirrWeight,0);
+    const totalXirr = totalXirrW ? entries.reduce((a,[,v])=>a+v.weightedXirr,0)/totalXirrW : null;
+    rows.push([C("Total",{b:1,align:"left",fill:BRAND.PANEL}), C(money(totalVal),{b:1,fill:BRAND.PANEL}), C(pct(totalVal/sc.aum*100),{b:1,fill:BRAND.PANEL}), C("",{fill:BRAND.PANEL}),
+      C(totalXirr!=null?(totalXirr>=0?"+":"")+totalXirr.toFixed(1)+"%":"—",{b:1,fill:BRAND.PANEL})]);
     // Table row height and panel height both scaled to bottom out near the footer (~7.0) instead
     // of a fixed rowH:0.45/h:4.2 pairing that left a growing blank strip on clients with few
     // categories — same fill-to-bottom approach used on Portfolio Snapshot and Performance Overview.
     const catRowH = Math.min(0.75, Math.max(0.45, 5.4/rows.length));
-    s.addTable(rows,{x:0.5,y:1.6,w:8.3,colW:[3.6,2.1,1.3,1.3],rowH:catRowH,border:{type:"solid",color:BRAND.LINE,pt:1}});
+    s.addTable(rows,{x:0.5,y:1.6,w:8.3,colW:[2.9,1.9,1.2,1.15,1.15],rowH:catRowH,border:{type:"solid",color:BRAND.LINE,pt:1}});
     s.addShape(pptx.ShapeType.roundRect,{x:9.1,y:1.6,w:3.73,h:5.4,fill:{color:BRAND.PANEL},line:{color:BRAND.LINE,width:1},rectRadius:0.06});
     s.addText("Key Observation",{x:9.35,y:1.75,w:3.3,h:0.35,fontFace:BRAND.FONTB,bold:true,fontSize:12.5,color:BRAND.BLUE});
     const kt = [];
     if (best) kt.push(`${best.k} is the best-performing bucket at ${best.y1>=0?"+":""}${best.y1.toFixed(1)}% (1Y).`);
     if (worst && worst.k!==best?.k) kt.push(`${worst.k} lagged at ${worst.y1>=0?"+":""}${worst.y1.toFixed(1)}% (1Y).`);
-    kt.push("Categories without a return shown (Fixed Income, Cash, PMS/AIF) aren't tracked in the fund-metrics feed and are valued at market price only.");
+    kt.push("1Y Return is NAV-based and only available where the fund-metrics feed has a match (mainly Equity); Blended XIRR is money-weighted from actual cash flows and covers every category, including Fixed Income/Hybrid/Commodity.");
     s.addText(kt.map(t=>({text:t,options:{bullet:{code:"2022"},fontSize:10.5,color:BRAND.INK,paraSpaceAfter:10}})),{x:9.35,y:2.15,w:3.35,h:4.7,fontFace:BRAND.FONT,valign:"top"});
-    footer(s, fm ? "1Y return is allocation-weighted across holdings in each category" : "Fund-metrics data not embedded — returns unavailable");
+    footer(s, fm ? "1Y return is allocation-weighted across holdings in each category; XIRR excludes positions under 6 months old" : "Fund-metrics data not embedded — 1Y returns unavailable; XIRR still shown where available");
   })();
 
   // ---------- ATTRIBUTION + CALLS RIGHT/WRONG (tied to the Asset X house view) ----------
@@ -22931,6 +22982,39 @@ function buildClientDeck(clientRecord){
     }
     s.addText("Reviewed with client on ____________________",{x:0.4,y:6.85,w:8,h:0.3,fontFace:BRAND.FONT,fontSize:10,color:BRAND.GREY,italic:true});
     footer(s, "Amounts are the ₹ Cr that needs to move — the excess over the band ceiling, or the gap to the band floor — not the full position value. Tax character informational only; confirm with the client's tax adviser before dealing.");
+  })();
+
+  // ---------- REDEPLOYMENT (proceeds available → advisor-specified target) ----------
+  // Added 2026-07-22, adapting the R.K. Jain reference review's Redeployment/Action Summary
+  // slides. The "proceeds available" side is auto-populated from the same buildGapAnalysisItems()
+  // over-band breaches Priority Actions already shows (single source of truth — not re-derived).
+  // The redeployment TARGET (which specific fund/PMS to buy) is deliberately left blank for the
+  // advisor to fill in — that call depends on house-view/QFRA-style fund selection this dashboard
+  // doesn't do, so this slide doesn't guess at it.
+  (function(){
+    const items = buildGapAnalysisItems(clientRecord);
+    const exits = items.filter(r => r.status === "over" && r.amountCr > 0.01);
+    if (!exits.length) return; // nothing over-band to fund a redeployment from
+    const s = pptx.addSlide(); s.background = {color: BRAND.WHITE};
+    titleBar(s,"Redeployment", "Proposed exits from over-band positions — subject to review and suitability assessment");
+    const totalProceeds = exits.reduce((a,r)=>a+r.amountCr,0);
+    s.addText("PROPOSED EXITS (Proceeds Available)",{x:0.4,y:1.5,w:6.0,h:0.35,fontFace:BRAND.FONTB,bold:true,fontSize:12,color:BRAND.DRED});
+    const exitRows = [[C("Parameter",{b:1,color:BRAND.WHITE,fill:BRAND.BLUE,align:"left",size:10}),C("Currently",{b:1,color:BRAND.WHITE,fill:BRAND.BLUE,size:10}),C("~₹ Cr Available",{b:1,color:BRAND.WHITE,fill:BRAND.BLUE,size:10})]];
+    exits.slice(0,8).forEach(r => exitRows.push([C(r.param.replace(/\s*—.*/,''),{align:"left",size:9.5}), C(r.current,{size:9.5}), C(r.amountCr.toFixed(2),{b:true,size:9.5,color:BRAND.DRED})]));
+    exitRows.push([C("Total exit proceeds",{b:1,align:"left",fill:BRAND.PANEL}), C("",{fill:BRAND.PANEL}), C("~₹"+totalProceeds.toFixed(2)+" Cr",{b:1,fill:BRAND.PANEL,color:BRAND.DRED})]);
+    const exitRowH = Math.min(0.55, Math.max(0.35, 3.9/exitRows.length));
+    s.addTable(exitRows,{x:0.4,y:1.9,w:6.0,colW:[3.0,1.3,1.7],rowH:exitRowH,border:{type:"solid",color:BRAND.LINE,pt:1}});
+    s.addShape(pptx.ShapeType.roundRect,{x:6.8,y:1.5,w:6.13,h:5.2,fill:{color:BRAND.PANEL},line:{color:BRAND.LINE,width:1},rectRadius:0.06});
+    s.addText("PROPOSED REDEPLOYMENT",{x:7.05,y:1.68,w:5.6,h:0.35,fontFace:BRAND.FONTB,bold:true,fontSize:12,color:BRAND.DGREEN});
+    s.addText("Advisor to specify — target fund/PMS selection depends on current house view and manager due diligence, not derived automatically.",
+      {x:7.05,y:2.05,w:5.6,h:0.5,fontFace:BRAND.FONT,italic:true,fontSize:9.5,color:BRAND.GREY});
+    for (let i=0;i<3;i++){
+      const y = 2.65 + i*1.3;
+      s.addText(`Action ${i+1}`,{x:7.05,y,w:5.6,h:0.3,fontFace:BRAND.FONTB,bold:true,fontSize:10.5,color:BRAND.INK});
+      s.addText("From: __________________________",{x:7.05,y:y+0.32,w:5.6,h:0.3,fontFace:BRAND.FONT,fontSize:10,color:BRAND.GREY});
+      s.addText("To: ____________________________  (~₹______ Cr)",{x:7.05,y:y+0.64,w:5.6,h:0.3,fontFace:BRAND.FONT,fontSize:10,color:BRAND.GREY});
+    }
+    footer(s, "Amounts are indicative (from IPS over-band excess), pending dealing. Tax character on any sale is informational only — confirm with the client's tax adviser before dealing.");
   })();
 
   // ---------- CLOSE ----------
