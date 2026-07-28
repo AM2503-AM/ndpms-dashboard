@@ -622,6 +622,22 @@ const STRATEGY_DATA = [{"name": "Allocate Select", "benchmark": "Nifty 500 TRI",
 
 
 const CHART_INSTANCES = {};
+// Global Chart.js defaults — added 2026-07-28 per user report of "blurred axis/legends" on the
+// dashboard's charts. Two real gaps, both silent (no error, just soft-looking output):
+// (1) Chart.js's own built-in default font ("Helvetica Neue"/Arial) was never overridden, so every
+// chart's axis ticks/legend text render in a different, unrelated font from the Reddit Sans used
+// everywhere else on the page (Step 16 only changed the PPT's BRAND.FONT, never Chart.js's own
+// Chart.defaults.font — the two are separate font systems).
+// (2) Chart.js sizes its canvas backing store to CSS-width × window.devicePixelRatio; on a
+// standard 1x display (or a canvas landing at a fractional CSS width from a flex/percentage
+// layout — this dashboard's .chart-canvas-wrap children are exactly that), thin axis/grid lines
+// and small legend text anti-alias visibly. Forcing a minimum devicePixelRatio of 2 makes Chart.js
+// render at least 2x the pixels and downscale via CSS, which is the standard fix for this — same
+// principle as a Retina/HiDPI display, applied even when the real display isn't one.
+if (typeof Chart !== 'undefined') {
+  Chart.defaults.devicePixelRatio = Math.max(window.devicePixelRatio || 1, 2);
+  Chart.defaults.font.family = "'Reddit Sans','Segoe UI',Arial,sans-serif";
+}
 
 // ==== Attribution data (per-client, per-instrument monthly contribution) ====
 // Ground-truth "transferred in" flags, sourced directly from NDPMS Transactions.xlsx (Tran Type
