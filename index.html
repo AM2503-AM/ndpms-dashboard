@@ -3917,10 +3917,17 @@ function buildClientDeck(clientRecord){
     ipsRows.forEach(r=>{ const c = st[r.status]||st.ok;
       rows.push([C(r.param,{align:"left"}), C(r.ideal,{color:BRAND.GREY}), C(r.current,{b:1}), C(c[2],{b:1,color:c[1],fill:c[0],size:10.5})]);
     });
-    s.addTable(rows,{x:0.5,y:1.5,w:12.33,colW:[5.3,2.3,3.03,1.7],rowH:0.5,border:{type:"solid",color:BRAND.LINE,pt:1}});
+    // Dynamic row height, not a fixed 0.5in: with the Aggressive profile's 11 parameters + header
+    // (12 rows), a fixed 0.5in table alone reaches y=7.5 -- the slide's bottom edge -- before the
+    // Key Observation box below it even starts, pushing that box entirely off-slide on every
+    // client's deck (found 2026-08-12 testing the new Call Registry slide; this bug is unrelated
+    // to that change and predates it). Reserve 1.1in for the box + gap, split the rest evenly.
+    const keyObsH = 1.1;
+    const tableRowH = Math.min(0.5, Math.max(0.28, (7.05 - 1.5 - keyObsH) / rows.length));
+    s.addTable(rows,{x:0.5,y:1.5,w:12.33,colW:[5.3,2.3,3.03,1.7],rowH:tableRowH,border:{type:"solid",color:BRAND.LINE,pt:1}});
     // Key observation band — how many bands are breached, and the single most material one
     const breaches = ipsRows.filter(r=>r.status!=="ok");
-    const y2 = 1.5 + rows.length*0.5 + 0.15;
+    const y2 = 1.5 + rows.length*tableRowH + 0.15;
     s.addShape(pptx.ShapeType.roundRect,{x:0.5,y:y2,w:12.33,h:0.95,fill:{color:breaches.length?"FFF2CC":BRAND.LGREEN},line:{color:BRAND.LINE,width:1},rectRadius:0.06});
     const summary = breaches.length===0
       ? `Fully compliant — all ${ipsRows.length} parameters within band for the ${ips.risk_profile} profile.`
@@ -4507,77 +4514,82 @@ function buildClientDeck(clientRecord){
     footer(s,"Contribution = weighted return contribution over the review window, per security · stance from the current Asset X view");
   })();
 
-  // ---------- THEMATIC CALLS — named calls this client holds, with reasoning + actions taken ----------
-  // Scoped to CALL_THEMES only (not every holding) — these are the firm's specific recommendations
-  // (Factor Strategy, Metals, etc.), not a general performance review. Reuses whatever CALL_THEMES
-  // is defined on the page (the dashboard's Thematic Calls feature); if this pptx is generated
-  // standalone (outside the dashboard) without that global, the slide is skipped gracefully.
+  // ---------- CALL REGISTRY — named, dated Asset X calls (one row per call, not per fund) ----------
+  // Redesigned 2026-08-12 from the old per-fund "Thematic Calls" slide (CALL_THEMES × holdings,
+  // one row per matching security) to match the dashboard's Call Registry rebuild: a client's 4
+  // silver funds now collapse into one "Gold vs Silver" row with a combined value, weighted
+  // return, the call's own benchmark (silver spot for gold, gold spot for silver, etc. — see
+  // CALL_REGISTRY_DATA), and a GOOD/BAD verdict, so this answers "was the call right" instead of
+  // "how did each fund do". Falls back gracefully if CALL_REGISTRY_DATA isn't on the page.
   (function(){
-    if (typeof CALL_THEMES === "undefined") return;
-    const holdings = sc.holdings || [];
-    // performanceSinceMonth: cumulative contribution to return for a security from a given
-    // month (inclusive) through the latest attribution month — used both for currently-held
-    // calls' "since" figure and for the exited-calls history below.
-    function performanceSinceMonth(fromMonth, security){
-      const months = (attribution && attribution.months) || [];
-      const idx = months.findIndex(m => m.m === fromMonth);
-      if (idx < 0) return null;
-      let total = 0, found = false;
-      months.slice(idx).forEach(m => (m.rows||[]).forEach(r => { if (r.s === security){ total += (r.c||0); found = true; } }));
-      return found ? total : null;
-    }
-    const matches = [];
-    CALL_THEMES.forEach(theme => holdings.forEach(h => {
-      if (theme.pattern.test(h.security)) matches.push({theme: theme.label, security: h.security, glPct: h.gl_pct, mvCr: (h.market_value||0)/1e7, entry: typeof callEntryMonth==="function" ? callEntryMonth(sc.ndas, h.security) : null, exited:false});
-    }));
-    // Exited calls — themes this client held historically but no longer holds. Reuses the
-    // dashboard's own findExitedCallHistory() when available (same global CALL_THEMES page).
-    if (typeof findExitedCallHistory === "function"){
-      const heldThemeLabels = new Set(matches.map(m=>m.theme));
-      CALL_THEMES.forEach(theme => {
-        if (heldThemeLabels.has(theme.label)) return;
-        const history = findExitedCallHistory(theme).filter(x => x.ndas === sc.ndas);
-        history.forEach(x => matches.push({theme: theme.label, security: x.security, glPct: null,
-          perfSinceEntry: x.totalContribution, mvCr:0, entry: x.firstMonthHeld, exited:true, exitMonth: x.lastMonthHeld}));
-      });
-    }
-    if (!matches.length) return;
+    if (typeof CALL_REGISTRY_DATA === "undefined") return;
+    const entries = (CALL_REGISTRY_DATA.byClient[sc.ndas] || []).slice().sort((a,b)=>a.callLabel.localeCompare(b.callLabel));
+    const chemHolder = typeof findExitedCallHistory === "function"
+      ? findExitedCallHistory({label:"Chemicals", pattern:/chemicals/i}).find(x => x.ndas === sc.ndas) : null;
+    if (!entries.length && !chemHolder) return;
     const s = pptx.addSlide(); s.background = {color: BRAND.WHITE};
-    titleBar(s,"Thematic Calls — How These Have Played Out", "Firm-wide recommendations for this client — currently held and exited, with reasoning");
-    const rowH = 0.62;
-    const shown = matches.slice(0,8);
-    shown.forEach((m,i)=>{
+    titleBar(s,"Call Registry — How Our Calls Have Fared", "Every named, dated Asset X call this client has exposure to — verdict is on the call, not the fund");
+    const rowH = 0.68;
+    const rows = entries.slice(0,7);
+    rows.forEach((e,i)=>{
       const y = 1.5 + i*rowH;
-      const h = holdings.find(x=>x.security===m.security);
-      const bucket = h && typeof classifyAssetX==="function" ? classifyAssetX(h) : null;
-      const view = bucket ? ASSET_X_VIEWS[bucket] : null;
-      const displayPct = m.exited ? m.perfSinceEntry : m.glPct;
-      const up = displayPct!=null && displayPct >= 0;
-      const fillColor = m.exited ? BRAND.GREYPANEL : (up?BRAND.LGREEN:BRAND.LRED);
+      const hasVerdict = e.deployedMarketValue > 0 && e.alphaPct != null;
+      const good = hasVerdict && e.alphaPct >= 0;
+      const fillColor = !hasVerdict ? BRAND.GREYPANEL : (good?BRAND.LGREEN:BRAND.LRED);
+      const dirArrow = e.direction === "BUY" ? "▲" : "▼";
       s.addShape(pptx.ShapeType.roundRect,{x:0.4,y,w:12.53,h:rowH-0.08,fill:{color:fillColor},line:{type:"none"},rectRadius:0.05});
-      s.addText(m.theme,{x:0.55,y:y+0.04,w:2.6,h:rowH-0.16,fontFace:BRAND.FONTB,bold:true,fontSize:10,color:BRAND.BLUE,valign:"middle"});
-      s.addText(m.security,{x:3.2,y:y+0.04,w:3.3,h:rowH-0.16,fontFace:BRAND.FONT,fontSize:8.5,color:BRAND.INK,valign:"middle"});
-      s.addText(m.exited ? `Exited ${m.exitMonth||""}` : `Since ${m.entry||"—"}`,{x:6.55,y:y+0.04,w:1.5,h:rowH-0.16,fontFace:BRAND.FONT,fontSize:8,color:BRAND.GREY,valign:"middle"});
-      s.addText(displayPct!=null ? (up?"+":"")+displayPct.toFixed(2)+"%" : "—",{x:8.15,y:y+0.04,w:1.3,h:rowH-0.16,fontFace:BRAND.FONTB,bold:true,fontSize:11,color:displayPct==null?BRAND.GREY:(up?BRAND.DGREEN:BRAND.DRED),align:"right",valign:"middle"});
-      s.addText(m.exited ? "EXITED" : (view ? `Asset X: ${view.stance}` : "—"),{x:9.6,y:y+0.04,w:3.2,h:rowH-0.16,fontFace:BRAND.FONT,italic:true,fontSize:8,bold:m.exited,color:m.exited?BRAND.GREY:(view?(STANCE_COLOR[view.stance]||BRAND.GREY):BRAND.GREY),valign:"middle"});
+      s.addText(`${dirArrow} ${e.callLabel}`,{x:0.55,y:y+0.04,w:3.5,h:rowH-0.16,fontFace:BRAND.FONTB,bold:true,fontSize:10,color:BRAND.BLUE,valign:"middle"});
+      s.addText(`Called ${e.calledDate}`,{x:4.15,y:y+0.04,w:1.55,h:rowH-0.16,fontFace:BRAND.FONT,fontSize:8,color:BRAND.GREY,valign:"middle"});
+      s.addText(hasVerdict ? `${e.weightedGlPct>=0?"+":""}${e.weightedGlPct.toFixed(2)}%` : "—",
+        {x:5.8,y:y+0.04,w:1.3,h:rowH-0.16,fontFace:BRAND.FONTB,bold:true,fontSize:10.5,color:!hasVerdict?BRAND.GREY:(e.weightedGlPct>=0?BRAND.DGREEN:BRAND.DRED),align:"right",valign:"middle"});
+      s.addText(hasVerdict ? `vs ${e.benchmarkReturnPct>=0?"+":""}${e.benchmarkReturnPct.toFixed(2)}%` : "no clean deployed position",
+        {x:7.2,y:y+0.04,w:2.3,h:rowH-0.16,fontFace:BRAND.FONT,fontSize:8,color:BRAND.GREY,valign:"middle"});
+      s.addText(hasVerdict ? `${e.alphaPct>=0?"+":""}${e.alphaPct.toFixed(2)}% alpha` : "",
+        {x:9.6,y:y+0.04,w:1.5,h:rowH-0.16,fontFace:BRAND.FONTB,bold:true,fontSize:10,color:good?BRAND.DGREEN:BRAND.DRED,align:"right",valign:"middle"});
+      const execTag = e.executionStatus ? (e.executionStatus.anyNotExecuted ? "NOT ALL EXECUTED" : "EXECUTED") : "";
+      if (execTag) s.addText(execTag,{x:11.2,y:y+0.04,w:1.7,h:rowH-0.16,fontFace:BRAND.FONTB,bold:true,fontSize:7.5,italic:true,color:e.executionStatus.anyNotExecuted?BRAND.DRED:BRAND.DGREEN,align:"right",valign:"middle"});
     });
-    // Actions already taken — new positions opened in the last 2 attribution months, now with
-    // the performance generated since that action (not just a bare "Bought X" note).
-    const cdata = attribution;
-    const recentMonths = (cdata && cdata.months || []).slice(-2);
-    const actedOn = [];
-    recentMonths.forEach(m => (m.rows||[]).forEach(r => {
-      if (r.bmv === 0 && r.emv > 0){ const perf = performanceSinceMonth(m.m, r.s); actedOn.push(`Bought ${r.s} (${m.m})` + (perf!=null ? ` — ${perf>=0?"+":""}${perf.toFixed(2)}% contribution since` : "")); }
-      if (r.bmv > 0 && r.emv === 0) actedOn.push(`Exited ${r.s} (${m.m})`);
-    }));
-    const yBase = 1.5 + shown.length*rowH + 0.15;
-    if (actedOn.length){
-      const boxH = Math.min(1.6, 0.5 + Math.ceil(Math.min(actedOn.length,6)/2)*0.32);
-      s.addShape(pptx.ShapeType.roundRect,{x:0.4,y:yBase,w:12.53,h:boxH,fill:{color:BRAND.PANEL},line:{color:BRAND.LINE,width:1},rectRadius:0.06});
-      s.addText("Actions Already Taken (last 2 months)",{x:0.6,y:yBase+0.08,w:12.0,h:0.3,fontFace:BRAND.FONTB,bold:true,fontSize:11.5,color:BRAND.BLUE});
-      s.addText(actedOn.slice(0,6).map(t=>({text:t,options:{bullet:{code:"2022"},fontSize:9.5,color:BRAND.INK,paraSpaceAfter:3}})),{x:0.6,y:yBase+0.38,w:12.0,h:boxH-0.4,fontFace:BRAND.FONT,valign:"top"});
+    let yNext = 1.5 + rows.length*rowH + 0.1;
+    if (chemHolder) {
+      s.addShape(pptx.ShapeType.roundRect,{x:0.4,y:yNext,w:12.53,h:rowH-0.08,fill:{color:BRAND.GREYPANEL},line:{type:"none"},rectRadius:0.05});
+      s.addText(`▼ Chemicals — Exit`,{x:0.55,y:yNext+0.04,w:3.5,h:rowH-0.16,fontFace:BRAND.FONTB,bold:true,fontSize:10,color:BRAND.BLUE,valign:"middle"});
+      s.addText("Called 2026-06-05",{x:4.15,y:yNext+0.04,w:1.55,h:rowH-0.16,fontFace:BRAND.FONT,fontSize:8,color:BRAND.GREY,valign:"middle"});
+      s.addText(`${chemHolder.totalContribution>=0?"+":""}${chemHolder.totalContribution.toFixed(2)}%`,
+        {x:5.8,y:yNext+0.04,w:1.3,h:rowH-0.16,fontFace:BRAND.FONTB,bold:true,fontSize:10.5,color:chemHolder.totalContribution>=0?BRAND.DGREEN:BRAND.DRED,align:"right",valign:"middle"});
+      s.addText(`while held (${chemHolder.firstMonthHeld} to ${chemHolder.lastMonthHeld||chemHolder.firstMonthHeld}) — fully exited`,
+        {x:7.2,y:yNext+0.04,w:5.5,h:rowH-0.16,fontFace:BRAND.FONT,fontSize:8,color:BRAND.GREY,valign:"middle"});
+      yNext += rowH;
     }
-    footer(s,"\"Since\"/contribution figures are cumulative weighted-return contribution from the attribution feed, not price return");
+    footer(s,"Alpha vs. the call's own benchmark (silver spot, gold spot, Nifty 500 TRI, or the factor rotated into/out of, per call) · transferred-in holdings excluded from the verdict");
+  })();
+
+  // ---------- CALLS EXECUTED — literal trade-level instructions this month (conditional) ----------
+  // Only added for clients who actually received a mailer trade instruction (CALL_EXECUTION_DATA) —
+  // most clients have none this month, so the slide is skipped rather than shown empty. Trade-level
+  // complement to the Call Registry slide above: that one is the call's overall verdict, this one
+  // is "here is exactly what we asked you to do, and whether it happened."
+  (function(){
+    if (typeof CALL_EXECUTION_DATA === "undefined") return;
+    const d = CALL_EXECUTION_DATA.clients[sc.ndas];
+    if (!d || !d.trades || !d.trades.length) return;
+    const s = pptx.addSlide(); s.background = {color: BRAND.WHITE};
+    titleBar(s, `Calls Executed — ${CALL_EXECUTION_DATA.period}`, `${d.executed}/${d.totalCalls} instructed trades executed` + (d.notExecuted ? ` · ${d.notExecuted} not executed` : ""));
+    const trades = d.trades.slice(0, 13);
+    const rowH = Math.min(0.42, 5.5/trades.length);
+    const fmtTradeAmt = v => v==null ? "—" : "₹"+Math.round(Math.abs(v)).toLocaleString('en-IN');
+    trades.forEach((t,i)=>{
+      const y = 1.55 + i*rowH;
+      const resultPct = t.executed ? t.callWasGood : (t.callWasGood!=null ? -t.callWasGood : null);
+      const resultUp = resultPct!=null && resultPct >= 0;
+      s.addShape(pptx.ShapeType.roundRect,{x:0.4,y,w:12.53,h:rowH-0.05,fill:{color:t.executed?BRAND.PANEL:BRAND.LRED},line:{type:"none"},rectRadius:0.03});
+      s.addText(t.callDate,{x:0.55,y,w:1.1,h:rowH-0.05,fontFace:BRAND.FONT,fontSize:7.5,color:BRAND.GREY,valign:"middle"});
+      s.addText(t.security||"—",{x:1.7,y,w:4.6,h:rowH-0.05,fontFace:BRAND.FONT,fontSize:8,color:BRAND.INK,valign:"middle"});
+      s.addText(t.side,{x:6.35,y,w:0.8,h:rowH-0.05,fontFace:BRAND.FONTB,bold:true,fontSize:8,color:BRAND.BLUE,valign:"middle"});
+      s.addText(fmtTradeAmt(t.weightInr),{x:7.2,y,w:1.7,h:rowH-0.05,fontFace:BRAND.FONT,fontSize:7.5,color:BRAND.GREY,align:"right",valign:"middle"});
+      s.addText(t.executed?"EXECUTED":"NOT EXECUTED",{x:9.0,y,w:1.7,h:rowH-0.05,fontFace:BRAND.FONTB,bold:true,fontSize:7.5,color:t.executed?BRAND.DGREEN:BRAND.DRED,valign:"middle"});
+      s.addText(resultPct!=null ? (resultUp?"+":"")+resultPct.toFixed(2)+"%" : "—",{x:10.8,y,w:1.1,h:rowH-0.05,fontFace:BRAND.FONTB,bold:true,fontSize:8,color:resultPct==null?BRAND.GREY:(resultUp?BRAND.DGREEN:BRAND.DRED),align:"right",valign:"middle"});
+    });
+    footer(s,"Result = price return since the call date for executed trades; impact of not executing (sign-flipped) for those that weren't · amounts are per-trade, not portfolio-weighted");
   })();
 
   // ---------- PMS / AIF PLACEHOLDER (flagged, not built) ----------
