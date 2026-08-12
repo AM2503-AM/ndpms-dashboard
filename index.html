@@ -23,7 +23,13 @@
         --red:#D9534F;--red-bg:#FFC7CE;--red-text:#9C0006;--na:#B0B7BF;}
   *{box-sizing:border-box}
   body{margin:0;font-family:'Reddit Sans','Segoe UI',Arial,sans-serif;background:var(--bg);color:var(--text);font-size:14px}
-  .topbar{background:linear-gradient(90deg,var(--primary),var(--primary-light));color:#fff;padding:20px 28px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,.15)}
+  .topbar{background:linear-gradient(90deg,var(--primary),var(--primary-light));color:#fff;padding:20px 28px;position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,.15)}
+  /* Found 2026-08-12: .topbar had no width cap while .container below it is capped at 1600px and
+     centered -- on any screen wider than 1600px the header spanned edge-to-edge while the content
+     sat boxed in with empty gutters on both sides, reading as "the top bar is huge, everything else
+     is small". This inner wrapper mirrors .container's cap so the header's content lines up with
+     the page content below it; the colored background on .topbar itself still spans full width. */
+  .topbar-inner{max-width:1600px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px}
   .topbar h1{margin:0;font-size:22px;font-weight:600}
   .topbar .meta{font-size:12px;opacity:.85;margin-top:4px}
   .refresh-btn,.back-btn{background:#fff;color:var(--primary);border:none;padding:10px 18px;font-weight:600;font-size:13px;border-radius:6px;cursor:pointer;box-shadow:0 2px 4px rgba(0,0,0,.1);text-decoration:none;display:inline-flex;align-items:center;gap:8px}
@@ -134,6 +140,7 @@
 </head>
 <body>
 <div class="topbar">
+ <div class="topbar-inner">
   <div>
     <h1 id="topbar-title">NDPMS Strategies Outlook and Updates</h1>
     <div class="meta" id="topbar-meta">Data as of 31 July 2026</strong> &middot; covers Allocate Select, LVPMS &amp; CoPilot</div>
@@ -164,6 +171,7 @@
     <a class="refresh-btn" id="callexec-btn" href="#" onclick="toggleCallExecView();return false;">&#128222; Call Execution</a>
     <a class="refresh-btn" id="export-deviations-btn" href="#" onclick="downloadDeviationsExcel();return false;">&#11015; Export Deviations</a>
   </div>
+ </div>
 </div>
 
 <div class="container">
