@@ -167,8 +167,7 @@
   <div id="topbar-actions" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
     <a class="refresh-btn" id="ips-btn" href="#" onclick="toggleIPSView();return false;">&#128203; IPS Review</a>
     <a class="refresh-btn" id="checklist-btn" href="#" onclick="toggleChecklistView();return false;">&#9776; Client Checklist</a>
-    <a class="refresh-btn" id="calls-btn" href="#" onclick="toggleCallsView();return false;">&#128200; Thematic Calls</a>
-    <a class="refresh-btn" id="callexec-btn" href="#" onclick="toggleCallExecView();return false;">&#128222; Call Execution</a>
+    <a class="refresh-btn" id="calls-btn" href="#" onclick="toggleCallsView();return false;">&#128222; Calls</a>
     <a class="refresh-btn" id="export-deviations-btn" href="#" onclick="downloadDeviationsExcel();return false;">&#11015; Export Deviations</a>
   </div>
  </div>
@@ -205,9 +204,6 @@
   </div>
   <div id="calls-view" style="display:none;padding:20px 0">
     <div id="calls-root"></div>
-  </div>
-  <div id="callexec-view" style="display:none;padding:20px 0">
-    <div id="callexec-root"></div>
   </div>
   <div id="browse-view" style="display:none;padding:20px 0">
     <div id="browse-root"></div>
@@ -1790,7 +1786,6 @@ function showClient(strategyIdx, clientIdx) {
   const attributionSection = renderAttributionSection(c);
   const tradeAttrSection = renderTradeAttributionSection(c);
   const callsSection = renderCallRegistrySection(c);
-  const callExecSection = renderClientCallExecSection(c);
 
   const allocSection = collapseSection('Asset Allocation', allocCard, { open:false });
   const topHoldSection = collapseSection('Top Holdings', topHoldingsCard, { open:false });
@@ -1805,8 +1800,8 @@ function showClient(strategyIdx, clientIdx) {
   // group is just a collapseSection() whose body is the concatenation of its member sections'
   // already-built HTML, so every member keeps its own independent open/closed state and click
   // handler; nesting collapse-sections works because each gets a unique id from _collapseSeq.
-  const performanceGroup = collapseSection('&#128200; Performance', perfSection + attributionSection + tradeAttrSection + callsSection + callExecSection + monthlyPerfSection,
-    { open: false, sub: 'Summary, Attribution, Trade Decisions, Call Registry, Call Execution, Monthly vs Benchmark' });
+  const performanceGroup = collapseSection('&#128200; Performance', perfSection + attributionSection + tradeAttrSection + callsSection + monthlyPerfSection,
+    { open: false, sub: 'Summary, Attribution, Trade Decisions, Calls, Monthly vs Benchmark' });
   const portfolioGroup = collapseSection('&#128193; Portfolio', allocSection + topHoldSection + holdingsSection,
     { open: false, sub: `Asset Allocation, Top Holdings, Full Holdings (${c.holdings.length})` });
   const policyGroup = collapseSection('&#128203; Policy &amp; Actions', ipsSection + actionsSection,
@@ -2310,13 +2305,11 @@ function showMainView() {
   document.getElementById('topbar-actions').innerHTML =
     '<a class="refresh-btn" id="ips-btn" href="#" onclick="toggleIPSView();return false;">&#128203; IPS Review</a>' +
     '<a class="refresh-btn" id="checklist-btn" href="#" onclick="toggleChecklistView();return false;" style="margin-left:8px">&#9776; Client Checklist</a>' +
-    '<a class="refresh-btn" id="calls-btn" href="#" onclick="toggleCallsView();return false;" style="margin-left:8px">&#128200; Thematic Calls</a>' +
-    '<a class="refresh-btn" id="callexec-btn" href="#" onclick="toggleCallExecView();return false;" style="margin-left:8px">&#128222; Call Execution</a>' +
+    '<a class="refresh-btn" id="calls-btn" href="#" onclick="toggleCallsView();return false;" style="margin-left:8px">&#128222; Calls</a>' +
     '<a class="refresh-btn" id="export-deviations-btn" href="#" onclick="downloadDeviationsExcel();return false;" style="margin-left:8px">&#11015; Export Deviations</a>';
   document.getElementById('ips-view').style.display = 'none';
   document.getElementById('checklist-view').style.display = 'none';
   document.getElementById('calls-view').style.display = 'none';
-  document.getElementById('callexec-view').style.display = 'none';
   document.getElementById('browse-view').style.display = 'none';
   // Rebuild main charts (they were destroyed)
   renderMainView();
@@ -2546,7 +2539,6 @@ function toggleBrowseView(initialQuery){
   document.getElementById('ips-view').style.display='none';
   document.getElementById('checklist-view').style.display='none';
   document.getElementById('calls-view').style.display='none';
-  document.getElementById('callexec-view').style.display='none';
   document.getElementById('browse-view').style.display='';
   document.getElementById('topbar-title').textContent='Browse Instruments — All Clients';
   document.getElementById('topbar-meta').innerHTML='Every holding across the book, filterable by instrument type and searchable by name';
@@ -2666,21 +2658,8 @@ function buildRmSummary(rmName) {
   return { nClients: clients.length, totalAum, outCount, outAum, underCount, underAum, avgAlpha: alphaN ? alphaSum / alphaN : null, clientDetails };
 }
 
-// ============ Thematic Calls — has this specific recommendation actually made clients money? ============
-// Edit CALL_THEMES to add/adjust which funds map to which named call (e.g. factor rotation
-// picks, sector ETFs). Matching is by security-name pattern since that's stable across
-// clients; a fund appearing under multiple patterns just gets grouped into all of them.
-const CALL_THEMES = [
-  {label:"Factor Strategy — Low Volatility", pattern:/low volatility|low vol/i},
-  {label:"Factor Strategy — Momentum", pattern:/momentum/i},
-  {label:"Factor Strategy — Value", pattern:/value 20|value index/i},
-  {label:"Metals", pattern:/nifty metal/i},
-  {label:"Chemicals", pattern:/chemicals/i},
-  {label:"Gold", pattern:/gold/i},
-  {label:"Silver", pattern:/silver/i},
-  {label:"Banking & Financial", pattern:/banking and financial/i},
-];
-
+// ============ Named, dated Asset X calls — has a specific recommendation actually made clients
+// money, and did they act on it? See CALL_REGISTRY_DATA / CALL_EXECUTION_DATA below. ============
 // Client call-execution review, built from the July 2026 "Callllssssss.xlsx" executed/not-executed
 // mail log. Each client's trades[] carries priceReturnPct = the security's price move from the
 // call date to month-end; callWasGood = that return signed so positive always means the call (BUY
@@ -2733,59 +2712,25 @@ function findExitedCallHistory(theme) {
   return exited;
 }
 
-function buildCallThemeData() {
-  return CALL_THEMES.map(theme => {
-    const holders = [];
-    STRATEGY_DATA.forEach(strat => strat.clients.forEach(c => {
-      (c.holdings || []).forEach(h => {
-        if (theme.pattern.test(h.security)) {
-          holders.push({
-            client: c.name, ndas: c.ndas, strategyName: strat.name, security: h.security, isin: h.isin,
-            mvCr: (h.market_value || 0) / 1e7, costCr: (h.cost || 0) / 1e7, glPct: h.gl_pct,
-            entry: callEntryMonth(c.ndas, h.security), inception: c.inception,
-            tradeAttr: typeof getTradeAttrForSecurity === "function" ? getTradeAttrForSecurity(c.ndas, h.security) : null
-          });
-        }
-      });
-    }));
-    const exited = findExitedCallHistory(theme);
-    return { theme, holders, exited };
-  });
-}
-
 function toggleCallsView(){
   document.getElementById('main-view').style.display='none';
   document.getElementById('client-view').style.display='none';
   document.getElementById('ips-view').style.display='none';
   document.getElementById('checklist-view').style.display='none';
   document.getElementById('browse-view').style.display='none';
-  document.getElementById('callexec-view').style.display='none';
   document.getElementById('calls-view').style.display='';
-  document.getElementById('topbar-title').textContent='Thematic Calls — All Clients';
-  document.getElementById('topbar-meta').innerHTML='How the firm\'s named calls have fared across the book';
+  document.getElementById('topbar-title').textContent='Calls — Registry &amp; Execution, All Clients';
+  document.getElementById('topbar-meta').innerHTML='Every named Asset X call, whether clients executed the trades it required, and how it\'s fared';
   document.getElementById('topbar-actions').innerHTML=
     '<a class="refresh-btn" href="#" onclick="showMainView();return false;">&larr; Back to Dashboard</a>';
   renderCallsView();
 }
 
-function toggleCallExecView(){
-  document.getElementById('main-view').style.display='none';
-  document.getElementById('client-view').style.display='none';
-  document.getElementById('ips-view').style.display='none';
-  document.getElementById('checklist-view').style.display='none';
-  document.getElementById('browse-view').style.display='none';
-  document.getElementById('calls-view').style.display='none';
-  document.getElementById('callexec-view').style.display='';
-  document.getElementById('topbar-title').textContent='Call Execution Review — ' + CALL_EXECUTION_DATA.period;
-  document.getElementById('topbar-meta').innerHTML='Did clients act on the calls sent to them, and what did that decision cost or earn them?';
-  document.getElementById('topbar-actions').innerHTML=
-    '<a class="refresh-btn" href="#" onclick="showMainView();return false;">&larr; Back to Dashboard</a>';
-  renderCallExecView();
-}
-
-function renderCallExecView(){
-  const root = document.getElementById('callexec-root');
-  if (!root) return;
+// Book-wide "By Client" / "By Call" execution log — folded into the unified Calls view below
+// the Call Registry summary (previously its own separate "Call Execution" page/button; merged
+// per 2026-08-12 feedback: two buttons for what is really one story — recommend, execute, judge).
+function renderCallExecutionLogHtml(){
+  if (typeof CALL_EXECUTION_DATA === "undefined") return '';
   const clients = CALL_EXECUTION_DATA.clients;
   const codes = Object.keys(clients);
   const totalCalls = codes.reduce((a,k)=>a+clients[k].totalCalls, 0);
@@ -2817,7 +2762,8 @@ function renderCallExecView(){
       <td>${g.notExecutedCount ? fmtPctSigned(g.avgImpactIfNotExecuted) : '<span style="color:var(--muted)">—</span>'}</td>
     </tr>`).join('');
 
-  root.innerHTML = `
+  return `<div class="chart-card" style="margin-bottom:20px">
+    <h3>Call Execution Log — ${CALL_EXECUTION_DATA.period} <span style="font-weight:400;color:var(--muted);font-size:12px">(every instructed trade sent to a client that month, not just the named registry calls above — a stock-level sell like "Bharti Airtel" shows up here even though it isn't one of the 5 named calls)</span></h3>
     <div class="footer-note" style="margin-bottom:16px">
       <strong>${totalCalls} calls</strong> sent across ${codes.length} clients this month &middot;
       <strong style="color:var(--green)">${totalExecuted} executed</strong> &middot;
@@ -2826,18 +2772,19 @@ function renderCallExecView(){
       number always means the call (BUY or SELL) was the right one; "impact of not executing" is the mirror
       image — positive means the client was better off ignoring the call.
     </div>
-    <h3 style="margin:20px 0 8px">By Client</h3>
+    <h4 style="margin:16px 0 8px">By Client</h4>
     <table style="table-layout:fixed;width:100%">
       <colgroup><col style="width:28%"><col style="width:12%"><col style="width:12%"><col style="width:12%"><col style="width:18%"><col style="width:18%"></colgroup>
       <thead><tr><th style="text-align:left">Client</th><th>Total Calls</th><th>Executed</th><th>Not Executed</th><th>Wtd Return (Executed)</th><th>Wtd Impact (Not Executed)</th></tr></thead>
       <tbody>${clientTableRows}</tbody>
     </table>
-    <h3 style="margin:28px 0 8px">By Call</h3>
+    <h4 style="margin:24px 0 8px">By Security</h4>
     <table style="table-layout:fixed;width:100%">
       <colgroup><col style="width:32%"><col style="width:10%"><col style="width:12%"><col style="width:12%"><col style="width:12%"><col style="width:11%"><col style="width:11%"></colgroup>
       <thead><tr><th style="text-align:left">Security</th><th>Side</th><th>Clients</th><th>Executed</th><th>Not Exec.</th><th>Avg Return (Exec.)</th><th>Avg Impact (Not Exec.)</th></tr></thead>
       <tbody>${callLevelRows}</tbody>
-    </table>`;
+    </table>
+  </div>`;
 }
 
 // Jump from the Call Execution overview straight into a client's drill-down page.
@@ -2848,17 +2795,49 @@ function jumpToClientByNdas(ndas){
   }
 }
 
+// For one named call (theme key, e.g. "momentum"), how spread out were clients' actual entry
+// dates — the "timing issues across different clients" the same call can produce, since a
+// dated house call gets executed for different clients on different days depending on when
+// their RM actioned it, dealing queues, staggered tranches, etc. weightedBuyDate is already
+// market-value-weighted per client (see build_call_registry.py), so comparing it client-to-
+// client is comparing "when did this client's money actually move", not just a trade date.
+function callTimingByTheme(theme) {
+  const entries = [];
+  Object.keys(CALL_REGISTRY_DATA.byClient).forEach(ndas => {
+    (CALL_REGISTRY_DATA.byClient[ndas] || []).forEach(e => {
+      if (e.theme === theme && e.weightedBuyDate) entries.push({ ndas, date: e.weightedBuyDate });
+    });
+  });
+  if (!entries.length) return null;
+  entries.sort((a,b) => a.date.localeCompare(b.date));
+  const first = entries[0], last = entries[entries.length-1];
+  const spreadDays = Math.round((new Date(last.date) - new Date(first.date)) / 86400000);
+  return { entries, first, last, spreadDays, n: entries.length };
+}
+
 // Call Registry overall block — one row per named, dated call (book-wide), replacing the old
 // fund-fragmented "All Calls — Summary" per 2026-08-12 feedback. Chemicals has zero current
 // holders (fully exited per the Jun 2026 call) so it's rendered from historical contribution-
 // while-held data (findExitedCallHistory) rather than the registry's live-position math.
+// 2026-08-12: added a Timing column + a "Timing Issues Across Clients" callout, and folded the
+// separate Call Execution page into this same view — per feedback that the two were really one
+// story (what we called, whether it got executed, how spread out entry timing was) split
+// confusingly across two buttons.
 function renderCallRegistryOverallHtml() {
   const fmtCr = v => '₹'+(v/1e7).toFixed(2)+' Cr';
+  const timingIssues = [];
   const rows = CALL_REGISTRY_DATA.overall.slice().sort((a,b)=>a.callLabel.localeCompare(b.callLabel)).map(o => {
     const vc = o.weightedAlphaPct == null ? CALL_VERDICT_COLOR.UNKNOWN : (o.weightedAlphaPct >= 0 ? CALL_VERDICT_COLOR.GOOD : CALL_VERDICT_COLOR.BAD);
     const verdictLabel = o.weightedAlphaPct == null ? 'UNKNOWN' : (o.weightedAlphaPct >= 0 ? 'GOOD' : 'BAD');
     const dirIcon = DIRECTION_ICON[o.direction] || '';
     const execNote = o.notExecutedClients ? ` &middot; <span style="color:var(--red)">${o.notExecutedClients} client${o.notExecutedClients===1?'':'s'} didn't execute an instructed trade</span>` : '';
+    const timing = callTimingByTheme(o.theme);
+    const timingCell = !timing ? '<span style="color:var(--muted);font-size:11px">—</span>'
+      : timing.n < 2 ? `<span style="font-size:11px;color:var(--muted)">single entry</span>`
+      : `<span style="font-size:11px;${timing.spreadDays>=14?'color:var(--red);font-weight:600':'color:var(--muted)'}" title="${timing.n} clients entered between ${timing.first.date} (${CLIENT_NAME_BY_NDAS[timing.first.ndas]||timing.first.ndas}) and ${timing.last.date} (${CLIENT_NAME_BY_NDAS[timing.last.ndas]||timing.last.ndas})">${timing.spreadDays}d spread</span>`;
+    if (timing && timing.n >= 2 && timing.spreadDays >= 14) {
+      timingIssues.push({ callLabel: o.callLabel, calledDate: o.calledDate, timing });
+    }
     return `<tr>
       <td style="text-align:left">${dirIcon} ${escapeHtml(o.callLabel)}</td>
       <td style="font-size:11px;color:var(--muted)">${o.calledDate}</td>
@@ -2867,6 +2846,7 @@ function renderCallRegistryOverallHtml() {
       <td style="font-size:11px;color:var(--muted)">${o.weightedBenchmarkPct==null?'—':(o.weightedBenchmarkPct>=0?'+':'')+o.weightedBenchmarkPct.toFixed(2)+'%'}</td>
       <td style="color:${vc[0]};font-weight:600">${o.weightedAlphaPct==null?'—':(o.weightedAlphaPct>=0?'+':'')+o.weightedAlphaPct.toFixed(2)+'%'}</td>
       <td><span style="background:${vc[1]};color:${vc[0]};padding:2px 9px;border-radius:4px;font-weight:700;font-size:10.5px">${verdictLabel}</span></td>
+      <td>${timingCell}</td>
       <td style="font-size:11px;color:var(--muted)">${o.goodCount}g / ${o.badCount}b / ${o.unknownCount}u &middot; ${fmtCr(o.totalDeployedMv)} deployed${execNote}</td>
     </tr>`;
   }).join('');
@@ -2879,12 +2859,19 @@ function renderCallRegistryOverallHtml() {
       <td colspan="3" style="font-size:11px;color:var(--muted)">Fully exited — ${chemExited.length} client${chemExited.length===1?'':'s'} held historically, avg contribution while held <strong style="color:${chemAvg>=0?'var(--green)':'var(--red)'}">${chemAvg!=null?(chemAvg>=0?'+':'')+chemAvg.toFixed(2)+'%':'—'}</strong></td>
       <td><span style="background:#F0F2F5;color:var(--muted);padding:2px 9px;border-radius:4px;font-weight:700;font-size:10.5px">EXITED</span></td>
       <td></td>
+      <td></td>
     </tr>`;
+  const timingPanel = timingIssues.length ? `<div class="chart-card" style="margin-bottom:20px;border-left:3px solid var(--red)">
+    <h3 style="color:var(--red)">&#9888; Timing Issues Across Clients <span style="font-weight:400;color:var(--muted);font-size:12px">(calls where clients' actual entry dates were spread &ge;14 days apart — a call sent once but acted on very differently client to client)</span></h3>
+    <ul style="margin:0;padding-left:20px;font-size:12.5px;line-height:1.7">
+      ${timingIssues.map(ti => `<li><strong>${escapeHtml(ti.callLabel)}</strong> (called ${ti.calledDate}): ${ti.timing.n} clients entered across a <strong style="color:var(--red)">${ti.timing.spreadDays}-day</strong> spread — earliest ${escapeHtml(CLIENT_NAME_BY_NDAS[ti.timing.first.ndas]||ti.timing.first.ndas)} (${ti.timing.first.date}), latest ${escapeHtml(CLIENT_NAME_BY_NDAS[ti.timing.last.ndas]||ti.timing.last.ndas)} (${ti.timing.last.date}).</li>`).join('')}
+    </ul>
+  </div>` : '';
   return `<div class="chart-card" style="margin-bottom:20px">
     <h3>Call Registry — Summary <span style="font-weight:400;color:var(--muted);font-size:12px">(one row per named, dated Asset X call — g/b/u = clients where the call has been good/bad/unclear for them)</span></h3>
-    <table><thead><tr><th style="text-align:left">Call</th><th>Called</th><th>Clients</th><th>Wtd Return</th><th>Benchmark</th><th>Alpha</th><th>Verdict</th><th>Detail</th></tr></thead>
-    <tbody>${rows}${chemRow}</tbody></table>
-  </div>`;
+    <div style="overflow-x:auto"><table><thead><tr><th style="text-align:left">Call</th><th>Called</th><th>Clients</th><th>Wtd Return</th><th>Benchmark</th><th>Alpha</th><th>Verdict</th><th>Timing</th><th>Detail</th></tr></thead>
+    <tbody>${rows}${chemRow}</tbody></table></div>
+  </div>${timingPanel}`;
 }
 
 function renderCallsView(){
@@ -2892,6 +2879,7 @@ function renderCallsView(){
   if (!root) return;
   const fmtCr = v => '₹'+v.toFixed(2)+' Cr';
   const html = renderCallRegistryOverallHtml();
+  const execLogHtml = renderCallExecutionLogHtml();
 
   // Broader instrument-category aggregates (AIF, SIF, liquid funds, debt funds, etc.) and a
   // unique-direct-equity-stocks table — per user request 2026-07-21 ("an aggregate of everything
@@ -2928,7 +2916,7 @@ function renderCallsView(){
     <tbody>${stockRows}</tbody></table></div>
   </div>`;
 
-  root.innerHTML = html + catHtml + stockHtml;
+  root.innerHTML = html + execLogHtml + catHtml + stockHtml;
 }
 
 // Aggregates every non-cash, non-direct-equity holding across the whole book into broader
@@ -3192,7 +3180,44 @@ function originBadge(origin) {
   return '<span style="color:var(--muted);font-size:10.5px">—</span>';
 }
 
-function renderCallRegistryCard(entry) {
+// Actual instructed-trade rows (from the monthly execution mail log) whose ISIN belongs to a
+// given call/set of securities — this is what turns "some clients didn't execute" from a single
+// summary line into the real trade-by-trade detail, without needing a second data build: it's
+// the exact same isin-match build_call_registry.py already does for entry.executionStatus,
+// just kept at row level here instead of collapsed to a numTrades/allExecuted summary.
+function getMatchingExecutionTrades(ndas, isins) {
+  if (typeof CALL_EXECUTION_DATA === "undefined") return [];
+  const d = CALL_EXECUTION_DATA.clients[ndas];
+  if (!d || !d.trades) return [];
+  return d.trades.filter(t => t.isin && isins.has(t.isin));
+}
+function renderExecTradeRows(trades) {
+  return (trades || []).map(t => {
+    const statusBadge = t.executed
+      ? '<span style="background:#E8F5E9;color:var(--green);padding:2px 7px;border-radius:4px;font-weight:700;font-size:10.5px">EXECUTED</span>'
+      : '<span style="background:#FFEBEE;color:var(--red);padding:2px 7px;border-radius:4px;font-weight:700;font-size:10.5px">NOT EXECUTED</span>';
+    const amt = t.weightInr != null ? '₹' + (Math.abs(t.weightInr) / 1e7).toFixed(2) + ' Cr' : '<span style="color:var(--muted)">—</span>';
+    const resultPct = t.executed ? t.callWasGood : (t.callWasGood != null ? -t.callWasGood : null);
+    const resultLabel = t.executed ? 'Return since call' : 'Impact of not executing';
+    return `<tr>
+      <td style="font-size:11px;color:var(--muted);white-space:nowrap">${t.callDate}</td>
+      <td style="text-align:left">${t.security || '<span style="color:var(--muted)">—</span>'}${t.noData ? ' <span title="No price history available for this instrument" style="cursor:help">&#9432;</span>' : ''}</td>
+      <td style="font-weight:600">${t.side}</td>
+      <td>${amt}</td>
+      <td>${statusBadge}</td>
+      <td title="${resultLabel}">${fmtPctSigned(resultPct)}</td>
+    </tr>`;
+  }).join('');
+}
+function renderExecTradeTable(trades) {
+  return `<table style="table-layout:fixed;width:100%">
+    <colgroup><col style="width:14%"><col style="width:34%"><col style="width:10%"><col style="width:14%"><col style="width:14%"><col style="width:14%"></colgroup>
+    <thead><tr><th style="text-align:left">Call Date</th><th style="text-align:left">Security</th><th>Side</th><th>Amount</th><th>Status</th><th>Result</th></tr></thead>
+    <tbody>${renderExecTradeRows(trades)}</tbody>
+  </table>`;
+}
+
+function renderCallRegistryCard(entry, execTrades) {
   const vc = CALL_VERDICT_COLOR[entry.verdict];
   const dirIcon = DIRECTION_ICON[entry.direction] || '';
   const legRows = entry.legs.map(l => `<tr>
@@ -3205,11 +3230,16 @@ function renderCallRegistryCard(entry) {
   const notes = [];
   if (entry.mixedMarketValue > 0) notes.push(`₹${(entry.mixedMarketValue/1e7).toFixed(2)} Cr transferred in and later topped up (mixed cost basis) — excluded from the verdict below`);
   if (entry.transferredMarketValue > 0) notes.push(`₹${(entry.transferredMarketValue/1e7).toFixed(2)} Cr fully transferred in, pre-dating this call — not counted as our decision`);
-  const execNote = entry.executionStatus ? (
+  execTrades = execTrades || [];
+  const execBlock = execTrades.length ? `
+    <div style="margin-top:8px">
+      <div style="font-size:11px;color:var(--muted);text-transform:uppercase;font-weight:700;margin-bottom:4px">Instructed trades on this call${typeof CALL_EXECUTION_DATA!=='undefined'?' — '+CALL_EXECUTION_DATA.period:''}</div>
+      ${renderExecTradeTable(execTrades)}
+    </div>` : (entry.executionStatus ? (
     entry.executionStatus.anyNotExecuted
       ? `<div style="font-size:11.5px;color:var(--red);margin-top:4px">&#9888; ${entry.executionStatus.numTrades} instructed trade${entry.executionStatus.numTrades===1?'':'s'} on this call, not all executed</div>`
       : `<div style="font-size:11.5px;color:var(--green);margin-top:4px">&#10003; ${entry.executionStatus.numTrades} instructed trade${entry.executionStatus.numTrades===1?'':'s'} on this call, executed</div>`
-  ) : '';
+  ) : `<div style="font-size:11px;color:var(--muted);margin-top:4px">No instructed-trade record for this call in the current execution log — likely called outside that window.</div>`);
   const verdictBlock = entry.deployedMarketValue > 0 && entry.alphaPct != null ? `
     <div style="display:flex;gap:18px;flex-wrap:wrap;margin:6px 0;font-size:12px">
       <div>Return since call<br><strong style="color:${entry.weightedGlPct>=0?'var(--green)':'var(--red)'}">${entry.weightedGlPct>=0?'+':''}${entry.weightedGlPct.toFixed(2)}%</strong></div>
@@ -3226,7 +3256,7 @@ function renderCallRegistryCard(entry) {
       </div>
       ${verdictBlock}
       ${notes.map(n=>`<div style="font-size:11px;color:var(--muted);margin-top:2px">${n}</div>`).join('')}
-      ${execNote}
+      ${execBlock}
       <table style="table-layout:fixed;width:100%;margin-top:8px">
         <colgroup><col style="width:40%"><col style="width:16%"><col style="width:14%"><col style="width:16%"><col style="width:14%"></colgroup>
         <thead><tr><th style="text-align:left;font-size:11px">Security</th><th style="font-size:11px">Value</th><th style="font-size:11px">G/L</th><th style="font-size:11px">Origin</th><th style="font-size:11px">Since</th></tr></thead>
@@ -3235,6 +3265,14 @@ function renderCallRegistryCard(entry) {
     </div>`;
 }
 
+// Unified client-level Calls section — merges what used to be two separate collapsible sections
+// (Call Registry, Call Execution Review) into one, per 2026-08-12 feedback that splitting "what
+// we recommended" from "did it get executed" made clients look at two places for one decision.
+// Each named call's card now carries its own real trade rows (via getMatchingExecutionTrades)
+// instead of a plain "did this month's execution log flag anything" summary line; any instructed
+// trade this client received that ISN'T tied to one of the 5 named calls (e.g. an individual stock
+// sell like Bharti Airtel) is still shown, just in its own "Other Instructed Trades" block below,
+// so the mailer log is fully accounted for without pretending every trade is a named call.
 function renderCallRegistrySection(c) {
   const entries = (CALL_REGISTRY_DATA.byClient[c.ndas] || []).slice().sort((a,b) => a.callLabel.localeCompare(b.callLabel));
   const chemHolder = findExitedCallHistory({label:"Chemicals", pattern:/chemicals/i}).find(x => x.ndas === c.ndas);
@@ -3245,144 +3283,43 @@ function renderCallRegistrySection(c) {
       <div style="font-size:12px;margin-top:4px">Held <strong>${chemHolder.security}</strong> from ${chemHolder.firstMonthHeld} to ${chemHolder.lastMonthHeld||chemHolder.firstMonthHeld}, contributing <strong style="color:${chemHolder.totalContribution>=0?'var(--green)':'var(--red)'}">${chemHolder.totalContribution>=0?'+':''}${chemHolder.totalContribution.toFixed(2)}%</strong> while held. Fully exited per the Jun 2026 call.</div>
     </div>`;
   }
-  if (!entries.length && !chemBlock) {
-    return collapseSection('&#128222; Call Registry — How Our Calls Have Fared', '<div class="attr-empty">This client has no exposure to any currently-tracked Asset X call (Metals, Financials/Banking, Factor Rotation, Gold/Silver, Chemicals).</div>', { open: false });
+
+  const usedIsins = new Set();
+  entries.forEach(e => e.legs.forEach(l => { if (l.isin) usedIsins.add(l.isin); }));
+  const cardsHtml = entries.map(e => {
+    const isins = new Set(e.legs.map(l => l.isin).filter(Boolean));
+    return renderCallRegistryCard(e, getMatchingExecutionTrades(c.ndas, isins));
+  }).join('');
+
+  const allTrades = (typeof CALL_EXECUTION_DATA !== "undefined" && CALL_EXECUTION_DATA.clients[c.ndas]) ? (CALL_EXECUTION_DATA.clients[c.ndas].trades || []) : [];
+  const otherTrades = allTrades.filter(t => !(t.isin && usedIsins.has(t.isin)));
+  const otherTradesBlock = otherTrades.length ? `
+    <div style="margin-top:4px;margin-bottom:10px">
+      <div style="font-weight:700;font-size:13px;margin-bottom:4px">Other Instructed Trades <span style="font-weight:400;font-size:11px;color:var(--muted)">(this month's execution log, not tied to one of the 5 named calls above)</span></div>
+      ${renderExecTradeTable(otherTrades)}
+    </div>` : '';
+
+  if (!entries.length && !chemBlock && !otherTradesBlock) {
+    return collapseSection('&#128222; Calls — Recommendations, Execution &amp; Outcomes', '<div class="attr-empty">This client has no exposure to any currently-tracked Asset X call (Metals, Financials/Banking, Factor Rotation, Gold/Silver, Chemicals) and no instructed trades on record.</div>', { open: false });
   }
-  const body = entries.map(renderCallRegistryCard).join('') + chemBlock;
+  const body = cardsHtml + chemBlock + otherTradesBlock;
   const goodCount = entries.filter(e=>e.verdict==='GOOD').length;
   const badCount = entries.filter(e=>e.verdict==='BAD').length;
-  return collapseSection('&#128222; Call Registry — How Our Calls Have Fared', body,
-    { open: false, sub: `${entries.length} call${entries.length===1?'':'s'}${goodCount||badCount?` · ${goodCount} good, ${badCount} bad`:''}` });
+  const execD = (typeof CALL_EXECUTION_DATA !== "undefined") ? CALL_EXECUTION_DATA.clients[c.ndas] : null;
+  const subBits = [`${entries.length} call${entries.length===1?'':'s'}`];
+  if (goodCount || badCount) subBits.push(`${goodCount} good, ${badCount} bad`);
+  if (execD) subBits.push(`${execD.executed}/${execD.totalCalls} instructed trades executed`);
+  return collapseSection('&#128222; Calls — Recommendations, Execution &amp; Outcomes', body,
+    { open: false, sub: subBits.join(' · ') });
 }
 
-function renderClientCallsSection(c) {
-  const holdings = c.holdings || [];
-  const held = [];
-  CALL_THEMES.forEach(theme => holdings.forEach(h => {
-    if (theme.pattern.test(h.security)) held.push({
-      theme: theme.label, security: h.security, isin: h.isin, mvCr: (h.market_value||0)/1e7, glPct: h.gl_pct,
-      entry: callEntryMonth(c.ndas, h.security), tradeAttr: getTradeAttrForSecurity(c.ndas, h.security)
-    });
-  }));
-  const heldThemeLabels = new Set(held.map(h=>h.theme));
-  const exited = [];
-  CALL_THEMES.forEach(theme => {
-    if (heldThemeLabels.has(theme.label)) return;
-    if (!(theme.pattern.test ? holdings.some(h=>theme.pattern.test(h.security)) : false)) {
-      const cdata = ATTRIBUTION_DATA[c.ndas];
-      if (!cdata || !cdata.months) return;
-      let security=null, firstMonthHeld=null, lastMonthHeld=null, totalContribution=0;
-      cdata.months.forEach(m => m.rows.forEach(r => {
-        if (!theme.pattern.test(r.s)) return;
-        security = r.s; totalContribution += (r.c||0);
-        if (!firstMonthHeld) firstMonthHeld = m.m;
-        if (r.emv > 0) lastMonthHeld = m.m;
-      }));
-      if (security) exited.push({theme: theme.label, security, firstMonthHeld, lastMonthHeld, totalContribution});
-    }
-  });
-  if (!held.length && !exited.length) {
-    return collapseSection('&#128200; Thematic Calls — How These Have Fared', '<div class="attr-empty">This client doesn\'t currently hold, and has never held, any of the firm\'s named thematic calls (Factor Strategy, Metals, Chemicals, Gold, Silver, Banking &amp; Financial).</div>', { open: false });
-  }
-  const totalMv = held.reduce((a,h)=>a+h.mvCr,0);
-  // Held Since: prefer the exact first_buy_date from Trade Decisions data (day-level) over the
-  // month-only ATTRIBUTION_DATA entry detection, since it's more precise and already has the
-  // "how long" answer built in via monthsHeldSince().
-  const heldSinceFor = h => {
-    if (h.tradeAttr && h.tradeAttr.first_buy_date) {
-      const mo = monthsHeldSince(h.tradeAttr.first_buy_date);
-      return `${h.tradeAttr.first_buy_date}${mo!=null?` (${mo}mo)`:''}`;
-    }
-    return formatHeldSinceEntry(h.entry, c.ndas, h.isin);
-  };
-  const tranchesFor = h => {
-    if (!h.tradeAttr) return '<span style="color:var(--muted)">—</span>';
-    const n = h.tradeAttr.n_tranches || 1;
-    return (n > 1
-      ? `<span title="${escapeHtml(h.tradeAttr.stagger_label||'')}${h.tradeAttr.stagger_benefit_pct!=null?' · staggering vs lump-sum: '+(h.tradeAttr.stagger_benefit_pct>=0?'+':'')+h.tradeAttr.stagger_benefit_pct.toFixed(2)+'%':''}" style="cursor:help">${n} &middot; staggered</span>`
-      : `${n} &middot; lump sum`) + legacyBadge(c.ndas, h.isin);
-  };
-  const timingFor = h => {
-    if (!h.tradeAttr) {
-      // Fall back to Asset X house-view stance when there's no trade-level data to judge timing by
-      const hd = holdings.find(x => x.security === h.security);
-      const bucket = hd && typeof classifyAssetX === "function" ? classifyAssetX(hd) : null;
-      const view = bucket ? ASSET_X_VIEWS[bucket] : null;
-      return view ? `<span style="font-style:italic;color:${STANCE_COLOR[view.stance]||'var(--muted)'}">Asset X: ${view.stance}</span>` : '<span style="color:var(--muted)">—</span>';
-    }
-    const ta = h.tradeAttr;
-    const vc = VERDICT_COLOR[ta.verdict] || ["var(--muted)","#F0F2F5"];
-    return `<span onclick="showVerdictDetail(${jsAttr(c.ndas)},${jsAttr(h.security)})" title="Click for the full verdict breakdown" style="cursor:pointer;background:${vc[1]};color:${vc[0]};padding:2px 7px;border-radius:4px;font-weight:700;font-size:10.5px">${ta.verdict}</span>`;
-  };
-  const rows = held.map(h => `<tr>
-      <td style="text-align:left">${h.theme}</td>
-      <td style="text-align:left">${h.security}</td>
-      <td>${'₹'+h.mvCr.toFixed(2)+' Cr'}</td>
-      <td style="color:${h.glPct>=0?'var(--green)':'var(--red)'};font-weight:600">${h.glPct>=0?'+':''}${h.glPct.toFixed(2)}%</td>
-      <td style="font-size:11px;color:var(--muted);white-space:nowrap">${heldSinceFor(h)}</td>
-      <td style="font-size:11px;color:var(--muted);white-space:nowrap">${tranchesFor(h)}</td>
-      <td style="font-size:11px;color:var(--muted)">${timingFor(h)}</td>
-    </tr>`).join('');
-  const totalRow = held.length ? `<tr style="font-weight:700;border-top:2px solid var(--border)">
-      <td style="text-align:left" colspan="2">Total (held calls)</td>
-      <td>${'₹'+totalMv.toFixed(2)+' Cr'}</td>
-      <td colspan="4"></td>
-    </tr>` : '';
-  const exitedRows = exited.map(x => `<tr>
-      <td style="text-align:left">${x.theme}</td>
-      <td style="text-align:left">${x.security}</td>
-      <td colspan="2" style="font-size:11px;color:var(--muted);white-space:nowrap">Exited ${x.lastMonthHeld||''}</td>
-      <td style="color:${x.totalContribution>=0?'var(--green)':'var(--red)'};font-weight:600" colspan="2">${x.totalContribution>=0?'+':''}${x.totalContribution.toFixed(2)}%</td>
-      <td style="font-size:11px;color:var(--muted);font-style:italic">EXITED</td>
-    </tr>`).join('');
-  const body = `<table style="table-layout:fixed;width:100%">
-    <colgroup><col style="width:12%"><col style="width:20%"><col style="width:9%"><col style="width:10%"><col style="width:15%"><col style="width:15%"><col style="width:19%"></colgroup>
-    <thead><tr><th style="text-align:left">Call</th><th style="text-align:left">Security</th><th>Value</th><th>Gain/Loss</th><th>Held Since</th><th>Tranches</th><th>Timing</th></tr></thead>
-    <tbody>${rows}${totalRow}${exitedRows}</tbody>
-  </table>`;
-  return collapseSection('&#128200; Thematic Calls — How These Have Fared', body, { open: false, sub: `${held.length} named call${held.length===1?'':'s'} held${exited.length?`, ${exited.length} exited`:''}` });
-}
 
-// ============ Call Execution Review — did this client act on the calls sent to them in
-// July 2026, and what did that decision (or non-decision) cost or earn them, return-wise?
-// Source: CALL_EXECUTION_DATA, built from the "Callllssssss.xlsx" executed/not-executed mail
-// log, matched to clients by account code and amount-weighted by trade size. Only clients who
-// actually received a call that month have an entry — most clients render nothing here. ============
+// ============ fmtPctSigned — shared by the unified Calls section (renderCallRegistrySection)
+// and the book-wide execution log (renderCallExecutionLogHtml) for signing a return/impact %. ===
 function fmtPctSigned(v) {
   if (v == null) return '<span style="color:var(--muted)">—</span>';
   const c = v >= 0 ? 'var(--green)' : 'var(--red)';
   return `<span style="color:${c};font-weight:600">${v >= 0 ? '+' : ''}${v.toFixed(2)}%</span>`;
-}
-function renderClientCallExecSection(c) {
-  const d = CALL_EXECUTION_DATA.clients[c.ndas];
-  if (!d) return '';
-  const rows = (d.trades || []).map(t => {
-    const statusBadge = t.executed
-      ? '<span style="background:#E8F5E9;color:var(--green);padding:2px 7px;border-radius:4px;font-weight:700;font-size:10.5px">EXECUTED</span>'
-      : '<span style="background:#FFEBEE;color:var(--red);padding:2px 7px;border-radius:4px;font-weight:700;font-size:10.5px">NOT EXECUTED</span>';
-    const amt = t.weightInr != null ? '₹' + (Math.abs(t.weightInr) / 1e7).toFixed(2) + ' Cr' : '<span style="color:var(--muted)">—</span>';
-    const resultPct = t.executed ? t.callWasGood : (t.callWasGood != null ? -t.callWasGood : null);
-    const resultLabel = t.executed ? 'Return since call' : 'Impact of not executing';
-    return `<tr>
-      <td style="font-size:11px;color:var(--muted);white-space:nowrap">${t.callDate}</td>
-      <td style="text-align:left">${t.security || '<span style="color:var(--muted)">—</span>'}${t.noData ? ' <span title="No price history available for this instrument" style="cursor:help">&#9432;</span>' : ''}</td>
-      <td style="font-weight:600">${t.side}</td>
-      <td>${amt}</td>
-      <td>${statusBadge}</td>
-      <td title="${resultLabel}">${fmtPctSigned(resultPct)}</td>
-    </tr>`;
-  }).join('');
-  const summaryBits = [];
-  summaryBits.push(`${d.executed}/${d.totalCalls} executed`);
-  if (d.weightedReturnIfExecuted != null) summaryBits.push(`weighted return on executed calls: ${fmtPctSigned(d.weightedReturnIfExecuted)}`);
-  if (d.notExecuted > 0) summaryBits.push(`weighted impact of not executing: ${fmtPctSigned(d.weightedImpactIfNotExecuted)}`);
-  const summaryLine = `<div style="font-size:12px;color:var(--muted);margin-bottom:8px">${summaryBits.join(' &middot; ')}</div>`;
-  const body = `${summaryLine}<table style="table-layout:fixed;width:100%">
-    <colgroup><col style="width:14%"><col style="width:34%"><col style="width:10%"><col style="width:14%"><col style="width:14%"><col style="width:14%"></colgroup>
-    <thead><tr><th style="text-align:left">Call Date</th><th style="text-align:left">Security</th><th>Side</th><th>Amount</th><th>Status</th><th>Result</th></tr></thead>
-    <tbody>${rows}</tbody>
-  </table>`;
-  return collapseSection('&#128222; Call Execution Review — July 2026', body, { open: false, sub: `${d.totalCalls} call${d.totalCalls===1?'':'s'}${d.notExecuted?`, ${d.notExecuted} not executed`:''}` });
 }
 
 // ═══════════════════════════════════════════
@@ -4785,7 +4722,6 @@ function toggleIPSView(){
   document.getElementById('checklist-view').style.display='none';
   document.getElementById('browse-view').style.display='none';
   document.getElementById('calls-view').style.display='none';
-  document.getElementById('callexec-view').style.display='none';
   document.getElementById('ips-view').style.display='';
   document.getElementById('topbar-title').textContent='IPS Review — All Clients';
   document.getElementById('topbar-meta').innerHTML='Data as of 31 July 2026</strong>';
@@ -5058,7 +4994,6 @@ function toggleChecklistView(){
   document.getElementById('ips-view').style.display='none';
   document.getElementById('browse-view').style.display='none';
   document.getElementById('calls-view').style.display='none';
-  document.getElementById('callexec-view').style.display='none';
   document.getElementById('checklist-view').style.display='';
   document.getElementById('topbar-title').textContent='Client Level Checklist';
   document.getElementById('topbar-meta').innerHTML='Data as of 31 July 2026</strong> · All NDPMS clients incl. unfunded';
