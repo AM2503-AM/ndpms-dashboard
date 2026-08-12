@@ -901,13 +901,13 @@ function renderStrategy(s, i) {
         <tbody>${periodRows}</tbody>
       </table>
       <div class="section-title">Client-level Scorecard <span style="font-size:12px;font-weight:400;color:var(--muted)">(click a name to drill in)</span></div>
-      <table>
+      <div style="overflow-x:auto"><table style="min-width:900px">
         <thead><tr>
           <th>Account</th><th>Client</th><th>NDAS</th><th>Inception</th><th>AUM</th>
           <th>1M</th><th>3M</th><th>6M</th>${s.has_12m ? '<th>1Y</th>' : ''}<th>SI</th><th>Benchmark</th><th>Status</th>
         </tr></thead>
         <tbody>${clientRows}</tbody>
-      </table>
+      </table></div>
     </div>`;
 }
 
