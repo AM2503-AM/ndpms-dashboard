@@ -23,18 +23,18 @@
         --red:#D9534F;--red-bg:#FFC7CE;--red-text:#9C0006;--na:#B0B7BF;}
   *{box-sizing:border-box}
   body{margin:0;font-family:'Reddit Sans','Segoe UI',Arial,sans-serif;background:var(--bg);color:var(--text);font-size:14px}
-  .topbar{background:linear-gradient(90deg,var(--primary),var(--primary-light));color:#fff;padding:20px 28px;position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,.15)}
+  .topbar{background:linear-gradient(90deg,var(--primary),var(--primary-light));color:#fff;padding:20px 0;position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,.15)}
   /* Found 2026-08-12: .topbar had no width cap while .container below it is capped at 1600px and
      centered -- on any screen wider than 1600px the header spanned edge-to-edge while the content
      sat boxed in with empty gutters on both sides, reading as "the top bar is huge, everything else
      is small". This inner wrapper mirrors .container's cap so the header's content lines up with
      the page content below it; the colored background on .topbar itself still spans full width. */
-  .topbar-inner{max-width:1600px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px}
+  .topbar-inner{max-width:1900px;margin:0 auto;padding:0 28px;box-sizing:border-box;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px}
   .topbar h1{margin:0;font-size:22px;font-weight:600}
   .topbar .meta{font-size:12px;opacity:.85;margin-top:4px}
   .refresh-btn,.back-btn{background:#fff;color:var(--primary);border:none;padding:10px 18px;font-weight:600;font-size:13px;border-radius:6px;cursor:pointer;box-shadow:0 2px 4px rgba(0,0,0,.1);text-decoration:none;display:inline-flex;align-items:center;gap:8px}
   .refresh-btn:hover,.back-btn:hover{transform:translateY(-1px)}
-  .container{padding:24px 28px;max-width:1600px;margin:0 auto}
+  .container{padding:24px 28px;max-width:1900px;margin:0 auto}
   .strategy-tabs{display:flex;gap:4px;border-bottom:2px solid var(--border);margin-bottom:24px;overflow-x:auto;justify-content:center}
   .strategy-tab{background:none;border:none;padding:12px 20px;font-size:14px;font-weight:600;color:var(--muted);cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-2px;white-space:nowrap}
   .strategy-tab:hover{color:var(--primary)}
@@ -307,6 +307,12 @@ const CHART_INSTANCES = {};
 if (typeof Chart !== 'undefined') {
   Chart.defaults.devicePixelRatio = Math.max(window.devicePixelRatio || 1, 2);
   Chart.defaults.font.family = "'Reddit Sans','Segoe UI',Arial,sans-serif";
+  // Chart.js's own default (12px) is fixed regardless of how wide the container is -- on a wide
+  // monitor, axis/legend text reads disproportionately small next to everything else on the page.
+  // Bumped alongside widening .container/.topbar-inner 2026-08-13 (both contribute to the same
+  // "bar is huge, everything else is tiny" complaint: a capped-too-narrow container, and chart text
+  // that doesn't scale up with it).
+  Chart.defaults.font.size = 13;
 }
 
 // ==== Attribution data (per-client, per-instrument monthly contribution) ====
@@ -3878,18 +3884,26 @@ function buildClientDeck(clientRecord){
         C("Gain/Loss (₹)",{b:1,color:BRAND.WHITE,fill:BRAND.BLUE}),C("Gain/Loss (%)",{b:1,color:BRAND.WHITE,fill:BRAND.BLUE}),C("Weight",{b:1,color:BRAND.WHITE,fill:BRAND.BLUE}),
         C("Tax if Sold",{b:1,color:BRAND.WHITE,fill:BRAND.BLUE,size:9})];
       const rows=[hdr];
-      let anyZeroCost = false;
+      let anyZeroCost = false, anyExitLoad = false;
       part.forEach(h=>{ const up = h.gain_loss>=0;
         const zc = (typeof isZeroCostBasisFlag==="function") && isZeroCostBasisFlag(h);
         if (zc) anyZeroCost = true;
         const taxInfo = (typeof classifyGainsTax==="function") ? classifyGainsTax(h, sc.ndas) : {label:"—",color:BRAND.GREY};
         const taxHexColor = {"var(--green)":BRAND.DGREEN,"var(--red)":BRAND.DRED,"var(--muted)":BRAND.GREY,"#856404":"9C6500"}[taxInfo.color] || BRAND.GREY;
+        // Exit-load flag piggybacks on the same cell as tax character rather than a 9th column —
+        // added 2026-08-13 per "mention exit loads wherever we'd recommend a sell", using the same
+        // EXIT_LOAD_DATA the dashboard's holdings table shows (V2 Combined export's per-fund
+        // Load Lockin/Exit Load columns, joined against HOLDING_ORIGIN_DATA's days-held).
+        const elRec = (typeof EXIT_LOAD_DATA !== "undefined") ? EXIT_LOAD_DATA[sc.ndas+'|'+h.isin] : null;
+        const hasExitLoad = elRec && elRec.status === 'yes';
+        if (hasExitLoad) anyExitLoad = true;
+        const taxLabel = taxInfo.label + (hasExitLoad ? ' · EL' : '');
         rows.push([C(h.security+(zc?" ⚠":""),{align:"left",size:9.5,color:zc?BRAND.DRED:BRAND.INK}), C(h.asset_class,{align:"left",color:BRAND.GREY,size:9}),
           C(money(h.cost)), C(money(h.market_value)),
           C((up?"+":"")+money(h.gain_loss),{color:up?BRAND.DGREEN:BRAND.DRED,fill:up?BRAND.LGREEN:BRAND.LRED,b:true}),
           C((up?"+":"")+h.gl_pct.toFixed(1)+"%",{color:up?BRAND.DGREEN:BRAND.DRED,b:true}),
           C(h.assets_pct.toFixed(1)+"%"),
-          C(taxInfo.label,{size:9,b:true,color:taxHexColor})]);
+          C(taxLabel,{size:9,b:true,color:hasExitLoad?BRAND.AMBER:taxHexColor})]);
       });
       const isLastPage = i+PAGE >= holdings.length;
       if (isLastPage){
@@ -3908,10 +3922,11 @@ function buildClientDeck(clientRecord){
       // near-empty last page doesn't blow up into oversized rows.
       const holdRowH = Math.min(0.55, Math.max(0.38, 5.35/rows.length));
       s.addTable(rows,{x:0.3,y:1.5,w:12.73,colW:[3.15,1.55,1.35,1.4,1.5,1.2,0.85,0.85],rowH:holdRowH,border:{type:"solid",color:BRAND.LINE,pt:1}});
-      const footNote = anyZeroCost
-        ? `Total: ${money(holdings.reduce((a,h)=>a+h.cost,0))} cost → ${money(sc.aum)} current · ⚠ = no cost basis on record, verify before relying on gain/loss · Tax if Sold is informational, verify with a tax advisor`
-        : `Total: ${money(holdings.reduce((a,h)=>a+h.cost,0))} cost → ${money(sc.aum)} current · Tax if Sold is informational, verify with a tax advisor`;
-      footer(s, footNote);
+      const footNoteParts = [`Total: ${money(holdings.reduce((a,h)=>a+h.cost,0))} cost → ${money(sc.aum)} current`];
+      if (anyZeroCost) footNoteParts.push('⚠ = no cost basis on record, verify before relying on gain/loss');
+      if (anyExitLoad) footNoteParts.push('EL = an exit load currently applies if sold — check the amount before dealing');
+      footNoteParts.push('Tax if Sold is informational, verify with a tax advisor');
+      footer(s, footNoteParts.join(' · '));
     }
   })();
 
@@ -4702,7 +4717,7 @@ function buildClientDeck(clientRecord){
       if (manual.length>4) { s.addText(`+${manual.length-4} more advisor note(s)`,{x:0.6,y,w:12.1,h:0.3,fontFace:BRAND.FONT,fontSize:9.5,color:BRAND.GREY,italic:true}); y += 0.32; }
     }
     s.addText("Reviewed with client on ____________________",{x:0.4,y:Math.min(y+0.1,7.3),w:8,h:0.3,fontFace:BRAND.FONT,fontSize:10,color:BRAND.GREY,italic:true});
-    footer(s, "Amounts are the ₹ Cr that needs to move — the excess over the band ceiling, or the gap to the band floor — not the full position value. Tax character informational only; confirm with the client's tax adviser before dealing.");
+    footer(s, "Amounts are the ₹ Cr that needs to move — the excess over the band ceiling, or the gap to the band floor — not the full position value. Before choosing which specific holding to trim for a row above, check its Exit Load flag (Total Portfolio Holdings slide, 'EL' marker) — tax character informational only; confirm with the client's tax adviser before dealing.");
   })();
 
   // ---------- REDEPLOYMENT (proceeds available → advisor-specified target) ----------
