@@ -4474,21 +4474,26 @@ function buildClientDeck(clientRecord){
     footer(s,"Contribution = weighted return contribution over the review window, per security · stance from the current Asset X view");
   })();
 
-  // ---------- CALL REGISTRY — named, dated Asset X calls (one row per call, not per fund) ----------
-  // Redesigned 2026-08-12 from the old per-fund "Thematic Calls" slide (CALL_THEMES × holdings,
-  // one row per matching security) to match the dashboard's Call Registry rebuild: a client's 4
-  // silver funds now collapse into one "Gold vs Silver" row with a combined value, weighted
-  // return, the call's own benchmark (silver spot for gold, gold spot for silver, etc. — see
-  // CALL_REGISTRY_DATA), and a GOOD/BAD verdict, so this answers "was the call right" instead of
-  // "how did each fund do". Falls back gracefully if CALL_REGISTRY_DATA isn't on the page.
+  // ---------- CALLS (1/2) — named, dated Asset X calls (one row per call, not per fund) ----------
+  // Redesigned 2026-08-12 from the old per-fund "Thematic Calls" slide (one row per matching
+  // security) into a Call Registry rebuild: a client's 4 silver funds now collapse into one
+  // "Gold vs Silver" row with a combined value, weighted return, the call's own benchmark (silver
+  // spot for gold, gold spot for silver, etc. — see CALL_REGISTRY_DATA), and a GOOD/BAD verdict,
+  // so this answers "was the call right" instead of "how did each fund do". Numbered (1/2)/(2/2)
+  // with the conditional trade-level slide below, per the dashboard's merged Calls page (2026-08-12
+  // "major upgrade" feedback) — same one story, recommendation then execution, told across up to
+  // two slides here since a single slide can't fit both a per-call verdict AND a trade-by-trade
+  // log without one of them being unreadably small. Falls back gracefully if CALL_REGISTRY_DATA
+  // isn't on the page.
   (function(){
     if (typeof CALL_REGISTRY_DATA === "undefined") return;
     const entries = (CALL_REGISTRY_DATA.byClient[sc.ndas] || []).slice().sort((a,b)=>a.callLabel.localeCompare(b.callLabel));
     const chemHolder = typeof findExitedCallHistory === "function"
       ? findExitedCallHistory({label:"Chemicals", pattern:/chemicals/i}).find(x => x.ndas === sc.ndas) : null;
     if (!entries.length && !chemHolder) return;
+    const hasTradeSlide = typeof CALL_EXECUTION_DATA !== "undefined" && CALL_EXECUTION_DATA.clients[sc.ndas] && CALL_EXECUTION_DATA.clients[sc.ndas].trades && CALL_EXECUTION_DATA.clients[sc.ndas].trades.length;
     const s = pptx.addSlide(); s.background = {color: BRAND.WHITE};
-    titleBar(s,"Call Registry — How Our Calls Have Fared", "Every named, dated Asset X call this client has exposure to — verdict is on the call, not the fund");
+    titleBar(s, hasTradeSlide ? "Calls (1/2) — Registry & Verdicts" : "Calls — Registry & Verdicts", "Every named, dated Asset X call this client has exposure to — verdict is on the call, not the fund");
     const rowH = 0.68;
     const rows = entries.slice(0,7);
     rows.forEach((e,i)=>{
@@ -4523,17 +4528,19 @@ function buildClientDeck(clientRecord){
     footer(s,"Alpha vs. the call's own benchmark (silver spot, gold spot, Nifty 500 TRI, or the factor rotated into/out of, per call) · transferred-in holdings excluded from the verdict");
   })();
 
-  // ---------- CALLS EXECUTED — literal trade-level instructions this month (conditional) ----------
+  // ---------- CALLS (2/2) — literal trade-level instructions this month (conditional) ----------
   // Only added for clients who actually received a mailer trade instruction (CALL_EXECUTION_DATA) —
   // most clients have none this month, so the slide is skipped rather than shown empty. Trade-level
-  // complement to the Call Registry slide above: that one is the call's overall verdict, this one
-  // is "here is exactly what we asked you to do, and whether it happened."
+  // complement to the Calls (1/2) slide above: that one is the call's overall verdict, this one is
+  // "here is exactly what we asked you to do, and whether it happened" — includes trades outside
+  // the 5 named calls too (e.g. an individual stock sell), same as the dashboard's "Other
+  // Instructed Trades" bucket.
   (function(){
     if (typeof CALL_EXECUTION_DATA === "undefined") return;
     const d = CALL_EXECUTION_DATA.clients[sc.ndas];
     if (!d || !d.trades || !d.trades.length) return;
     const s = pptx.addSlide(); s.background = {color: BRAND.WHITE};
-    titleBar(s, `Calls Executed — ${CALL_EXECUTION_DATA.period}`, `${d.executed}/${d.totalCalls} instructed trades executed` + (d.notExecuted ? ` · ${d.notExecuted} not executed` : ""));
+    titleBar(s, `Calls (2/2) — Trade-Level Execution, ${CALL_EXECUTION_DATA.period}`, `${d.executed}/${d.totalCalls} instructed trades executed` + (d.notExecuted ? ` · ${d.notExecuted} not executed` : ""));
     const trades = d.trades.slice(0, 13);
     const rowH = Math.min(0.42, 5.5/trades.length);
     const fmtTradeAmt = v => v==null ? "—" : "₹"+Math.round(Math.abs(v)).toLocaleString('en-IN');
