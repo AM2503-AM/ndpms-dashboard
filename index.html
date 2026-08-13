@@ -3559,6 +3559,13 @@ function aggregateContributions(attribution, windowMonths){
 // CALL_REGISTRY_DATA's gold_silver call (formal exit-silver note, Aug 2026 deck).
 const ASSET_X_VIEWS ={"Domestic Equities":{"stance":"CONSTRUCTIVE","note":"Q1FY27 earnings encouraging — ~60% of Nifty 500 reported, median PAT +19% YoY; Nifty 500 at ~23x trailing P/E vs 27x 10-yr median. Allocation: 60:40 large-cap:SMID (10% higher weight to domestic equity). Lumpsum deployment. Tactical factor basket: 50% Momentum / 25% Low Vol / 25% Value."},"Global Equities":{"stance":"CONSTRUCTIVE","note":"Volatile on rate uncertainty and AI-capex ROI questions; US rotated to defensives/large-caps, China saw renewed inflows. Allocation: 60% DM (incl. US) / 40% EM ex-India, lumpsum. Adding portfolio stabilizers to manage volatility."},"Fixed Income":{"stance":"NEUTRAL","note":"Yields supported by RBI/Govt measures to draw FPI debt flows and a neutral RBI policy stance; elevated US treasury yields are the swing factor. Allocation: 85% 3-5Y papers / 15% 30Y+ bonds, accrual-led, selective participation."},"Commodities":{"stance":"GOLD ONLY","note":"Gold favoured over silver structurally — exiting silver, 100% allocation to gold. Central-bank gold buying +62% YoY / +411% QoQ in Q2 2026; easing silver supply tightness is a near-term headwind for silver prices."},"Currency":{"stance":"UNDER PRESSURE","note":"INR volatile on Middle East geopolitical tensions and heavy oil dependence; rebounding FPI flows cap the downside. Expect USD/INR to trade in a 90-96 band."},"Alternates / PE":{"stance":"SELECTIVE","note":"H1 2026 PE deal value $17.2bn across 644 deals vs $21.2bn in H2 2025; IT & ITES leads fundraising ($7.6bn). Prefer buyout/PIPE and companies 2-3 yrs from listing. Commercial real estate: record 29.9mn sq ft leased in Q1 2026, Bangalore/Hyderabad/Mumbai leading."}};
 const STANCE_COLOR = {CONSTRUCTIVE:BRAND.DGREEN, STAGGERED:BRAND.DGREEN, "GOLD ONLY":BRAND.DGREEN, NEUTRAL:BRAND.AMBER, CAUTIOUS:BRAND.AMBER, SELECTIVE:BRAND.AMBER, "UNDER PRESSURE":BRAND.DRED};
+// Short-form one-liners for PPT tables that need a compact house-view snippet rather than
+// ASSET_X_VIEWS' full prose note ("Allocation vs. House View", "Before & After" slides). Found
+// duplicated as inline literals in both slides during the 2026-08-13 audit (the exact class of bug
+// GOLD_SILVER_RATIO turned out to be — see Step 32) -- consolidated here, right next to
+// ASSET_X_VIEWS, so a future monthly update updates the fact in exactly one place.
+const ASSET_X_INTL_EQ_NOTE = "~25% of equity, 60:40 DM:EM (Asset X, Aug 2026)";
+const ASSET_X_FACTOR_TILT_NOTE = "50% Momentum / 25% Low Vol / 25% Value (Asset X, Aug 2026)";
 
 // classify a holding into one of the six Asset X buckets so calls can be tied to the house view
 function classifyAssetX(h){
@@ -4077,10 +4084,10 @@ function buildClientDeck(clientRecord){
     const gsRatioNote = gsTotal > 0 ? ` — actual split ${Math.round(goldPct/gsTotal*100)}:${Math.round(silverPct/gsTotal*100)} Gold:Silver` : "";
     const rows = [
       {dim:"Domestic Equity", house: domStance ? `${domStance.stance} — ${domStance.note}` : "—", portfolio: `${pct(domesticEqPct)} of AUM`, status: "info"},
-      {dim:"Foreign / Global Equity", house: "~25% of equity, 60:40 DM:EM (Asset X, Aug 2026)", portfolio: `${pct(ips.intl_eq_pct)} of equity`, status: ips.intl_eq_pct===0?"gap":(Math.abs(ips.intl_eq_pct-25)<=5?"ok":"watch")},
+      {dim:"Foreign / Global Equity", house: ASSET_X_INTL_EQ_NOTE, portfolio: `${pct(ips.intl_eq_pct)} of equity`, status: ips.intl_eq_pct===0?"gap":(Math.abs(ips.intl_eq_pct-25)<=5?"ok":"watch")},
       {dim:"Gold & Silver", house: `100:0 Gold:Silver — exit Silver (Asset X, Aug 2026)${gsRatioNote}`, portfolio: `Gold ${pct(goldPct)} · Silver ${pct(silverPct)}${otherCommodityPct>0.05?` · Other ${pct(otherCommodityPct)}`:""} (${pct(ips.commodity_pct)} total)`, status: ips.commodity_pct===0?"gap":((ips.commodity_pct>=tmBands.commodity.min && ips.commodity_pct<=tmBands.commodity.max)?"ok":"watch")},
       {dim:"Fixed Income & Alternates", house: fiStance ? `${fiStance.stance} — ${fiStance.note}` : "—", portfolio: `${pct(ips.debt_alt_pct)} of AUM`, status: (ips.debt_alt_pct>=tmBands.debt_alt.min && ips.debt_alt_pct<=tmBands.debt_alt.max)?"ok":"watch"},
-      {dim:"Factor tilt (Momentum/Value)", house: "50% Momentum / 25% Low Vol / 25% Value (Asset X, Aug 2026)", portfolio: "Not tracked per-holding", status: "na"},
+      {dim:"Factor tilt (Momentum/Value)", house: ASSET_X_FACTOR_TILT_NOTE, portfolio: "Not tracked per-holding", status: "na"},
     ];
     const stColors = {ok:[BRAND.LGREEN,BRAND.DGREEN,"ALIGNED"], gap:["FFF2CC","9C6500","GAP"], watch:[BRAND.LRED,BRAND.DRED,"WATCH"], na:[BRAND.GREYB,BRAND.GREY,"NOT TRACKED"], info:[BRAND.PANEL,BRAND.INK,"—"]};
     const tRows = [[C("Dimension",{b:1,color:BRAND.WHITE,fill:BRAND.BLUE,align:"left"}),C("House View (Asset X)",{b:1,color:BRAND.WHITE,fill:BRAND.BLUE,align:"left"}),C("Portfolio Today",{b:1,color:BRAND.WHITE,fill:BRAND.BLUE}),C("Status",{b:1,color:BRAND.WHITE,fill:BRAND.BLUE})]];
@@ -4251,7 +4258,7 @@ function buildClientDeck(clientRecord){
     const rows = [
       {label:"Largest single holding", today: topHolding ? pct(topHolding.assets_pct) : "—", target: `≤ ${tmBands.scheme.max}% (single-scheme guideline)`},
       {label:"IPS breach weight (sum of over-band positions)", today: pct(breachWeightPct), target: "0% — no position outside its band"},
-      {label:"International equity (% of equity)", today: pct(ips.intl_eq_pct), target: `~25% (Asset X, 60:40 DM:EM)`},
+      {label:"International equity (% of equity)", today: pct(ips.intl_eq_pct), target: ASSET_X_INTL_EQ_NOTE},
       {label:"Cash & Cash Equivalents", today: cashPctNow!=null ? pct(cashPctNow) : "—", target: tmBands.cash.label},
     ];
     const tRows = [[C("Metric",{b:1,color:BRAND.WHITE,fill:BRAND.BLUE,align:"left"}),C("Today",{b:1,color:BRAND.WHITE,fill:BRAND.BLUE}),C("Proposed / Target",{b:1,color:BRAND.WHITE,fill:BRAND.BLUE})]];
