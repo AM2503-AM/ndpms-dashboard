@@ -2768,20 +2768,23 @@ function renderCallExecutionLogHtml(){
       <strong>${totalCalls} calls</strong> sent across ${codes.length} clients this month &middot;
       <strong style="color:var(--green)">${totalExecuted} executed</strong> &middot;
       <strong style="color:${totalNotExecuted?'var(--red)':'var(--green)'}">${totalNotExecuted} not executed</strong>.
-      "Return since call" is the security's price move from the call date to month-end, signed so a positive
-      number always means the call (BUY or SELL) was the right one; "impact of not executing" is the mirror
-      image — positive means the client was better off ignoring the call.
+      "Price Move" is the security's own literal price change from the call date to month-end (same
+      number regardless of BUY/SELL). "Call Outcome" is a different thing — it's signed so a positive
+      number always means the call (BUY or SELL) was the right one; for a not-executed call, positive
+      means the client was better off ignoring it. A SELL call whose security then rose in price shows
+      a positive "Price Move" but a negative "Call Outcome" — that's not a contradiction, they're
+      answering two different questions.
     </div>
     <h4 style="margin:16px 0 8px">By Client</h4>
     <table style="table-layout:fixed;width:100%">
       <colgroup><col style="width:28%"><col style="width:12%"><col style="width:12%"><col style="width:12%"><col style="width:18%"><col style="width:18%"></colgroup>
-      <thead><tr><th style="text-align:left">Client</th><th>Total Calls</th><th>Executed</th><th>Not Executed</th><th>Wtd Return (Executed)</th><th>Wtd Impact (Not Executed)</th></tr></thead>
+      <thead><tr><th style="text-align:left">Client</th><th>Total Calls</th><th>Executed</th><th>Not Executed</th><th title="Weighted financial impact of having executed these calls — not the securities' own price moves">Wtd Call Outcome (Executed)</th><th title="Weighted financial impact of NOT executing these calls">Wtd Call Outcome (Not Executed)</th></tr></thead>
       <tbody>${clientTableRows}</tbody>
     </table>
     <h4 style="margin:24px 0 8px">By Security</h4>
     <table style="table-layout:fixed;width:100%">
       <colgroup><col style="width:32%"><col style="width:10%"><col style="width:12%"><col style="width:12%"><col style="width:12%"><col style="width:11%"><col style="width:11%"></colgroup>
-      <thead><tr><th style="text-align:left">Security</th><th>Side</th><th>Clients</th><th>Executed</th><th>Not Exec.</th><th>Avg Return (Exec.)</th><th>Avg Impact (Not Exec.)</th></tr></thead>
+      <thead><tr><th style="text-align:left">Security</th><th>Side</th><th>Clients</th><th>Executed</th><th>Not Exec.</th><th title="Average financial impact of having executed this call — not the security's own price move">Avg Call Outcome (Exec.)</th><th title="Average financial impact of NOT executing this call">Avg Call Outcome (Not Exec.)</th></tr></thead>
       <tbody>${callLevelRows}</tbody>
     </table>
   </div>`;
@@ -3285,28 +3288,40 @@ function getMatchingExecutionTrades(ndas, isins) {
   if (!d || !d.trades) return [];
   return d.trades.filter(t => t.isin && isins.has(t.isin));
 }
+// Fixed 2026-08-13 -- found via a real screenshot showing Ruchita Jay Shah's BHARAT HIGHWAYS INVIT
+// (a SELL call, executed) as "-2.69%" under a "Return since call" label, which reads as the
+// security losing value. It didn't: priceReturnPct was +2.69% (the security's price actually
+// ROSE). The old single "Result" column showed callWasGood -- sign-flipped for a SELL so that
+// positive always means "the call was right" -- directly under a label implying literal price
+// return, which is only true for BUY calls (where callWasGood == priceReturnPct). Split into two
+// honestly-labeled columns: "Price Move" is always the literal, unflipped priceReturnPct; "Call
+// Outcome" is the existing signed callWasGood/-callWasGood, now clearly scoped to "was
+// executing/not-executing this the right call" rather than looking like the security's own return.
 function renderExecTradeRows(trades) {
   return (trades || []).map(t => {
     const statusBadge = t.executed
       ? '<span style="background:#E8F5E9;color:var(--green);padding:2px 7px;border-radius:4px;font-weight:700;font-size:12px">EXECUTED</span>'
       : '<span style="background:#FFEBEE;color:var(--red);padding:2px 7px;border-radius:4px;font-weight:700;font-size:12px">NOT EXECUTED</span>';
     const amt = t.weightInr != null ? '₹' + (Math.abs(t.weightInr) / 1e7).toFixed(2) + ' Cr' : '<span style="color:var(--muted)">—</span>';
-    const resultPct = t.executed ? t.callWasGood : (t.callWasGood != null ? -t.callWasGood : null);
-    const resultLabel = t.executed ? 'Return since call' : 'Impact of not executing';
+    const outcomePct = t.executed ? t.callWasGood : (t.callWasGood != null ? -t.callWasGood : null);
+    const outcomeTitle = t.executed
+      ? "Financial impact of having executed this call — accounts for BUY/SELL direction, NOT the security's own price move"
+      : "Financial impact of NOT executing this call — accounts for BUY/SELL direction";
     return `<tr>
       <td style="font-size:12.5px;color:var(--muted);white-space:nowrap">${t.callDate}</td>
       <td style="text-align:left">${t.security || '<span style="color:var(--muted)">—</span>'}${t.noData ? ' <span title="No price history available for this instrument" style="cursor:help">&#9432;</span>' : ''}</td>
       <td style="font-weight:600">${t.side}</td>
       <td>${amt}</td>
       <td>${statusBadge}</td>
-      <td title="${resultLabel}">${fmtPctSigned(resultPct)}</td>
+      <td title="The security's own price move from the call date to month-end — independent of BUY/SELL direction">${fmtPctSigned(t.priceReturnPct)}</td>
+      <td title="${outcomeTitle}">${fmtPctSigned(outcomePct)}</td>
     </tr>`;
   }).join('');
 }
 function renderExecTradeTable(trades) {
   return `<table style="table-layout:fixed;width:100%">
-    <colgroup><col style="width:14%"><col style="width:34%"><col style="width:10%"><col style="width:14%"><col style="width:14%"><col style="width:14%"></colgroup>
-    <thead><tr><th style="text-align:left">Call Date</th><th style="text-align:left">Security</th><th>Side</th><th>Amount</th><th>Status</th><th>Result</th></tr></thead>
+    <colgroup><col style="width:11%"><col style="width:24%"><col style="width:7%"><col style="width:12%"><col style="width:12%"><col style="width:16%"><col style="width:18%"></colgroup>
+    <thead><tr><th style="text-align:left">Call Date</th><th style="text-align:left">Security</th><th>Side</th><th>Amount</th><th>Status</th><th>Price Move</th><th>Call Outcome</th></tr></thead>
     <tbody>${renderExecTradeRows(trades)}</tbody>
   </table>`;
 }
@@ -3648,7 +3663,13 @@ function buildGapAnalysisItems(clientRecord){
   };
   const tmBands = IPS_BAND_TEMPLATE[ips.risk_profile] || IPS_BAND_TEMPLATE.Aggressive;
   const aumCr = ips.aum_cr || (sc.aum ? sc.aum/1e7 : 0);
-  const GOLD_SILVER_RATIO = 0.85; // Asset X, July 2026: 85% Gold / 15% Silver
+  // Asset X, Aug 2026: formal exit-silver call, 100% Gold / 0% Silver -- was 85:15 through the
+  // Jul 2026 deck. Updated 2026-08-13; this constant used to silently disagree with
+  // CALL_REGISTRY_DATA's gold_silver call and the current ASSET_X_VIEWS.Commodities note (both
+  // already reflected Aug 2026 as of Step 31) because it was never derived from either -- a
+  // hardcoded duplicate of the same fact, and duplicates drift. Found via user report ("asset x
+  // july is showing not august") plus a full-file sweep for other "Jul 2026"/"85:15" leftovers.
+  const GOLD_SILVER_RATIO = 1.0;
   const fundingNote = (deltaCr, excludeParam) => {
     if (!parkingRec || deltaCr <= 0.01) return '';
     const availableCr = ((parkingRec.cash||0)+(parkingRec.liquid||0)+(parkingRec.overnight||0))/1e7;
@@ -3656,8 +3677,13 @@ function buildGapAnalysisItems(clientRecord){
     const remainingCr = deltaCr - availableCr;
     const cashPart = availableCr > 0.01 ? ` ₹${availableCr.toFixed(2)} Cr of parked cash/liquid covers part of this;` : '';
     const otherOver = breaches.find(b => b.status === "over" && b.param !== excludeParam);
-    if (otherOver) return `${cashPart} the remaining ₹${remainingCr.toFixed(2)} Cr could come from trimming the ${otherOver.param.replace(/\s*\(.*?\)/,'').trim()} overweight (currently ${otherOver.current}).`;
-    return `${cashPart} the remaining ₹${remainingCr.toFixed(2)} Cr would need to come from trimming an overweight position elsewhere in the portfolio.`;
+    // "the remaining..." only reads correctly lowercase when it continues cashPart's semicolon
+    // clause; with no cashPart this text gets appended straight after a caller's period-terminated
+    // sentence, so it needs to start a fresh, capitalized sentence instead (found during the
+    // 2026-08-13 audit -- was rendering "...total). the remaining..." in every deck).
+    const remainingLead = cashPart ? 'the remaining' : ' The remaining';
+    if (otherOver) return `${cashPart}${cashPart?' ':''}${remainingLead} ₹${remainingCr.toFixed(2)} Cr could come from trimming the ${otherOver.param.replace(/\s*\(.*?\)/,'').trim()} overweight (currently ${otherOver.current}).`;
+    return `${cashPart}${cashPart?' ':''}${remainingLead} ₹${remainingCr.toFixed(2)} Cr would need to come from trimming an overweight position elsewhere in the portfolio.`;
   };
   // Real ₹ Cr amount that needs to MOVE (not the full position value) — the excess above a band
   // ceiling for "over" rows, or the gap below a band floor/target for "under"/"gap" rows. Mirrors
@@ -3695,13 +3721,13 @@ function buildGapAnalysisItems(clientRecord){
     if (r.param.startsWith("Commodities")) {
       const currentCr = aumCr * (ips.commodity_pct||0) / 100;
       if (r.status === "over") {
-        return `Commodities is currently ${r.current} (₹${currentCr.toFixed(2)} Cr), above the ideal ${r.ideal} — trim toward the band. Asset X's house view still favours an ${(GOLD_SILVER_RATIO*100).toFixed(0)}:${((1-GOLD_SILVER_RATIO)*100).toFixed(0)} Gold:Silver mix within whatever commodity exposure remains.`;
+        return `Commodities is currently ${r.current} (₹${currentCr.toFixed(2)} Cr), above the ideal ${r.ideal} — trim toward the band. Asset X's Aug 2026 house view is 100% Gold / 0% Silver (formal exit-Silver call) — trim any Silver held first.`;
       }
       const targetPct = tmBands.commodity.max;
       const targetCr = aumCr * targetPct / 100;
       const gapCr = Math.max(0, targetCr - currentCr);
       const goldCr = gapCr * GOLD_SILVER_RATIO, silverCr = gapCr * (1-GOLD_SILVER_RATIO);
-      return `Commodities is at ${pct(ips.commodity_pct)} (₹${currentCr.toFixed(2)} Cr) against an ideal band of ${r.ideal} — Asset X recommends accumulating on the current pullback (Gold below ~$4,200/oz, Silver below ~$65/oz) in an ${(GOLD_SILVER_RATIO*100).toFixed(0)}:${((1-GOLD_SILVER_RATIO)*100).toFixed(0)} Gold:Silver split. To reach ${targetPct}% of AUM (₹${targetCr.toFixed(2)} Cr), add approx. ₹${goldCr.toFixed(2)} Cr Gold + ₹${silverCr.toFixed(2)} Cr Silver (₹${gapCr.toFixed(2)} Cr total).${fundingNote(gapCr, r.param)}`;
+      return `Commodities is at ${pct(ips.commodity_pct)} (₹${currentCr.toFixed(2)} Cr) against an ideal band of ${r.ideal} — Asset X's Aug 2026 house view favours Gold over Silver structurally (strong central-bank gold buying; easing Silver supply tightness is a near-term headwind) and calls for exiting Silver entirely, 100% Gold. To reach ${targetPct}% of AUM (₹${targetCr.toFixed(2)} Cr), add approx. ₹${goldCr.toFixed(2)} Cr Gold${silverCr>0.01?` + ₹${silverCr.toFixed(2)} Cr Silver`:''} (₹${gapCr.toFixed(2)} Cr total).${fundingNote(gapCr, r.param)}`;
     }
     const currentCr = aumCr * (parseFloat(r.current)||0) / 100;
     if (r.status==="gap") return `${r.param} is at 0% against an ideal band of ${r.ideal} — a structural gap versus the house view (Asset X is constructive on this asset class currently) rather than a tactical one; a diversification opportunity worth discussing, not a compliance breach.`;
@@ -4051,10 +4077,10 @@ function buildClientDeck(clientRecord){
     const gsRatioNote = gsTotal > 0 ? ` — actual split ${Math.round(goldPct/gsTotal*100)}:${Math.round(silverPct/gsTotal*100)} Gold:Silver` : "";
     const rows = [
       {dim:"Domestic Equity", house: domStance ? `${domStance.stance} — ${domStance.note}` : "—", portfolio: `${pct(domesticEqPct)} of AUM`, status: "info"},
-      {dim:"Foreign / Global Equity", house: "~25% of equity, 60:40 DM:EM (Asset X, Jul 2026)", portfolio: `${pct(ips.intl_eq_pct)} of equity`, status: ips.intl_eq_pct===0?"gap":(Math.abs(ips.intl_eq_pct-25)<=5?"ok":"watch")},
-      {dim:"Gold & Silver", house: `85:15 Gold:Silver (Asset X, Jul 2026)${gsRatioNote}`, portfolio: `Gold ${pct(goldPct)} · Silver ${pct(silverPct)}${otherCommodityPct>0.05?` · Other ${pct(otherCommodityPct)}`:""} (${pct(ips.commodity_pct)} total)`, status: ips.commodity_pct===0?"gap":((ips.commodity_pct>=tmBands.commodity.min && ips.commodity_pct<=tmBands.commodity.max)?"ok":"watch")},
+      {dim:"Foreign / Global Equity", house: "~25% of equity, 60:40 DM:EM (Asset X, Aug 2026)", portfolio: `${pct(ips.intl_eq_pct)} of equity`, status: ips.intl_eq_pct===0?"gap":(Math.abs(ips.intl_eq_pct-25)<=5?"ok":"watch")},
+      {dim:"Gold & Silver", house: `100:0 Gold:Silver — exit Silver (Asset X, Aug 2026)${gsRatioNote}`, portfolio: `Gold ${pct(goldPct)} · Silver ${pct(silverPct)}${otherCommodityPct>0.05?` · Other ${pct(otherCommodityPct)}`:""} (${pct(ips.commodity_pct)} total)`, status: ips.commodity_pct===0?"gap":((ips.commodity_pct>=tmBands.commodity.min && ips.commodity_pct<=tmBands.commodity.max)?"ok":"watch")},
       {dim:"Fixed Income & Alternates", house: fiStance ? `${fiStance.stance} — ${fiStance.note}` : "—", portfolio: `${pct(ips.debt_alt_pct)} of AUM`, status: (ips.debt_alt_pct>=tmBands.debt_alt.min && ips.debt_alt_pct<=tmBands.debt_alt.max)?"ok":"watch"},
-      {dim:"Factor tilt (Momentum/Value)", house: "Trim Value 50%, reallocate to Momentum (Asset X, Jul 2026)", portfolio: "Not tracked per-holding", status: "na"},
+      {dim:"Factor tilt (Momentum/Value)", house: "50% Momentum / 25% Low Vol / 25% Value (Asset X, Aug 2026)", portfolio: "Not tracked per-holding", status: "na"},
     ];
     const stColors = {ok:[BRAND.LGREEN,BRAND.DGREEN,"ALIGNED"], gap:["FFF2CC","9C6500","GAP"], watch:[BRAND.LRED,BRAND.DRED,"WATCH"], na:[BRAND.GREYB,BRAND.GREY,"NOT TRACKED"], info:[BRAND.PANEL,BRAND.INK,"—"]};
     const tRows = [[C("Dimension",{b:1,color:BRAND.WHITE,fill:BRAND.BLUE,align:"left"}),C("House View (Asset X)",{b:1,color:BRAND.WHITE,fill:BRAND.BLUE,align:"left"}),C("Portfolio Today",{b:1,color:BRAND.WHITE,fill:BRAND.BLUE}),C("Status",{b:1,color:BRAND.WHITE,fill:BRAND.BLUE})]];
@@ -4678,21 +4704,33 @@ function buildClientDeck(clientRecord){
     const s = pptx.addSlide(); s.background = {color: BRAND.WHITE};
     titleBar(s, `Calls (2/2) — Trade-Level Execution, ${CALL_EXECUTION_DATA.period}`, `${d.executed}/${d.totalCalls} instructed trades executed` + (d.notExecuted ? ` · ${d.notExecuted} not executed` : ""));
     const trades = d.trades.slice(0, 13);
-    const rowH = Math.min(0.42, 5.5/trades.length);
+    const rowH = Math.min(0.42, 5.2/trades.length);
     const fmtTradeAmt = v => v==null ? "—" : "₹"+Math.round(Math.abs(v)).toLocaleString('en-IN');
-    trades.forEach((t,i)=>{
-      const y = 1.55 + i*rowH;
-      const resultPct = t.executed ? t.callWasGood : (t.callWasGood!=null ? -t.callWasGood : null);
-      const resultUp = resultPct!=null && resultPct >= 0;
-      s.addShape(pptx.ShapeType.roundRect,{x:0.4,y,w:12.53,h:rowH-0.05,fill:{color:t.executed?BRAND.PANEL:BRAND.LRED},line:{type:"none"},rectRadius:0.03});
-      s.addText(t.callDate,{x:0.55,y,w:1.1,h:rowH-0.05,fontFace:BRAND.FONT,fontSize:7.5,color:BRAND.GREY,valign:"middle"});
-      s.addText(t.security||"—",{x:1.7,y,w:4.6,h:rowH-0.05,fontFace:BRAND.FONT,fontSize:8,color:BRAND.INK,valign:"middle"});
-      s.addText(t.side,{x:6.35,y,w:0.8,h:rowH-0.05,fontFace:BRAND.FONTB,bold:true,fontSize:8,color:BRAND.BLUE,valign:"middle"});
-      s.addText(fmtTradeAmt(t.weightInr),{x:7.2,y,w:1.7,h:rowH-0.05,fontFace:BRAND.FONT,fontSize:7.5,color:BRAND.GREY,align:"right",valign:"middle"});
-      s.addText(t.executed?"EXECUTED":"NOT EXECUTED",{x:9.0,y,w:1.7,h:rowH-0.05,fontFace:BRAND.FONTB,bold:true,fontSize:7.5,color:t.executed?BRAND.DGREEN:BRAND.DRED,valign:"middle"});
-      s.addText(resultPct!=null ? (resultUp?"+":"")+resultPct.toFixed(2)+"%" : "—",{x:10.8,y,w:1.1,h:rowH-0.05,fontFace:BRAND.FONTB,bold:true,fontSize:8,color:resultPct==null?BRAND.GREY:(resultUp?BRAND.DGREEN:BRAND.DRED),align:"right",valign:"middle"});
+    const headerY = 1.5;
+    [["Call Date",0.55,1.0,"left"],["Security",1.65,4.3,"left"],["Side",6.05,0.7,"left"],["Amount",6.85,1.5,"right"],
+     ["Status",8.45,1.35,"left"],["Price Move",9.9,1.15,"right"],["Call Outcome",11.15,1.35,"right"]].forEach(([label,x,w,align])=>{
+      s.addText(label,{x,y:headerY,w,h:0.25,fontFace:BRAND.FONTB,bold:true,fontSize:7,color:BRAND.GREY,align,valign:"middle",charSpacing:1});
     });
-    footer(s,"Result = price return since the call date for executed trades; impact of not executing (sign-flipped) for those that weren't · amounts are per-trade, not portfolio-weighted");
+    // Fixed 2026-08-13 (same bug as the dashboard's exec-trade table -- see renderExecTradeRows):
+    // one narrow "Result" column used to show callWasGood (sign-flipped for SELL so positive means
+    // "the call was right") directly under a footer claiming it was "price return since the call
+    // date" -- true only for BUY. Now two columns: Price Move is the literal, unflipped
+    // priceReturnPct; Call Outcome is the existing signed metric, clearly separated.
+    trades.forEach((t,i)=>{
+      const y = 1.82 + i*rowH;
+      const priceUp = t.priceReturnPct!=null && t.priceReturnPct >= 0;
+      const outcomePct = t.executed ? t.callWasGood : (t.callWasGood!=null ? -t.callWasGood : null);
+      const outcomeUp = outcomePct!=null && outcomePct >= 0;
+      s.addShape(pptx.ShapeType.roundRect,{x:0.4,y,w:12.53,h:rowH-0.05,fill:{color:t.executed?BRAND.PANEL:BRAND.LRED},line:{type:"none"},rectRadius:0.03});
+      s.addText(t.callDate,{x:0.55,y,w:1.0,h:rowH-0.05,fontFace:BRAND.FONT,fontSize:7.5,color:BRAND.GREY,valign:"middle"});
+      s.addText(t.security||"—",{x:1.65,y,w:4.3,h:rowH-0.05,fontFace:BRAND.FONT,fontSize:8,color:BRAND.INK,valign:"middle"});
+      s.addText(t.side,{x:6.05,y,w:0.7,h:rowH-0.05,fontFace:BRAND.FONTB,bold:true,fontSize:8,color:BRAND.BLUE,valign:"middle"});
+      s.addText(fmtTradeAmt(t.weightInr),{x:6.85,y,w:1.5,h:rowH-0.05,fontFace:BRAND.FONT,fontSize:7.5,color:BRAND.GREY,align:"right",valign:"middle"});
+      s.addText(t.executed?"EXECUTED":"NOT EXECUTED",{x:8.45,y,w:1.35,h:rowH-0.05,fontFace:BRAND.FONTB,bold:true,fontSize:7,color:t.executed?BRAND.DGREEN:BRAND.DRED,valign:"middle"});
+      s.addText(t.priceReturnPct!=null ? (priceUp?"+":"")+t.priceReturnPct.toFixed(2)+"%" : "—",{x:9.9,y,w:1.15,h:rowH-0.05,fontFace:BRAND.FONT,fontSize:7.5,color:BRAND.GREY,align:"right",valign:"middle"});
+      s.addText(outcomePct!=null ? (outcomeUp?"+":"")+outcomePct.toFixed(2)+"%" : "—",{x:11.15,y,w:1.35,h:rowH-0.05,fontFace:BRAND.FONTB,bold:true,fontSize:8,color:outcomePct==null?BRAND.GREY:(outcomeUp?BRAND.DGREEN:BRAND.DRED),align:"right",valign:"middle"});
+    });
+    footer(s,"Price Move = the security's own literal price change since the call date (same either way) · Call Outcome = signed so positive always means the call was right, accounting for BUY/SELL direction — NOT the security's own return · amounts are per-trade, not portfolio-weighted");
   })();
 
   // ---------- PMS / AIF PLACEHOLDER (flagged, not built) ----------
