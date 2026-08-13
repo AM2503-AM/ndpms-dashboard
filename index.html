@@ -22,7 +22,7 @@
         --green:#2EA260;--green-bg:#C6EFCE;--green-text:#1F6F33;
         --red:#D9534F;--red-bg:#FFC7CE;--red-text:#9C0006;--na:#B0B7BF;}
   *{box-sizing:border-box}
-  body{margin:0;font-family:'Reddit Sans','Segoe UI',Arial,sans-serif;background:var(--bg);color:var(--text);font-size:14px}
+  body{margin:0;font-family:'Reddit Sans','Segoe UI',Arial,sans-serif;background:var(--bg);color:var(--text);font-size:16px}
   .topbar{background:linear-gradient(90deg,var(--primary),var(--primary-light));color:#fff;padding:20px 0;position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,.15)}
   /* Found 2026-08-12: .topbar had no width cap while .container below it is capped at 1600px and
      centered -- on any screen wider than 1600px the header spanned edge-to-edge while the content
@@ -30,70 +30,70 @@
      is small". This inner wrapper mirrors .container's cap so the header's content lines up with
      the page content below it; the colored background on .topbar itself still spans full width. */
   .topbar-inner{width:100%;padding:0 28px;box-sizing:border-box;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px}
-  .topbar h1{margin:0;font-size:22px;font-weight:600}
-  .topbar .meta{font-size:12px;opacity:.85;margin-top:4px}
-  .refresh-btn,.back-btn{background:#fff;color:var(--primary);border:none;padding:10px 18px;font-weight:600;font-size:13px;border-radius:6px;cursor:pointer;box-shadow:0 2px 4px rgba(0,0,0,.1);text-decoration:none;display:inline-flex;align-items:center;gap:8px}
+  .topbar h1{margin:0;font-size:25.5px;font-weight:600}
+  .topbar .meta{font-size:14px;opacity:.85;margin-top:4px}
+  .refresh-btn,.back-btn{background:#fff;color:var(--primary);border:none;padding:10px 18px;font-weight:600;font-size:15px;border-radius:6px;cursor:pointer;box-shadow:0 2px 4px rgba(0,0,0,.1);text-decoration:none;display:inline-flex;align-items:center;gap:8px}
   .refresh-btn:hover,.back-btn:hover{transform:translateY(-1px)}
   .container{padding:24px 28px;width:100%;box-sizing:border-box}
   .strategy-tabs{display:flex;gap:4px;border-bottom:2px solid var(--border);margin-bottom:24px;overflow-x:auto;justify-content:center}
-  .strategy-tab{background:none;border:none;padding:12px 20px;font-size:14px;font-weight:600;color:var(--muted);cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-2px;white-space:nowrap}
+  .strategy-tab{background:none;border:none;padding:12px 20px;font-size:16px;font-weight:600;color:var(--muted);cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-2px;white-space:nowrap}
   .strategy-tab:hover{color:var(--primary)}
   .strategy-tab.active{color:var(--primary);border-bottom-color:var(--primary)}
   .strategy-section{display:none}
   .strategy-section.active{display:block}
 
-  .benchmark-line{text-align:center;margin-bottom:18px;font-size:13px;background:linear-gradient(90deg,#EAF1F8,#f0f5fb);border:1px solid #c5d8ec;border-radius:8px;padding:10px 18px;color:var(--primary);font-weight:600;letter-spacing:.1px}
+  .benchmark-line{text-align:center;margin-bottom:18px;font-size:15px;background:linear-gradient(90deg,#EAF1F8,#f0f5fb);border:1px solid #c5d8ec;border-radius:8px;padding:10px 18px;color:var(--primary);font-weight:600;letter-spacing:.1px}
   .actions-box{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:16px 18px;margin-bottom:20px}
   .actions-box .section-title{margin:0 0 10px}
   .actions-list{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:6px}
-  .actions-list li{display:flex;align-items:flex-start;gap:8px;font-size:13px;padding:4px 2px}
+  .actions-list li{display:flex;align-items:flex-start;gap:8px;font-size:15px;padding:4px 2px}
   .actions-list li.done .action-text{text-decoration:line-through;color:var(--muted)}
-  .actions-list li .action-dot{color:var(--primary);font-size:11px;margin-top:2px;min-width:12px}
+  .actions-list li .action-dot{color:var(--primary);font-size:12.5px;margin-top:2px;min-width:12px}
   .actions-list li.done .action-dot{color:var(--green)}
-  .actions-list .actions-empty{color:var(--muted);font-size:13px;font-style:italic;list-style:none}
+  .actions-list .actions-empty{color:var(--muted);font-size:15px;font-style:italic;list-style:none}
   .kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin-bottom:24px}
   .kpi{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:16px 18px;text-align:center;box-shadow:0 1px 2px rgba(0,0,0,.03)}
-  .kpi-label{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
-  .kpi-value{font-size:24px;font-weight:700;color:var(--primary)}
-  .kpi-sub{font-size:12px;color:var(--muted);margin-top:2px}
+  .kpi-label{font-size:14px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
+  .kpi-value{font-size:27.5px;font-weight:700;color:var(--primary)}
+  .kpi-sub{font-size:14px;color:var(--muted);margin-top:2px}
   .charts-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:16px;margin-bottom:24px}
   .chart-card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:16px 18px;box-shadow:0 1px 2px rgba(0,0,0,.03)}
-  .chart-card h3{margin:0 0 12px 0;font-size:14px;font-weight:600;color:var(--primary);text-align:center}
+  .chart-card h3{margin:0 0 12px 0;font-size:16px;font-weight:600;color:var(--primary);text-align:center}
   .chart-canvas-wrap{position:relative;height:260px}
   .chart-canvas-wrap.tall{height:320px}
   .chart-canvas-wrap.xl{height:480px}
-  .section-title{text-align:center;font-size:16px;font-weight:700;color:var(--primary);margin:28px 0 14px}
+  .section-title{text-align:center;font-size:18.5px;font-weight:700;color:var(--primary);margin:28px 0 14px}
   table{width:100%;border-collapse:collapse;background:var(--card);border-radius:8px;overflow:hidden;box-shadow:0 1px 2px rgba(0,0,0,.03);border:1px solid var(--border);text-align:center}
   thead{background:var(--primary);color:#fff}
-  th{text-align:center !important;padding:10px 12px;font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:.3px;vertical-align:middle}
+  th{text-align:center !important;padding:10px 12px;font-weight:600;font-size:14px;text-transform:uppercase;letter-spacing:.3px;vertical-align:middle}
   td{padding:10px 12px;border-top:1px solid var(--border);text-align:center;vertical-align:middle}
   tbody tr:nth-child(even){background:#F8FAFC}
   tr.tot-row{font-weight:700;background:#EAF1F8 !important}
   td.num{font-variant-numeric:tabular-nums}
-  .pill{display:inline-block;padding:3px 10px;border-radius:12px;font-size:11px;font-weight:600}
+  .pill{display:inline-block;padding:3px 10px;border-radius:12px;font-size:12.5px;font-weight:600}
   .pill.green{background:var(--green-bg);color:var(--green-text)}
   .pill.red{background:var(--red-bg);color:var(--red-text)}
   .pill.na{background:#F0F2F5;color:var(--na)}
-  .small{font-size:11px;color:var(--muted);display:block}
-  .footer-note{margin-top:24px;padding:14px 18px;background:#FFF9E6;border-left:3px solid #F0C040;border-radius:4px;color:#6B5500;font-size:12px;text-align:center}
+  .small{font-size:12.5px;color:var(--muted);display:block}
+  .footer-note{margin-top:24px;padding:14px 18px;background:#FFF9E6;border-left:3px solid #F0C040;border-radius:4px;color:#6B5500;font-size:14px;text-align:center}
   .client-link{color:var(--primary);font-weight:600;cursor:pointer;text-decoration:none;border-bottom:1px dashed var(--primary-light)}
   .client-link:hover{color:var(--primary-light);background:#EAF1F8}
-  .alloc-badge{display:inline-block;width:18px;height:18px;line-height:17px;text-align:center;border-radius:50%;background:#2EA260;color:#fff;font-size:10px;font-weight:700;margin-left:6px;vertical-align:middle;cursor:default}
-  .breadcrumb{font-size:13px;color:var(--muted);margin-bottom:16px;text-align:center}
+  .alloc-badge{display:inline-block;width:18px;height:18px;line-height:17px;text-align:center;border-radius:50%;background:#2EA260;color:#fff;font-size:11.5px;font-weight:700;margin-left:6px;vertical-align:middle;cursor:default}
+  .breadcrumb{font-size:15px;color:var(--muted);margin-bottom:16px;text-align:center}
   .breadcrumb a{color:var(--primary);text-decoration:none;cursor:pointer;font-weight:600}
   .breadcrumb a:hover{text-decoration:underline}
   .info-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:20px}
   .info-card{background:var(--card);border:1px solid var(--border);border-radius:6px;padding:12px 16px;text-align:center}
-  .info-card .label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px}
-  .info-card .value{font-size:16px;font-weight:600;color:var(--primary)}
+  .info-card .label{font-size:12.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px}
+  .info-card .value{font-size:18.5px;font-weight:600;color:var(--primary)}
 
   /* ── Collapsible section component ───────────────────────────────────── */
   .collapse-section{background:var(--card);border:1px solid var(--border);border-radius:8px;margin-bottom:16px;overflow:hidden;box-shadow:0 1px 2px rgba(0,0,0,.03)}
   .collapse-header{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px 18px;cursor:pointer;user-select:none;background:linear-gradient(90deg,#F7F9FC,#fff)}
   .collapse-header:hover{background:#EAF1F8}
-  .collapse-header .collapse-title{font-size:15px;font-weight:700;color:var(--primary);display:flex;align-items:center;gap:8px}
-  .collapse-header .collapse-sub{font-size:12px;font-weight:400;color:var(--muted);margin-left:6px}
-  .collapse-chevron{font-size:12px;color:var(--primary);transition:transform .15s ease;display:inline-block;min-width:14px}
+  .collapse-header .collapse-title{font-size:17px;font-weight:700;color:var(--primary);display:flex;align-items:center;gap:8px}
+  .collapse-header .collapse-sub{font-size:14px;font-weight:400;color:var(--muted);margin-left:6px}
+  .collapse-chevron{font-size:14px;color:var(--primary);transition:transform .15s ease;display:inline-block;min-width:14px}
   .collapse-section.open .collapse-chevron{transform:rotate(90deg)}
   .collapse-body{padding:4px 18px 18px}
   .collapse-section:not(.open) .collapse-body{display:none}
@@ -101,28 +101,28 @@
   /* ── Attribution section ─────────────────────────────────────────────── */
   .attr-toggle-row{display:flex;flex-wrap:wrap;gap:18px;align-items:center;justify-content:center;margin:6px 0 18px;padding:12px 16px;background:#F7F9FC;border:1px solid var(--border);border-radius:8px}
   .attr-toggle-group{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-  .attr-toggle-group .attr-label{font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-right:2px}
-  .attr-btn{background:#fff;border:1px solid var(--border);color:var(--primary);padding:6px 14px;font-size:12px;font-weight:600;border-radius:16px;cursor:pointer}
+  .attr-toggle-group .attr-label{font-size:14px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-right:2px}
+  .attr-btn{background:#fff;border:1px solid var(--border);color:var(--primary);padding:6px 14px;font-size:14px;font-weight:600;border-radius:16px;cursor:pointer}
   .attr-btn:hover{background:#EAF1F8}
   .attr-btn.active{background:var(--primary);color:#fff;border-color:var(--primary)}
-  .attr-empty{text-align:center;color:var(--muted);padding:28px;font-size:13px}
+  .attr-empty{text-align:center;color:var(--muted);padding:28px;font-size:15px}
   .search-result-row:hover{background:#EAF1F8}
   .search-result-chip:hover{background:var(--primary);color:#fff}
 
 /* ── Trade Attribution ──────────────────────────────────── */
 .trade-attr-wrap { margin-top:4px; }
 .trade-attr-toggles { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px; align-items:center; }
-.trade-attr-toggles .attr-label { font-size:11px; font-weight:600; color:var(--muted); text-transform:uppercase; }
-.trade-attr-btn { padding:4px 12px; border:1px solid var(--border); border-radius:14px; background:transparent; color:var(--text); font-size:12px; cursor:pointer; transition:all .15s; }
+.trade-attr-toggles .attr-label { font-size:12.5px; font-weight:600; color:var(--muted); text-transform:uppercase; }
+.trade-attr-btn { padding:4px 12px; border:1px solid var(--border); border-radius:14px; background:transparent; color:var(--text); font-size:14px; cursor:pointer; transition:all .15s; }
 .trade-attr-btn.active { background:var(--accent); color:#fff; border-color:var(--accent); }
-.trade-attr-sub { font-size:12px; font-weight:600; color:var(--text); margin:14px 0 6px; text-transform:uppercase; letter-spacing:.04em; }
-.trade-attr-tbl { width:100%; border-collapse:collapse; font-size:12px; }
-.trade-attr-tbl th { font-size:11px; color:var(--muted); font-weight:600; text-transform:uppercase; letter-spacing:.04em; padding:6px 8px; border-bottom:1px solid var(--border); text-align:right; white-space:nowrap; }
+.trade-attr-sub { font-size:14px; font-weight:600; color:var(--text); margin:14px 0 6px; text-transform:uppercase; letter-spacing:.04em; }
+.trade-attr-tbl { width:100%; border-collapse:collapse; font-size:14px; }
+.trade-attr-tbl th { font-size:12.5px; color:var(--muted); font-weight:600; text-transform:uppercase; letter-spacing:.04em; padding:6px 8px; border-bottom:1px solid var(--border); text-align:right; white-space:nowrap; }
 .trade-attr-tbl th:first-child { text-align:left; }
 .trade-attr-tbl td { padding:6px 8px; border-bottom:1px solid color-mix(in srgb,var(--border) 50%,transparent); text-align:right; white-space:nowrap; }
 .trade-attr-tbl td:first-child { text-align:left; max-width:220px; overflow:hidden; text-overflow:ellipsis; }
 .trade-attr-tbl tr:last-child td { border-bottom:none; }
-.verdict-badge { display:inline-block; padding:2px 8px; border-radius:10px; font-size:11px; font-weight:600; white-space:nowrap; }
+.verdict-badge { display:inline-block; padding:2px 8px; border-radius:10px; font-size:12.5px; font-weight:600; white-space:nowrap; }
 .verdict-good   { background:rgba(34,197,94,.15);  color:#16a34a; }
 .verdict-inline { background:rgba(234,179,8,.15);  color:#a16207; }
 .verdict-lag    { background:rgba(249,115,22,.15); color:#c2410c; }
@@ -131,8 +131,8 @@
 .verdict-exit-good   { background:rgba(34,197,94,.15);  color:#16a34a; }
 .verdict-exit-early  { background:rgba(239,68,68,.15);  color:#dc2626; }
 .verdict-exit-neutral{ background:rgba(148,163,184,.15);color:var(--muted); }
-.stagger-note { font-size:10px; color:var(--muted); margin-top:1px; }
-.trade-attr-empty { color:var(--muted); font-size:13px; padding:16px 0; text-align:center; }
+.stagger-note { font-size:11.5px; color:var(--muted); margin-top:1px; }
+.trade-attr-empty { color:var(--muted); font-size:15px; padding:16px 0; text-align:center; }
 .pos-val  { color:#16a34a; }
 .neg-val  { color:#dc2626; }
 .neu-val  { color:var(--muted); }
@@ -147,12 +147,12 @@
   </div>
   <div id="topbar-search-wrap" style="position:relative;flex:1;max-width:380px;min-width:200px">
     <input id="global-search-input" type="text" placeholder="&#128269; Search client, fund, or RM&hellip;" autocomplete="off"
-      style="width:100%;padding:10px 14px;border-radius:6px;border:none;font-size:13px;box-shadow:0 2px 4px rgba(0,0,0,.1);outline:none;box-sizing:border-box"
+      style="width:100%;padding:10px 14px;border-radius:6px;border:none;font-size:15px;box-shadow:0 2px 4px rgba(0,0,0,.1);outline:none;box-sizing:border-box"
       oninput="globalSearchInput(this.value)" onfocus="globalSearchInput(this.value)" onkeydown="globalSearchKeydown(event)">
     <div id="global-search-results" style="display:none;position:absolute;top:calc(100% + 6px);left:0;right:0;background:#fff;border-radius:8px;box-shadow:0 6px 20px rgba(0,0,0,.25);max-height:420px;overflow-y:auto;z-index:200;text-align:left;color:var(--text)"></div>
   </div>
   <select id="search-cat-filter" onchange="setSearchCategoryFilter(this.value)" title="Filter fund/security search by instrument type"
-    style="padding:9px 10px;border-radius:6px;border:none;font-size:12px;box-shadow:0 2px 4px rgba(0,0,0,.1);outline:none;cursor:pointer;background:#fff;color:var(--text)">
+    style="padding:9px 10px;border-radius:6px;border:none;font-size:14px;box-shadow:0 2px 4px rgba(0,0,0,.1);outline:none;cursor:pointer;background:#fff;color:var(--text)">
     <option value="all">All Instruments</option>
     <option value="direct_equity">Direct Equity</option>
     <option value="mutual_funds">Mutual Funds</option>
@@ -308,7 +308,7 @@ if (typeof Chart !== 'undefined') {
   // Bumped alongside widening .container/.topbar-inner 2026-08-13 (both contribute to the same
   // "bar is huge, everything else is tiny" complaint: a capped-too-narrow container, and chart text
   // that doesn't scale up with it).
-  Chart.defaults.font.size = 13;
+  Chart.defaults.font.size = 15;
 }
 
 // ==== Attribution data (per-client, per-instrument monthly contribution) ====
@@ -578,8 +578,8 @@ function isPassivelyManaged(ndas) { return PASSIVE_NDAS.has(ndas); }
 function mgmtBadge(ndas){
   var passive = ndas && isPassivelyManaged(ndas);
   return passive
-    ? '<span style="background:#F0F2F5;color:#555;padding:2px 8px;border-radius:4px;font-size:10.5px;font-weight:700">Passive</span>'
-    : '<span style="background:#E5ECFF;color:#222A9C;padding:2px 8px;border-radius:4px;font-size:10.5px;font-weight:700">Active</span>';
+    ? '<span style="background:#F0F2F5;color:#555;padding:2px 8px;border-radius:4px;font-size:12px;font-weight:700">Passive</span>'
+    : '<span style="background:#E5ECFF;color:#222A9C;padding:2px 8px;border-radius:4px;font-size:12px;font-weight:700">Active</span>';
 }
 
 // ---- Data-quality flag: a holding with real market value but no recorded cost basis (unit_cost/
@@ -837,7 +837,7 @@ function renderStrategy(s, i) {
   const mgmtCard = (label, m, color) => `
     <div class="kpi" style="border-left:3px solid ${color}">
       <div class="kpi-label">${label} <span class="small" style="font-weight:400">(${m.count} client${m.count===1?'':'s'})</span></div>
-      <div class="kpi-value" style="font-size:16px">
+      <div class="kpi-value" style="font-size:18.5px">
         <span style="color:var(--green)">${m.outCount} out</span> &middot; <span style="color:var(--red)">${m.underCount} under</span>
       </div>
       <div class="kpi-sub">AUM ${fmtINR(m.aum)} &middot; Out ${fmtINR(m.outAum)} / Under ${fmtINR(m.underAum)}</div>
@@ -870,7 +870,7 @@ function renderStrategy(s, i) {
       <td class="num">${fmtPct(c.p6m)} <span class="small">vs ${fmtPct(c.b6m)}</span></td>
       ${s.has_12m ? `<td class="num">${fmtPct(c.p12m)} <span class="small">vs ${fmtPct(c.b12m)}</span></td>` : ''}
       <td class="num">${fmtPct(c.psi)} <span class="small">vs ${fmtPct(c.bsi)}</span></td>
-      <td style="font-size:11px">${c.benchmark_name || '—'}</td>
+      <td style="font-size:12.5px">${c.benchmark_name || '—'}</td>
       <td>${statusPill(c.psi, c.bsi)}</td>
     </tr>`).join('');
 
@@ -910,7 +910,7 @@ function renderStrategy(s, i) {
         </tr></thead>
         <tbody>${periodRows}</tbody>
       </table>
-      <div class="section-title">Client-level Scorecard <span style="font-size:12px;font-weight:400;color:var(--muted)">(click a name to drill in)</span></div>
+      <div class="section-title">Client-level Scorecard <span style="font-size:14px;font-weight:400;color:var(--muted)">(click a name to drill in)</span></div>
       <div style="overflow-x:auto"><table style="min-width:900px">
         <thead><tr>
           <th>Account</th><th>Client</th><th>NDAS</th><th>Inception</th><th>AUM</th>
@@ -1042,7 +1042,7 @@ function reviewStatusPill(rs) {
     overdue:      ['#FFE0E0', '#B71C1C'],
     ok:           ['#E8F5E9', '#2E7D32']
   }[rs.code] || ['#F0F2F5', '#888'];
-  return `<span style="background:${cfg[0]};color:${cfg[1]};padding:2px 9px;border-radius:4px;font-size:11px;font-weight:700;white-space:nowrap">${rs.label}</span>`;
+  return `<span style="background:${cfg[0]};color:${cfg[1]};padding:2px 9px;border-radius:4px;font-size:12.5px;font-weight:700;white-space:nowrap">${rs.label}</span>`;
 }
 function isActionPending(actionItems) {
   const v = (actionItems || '').trim().toUpperCase();
@@ -1059,48 +1059,48 @@ function renderPendingTasksPanel() {
   const reviewRows = reviewPending.length ? reviewPending.map(c => `
     <tr class="pt-row" data-search="${pendingTasksSearchKey(c)}">
       <td style="padding:8px 10px">${pendingClientLink(c)}</td>
-      <td style="padding:8px 10px;font-size:12px;color:var(--muted)">${c.strategyName}</td>
-      <td style="padding:8px 10px;font-size:12px">${c.rm||'—'}</td>
-      <td style="padding:8px 10px;font-size:12px">${advisorLabel(c.advisor)}</td>
+      <td style="padding:8px 10px;font-size:14px;color:var(--muted)">${c.strategyName}</td>
+      <td style="padding:8px 10px;font-size:14px">${c.rm||'—'}</td>
+      <td style="padding:8px 10px;font-size:14px">${advisorLabel(c.advisor)}</td>
       <td style="padding:8px 10px">${reviewStatusPill(c.reviewStatus)}</td>
-    </tr>`).join('') : `<tr><td colspan="5" style="padding:14px;text-align:center;color:var(--muted);font-size:12.5px">No pending reviews — everyone reviewed within the last ${REVIEW_OVERDUE_DAYS} days.</td></tr>`;
+    </tr>`).join('') : `<tr><td colspan="5" style="padding:14px;text-align:center;color:var(--muted);font-size:14.5px">No pending reviews — everyone reviewed within the last ${REVIEW_OVERDUE_DAYS} days.</td></tr>`;
 
   const actionRows = actionPending.length ? actionPending.map(c => `
     <tr class="pt-row" data-search="${pendingTasksSearchKey(c)}">
       <td style="padding:8px 10px">${pendingClientLink(c)}</td>
-      <td style="padding:8px 10px;font-size:12px;color:var(--muted)">${c.strategyName}</td>
-      <td style="padding:8px 10px;font-size:12px">${c.rm||'—'}</td>
-      <td style="padding:8px 10px;font-size:12px">${advisorLabel(c.advisor)}</td>
-      <td style="padding:8px 10px;font-size:12.5px">${c.action_items.split('\n').map(a => `<div>&bull; ${a}</div>`).join('')}</td>
-    </tr>`).join('') : `<tr><td colspan="5" style="padding:14px;text-align:center;color:var(--muted);font-size:12.5px">No pending action items.</td></tr>`;
+      <td style="padding:8px 10px;font-size:14px;color:var(--muted)">${c.strategyName}</td>
+      <td style="padding:8px 10px;font-size:14px">${c.rm||'—'}</td>
+      <td style="padding:8px 10px;font-size:14px">${advisorLabel(c.advisor)}</td>
+      <td style="padding:8px 10px;font-size:14.5px">${c.action_items.split('\n').map(a => `<div>&bull; ${a}</div>`).join('')}</td>
+    </tr>`).join('') : `<tr><td colspan="5" style="padding:14px;text-align:center;color:var(--muted);font-size:14.5px">No pending action items.</td></tr>`;
 
   panel.innerHTML = `
     <div style="margin-bottom:14px">
       <input id="pt-search" type="text" placeholder="&#128269; Search client, RM, or advisor&hellip;" oninput="filterPendingTasks(this.value)"
-        style="width:100%;max-width:360px;padding:8px 12px;border-radius:6px;border:1px solid var(--border);font-size:13px;outline:none;box-sizing:border-box">
+        style="width:100%;max-width:360px;padding:8px 12px;border-radius:6px;border:1px solid var(--border);font-size:15px;outline:none;box-sizing:border-box">
     </div>
     <div style="margin-bottom:18px">
-      <div style="font-size:13px;font-weight:700;color:var(--primary);text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px">
+      <div style="font-size:15px;font-weight:700;color:var(--primary);text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px">
         Reviews Pending <span style="font-weight:400;color:var(--muted);text-transform:none;letter-spacing:0">(${reviewPending.length})</span>
       </div>
       <div style="overflow-x:auto"><table style="width:100%"><thead><tr>
-        <th style="text-align:left;padding:6px 10px;font-size:11px;color:var(--muted-on-dark);text-transform:uppercase">Client</th>
-        <th style="text-align:left;padding:6px 10px;font-size:11px;color:var(--muted-on-dark);text-transform:uppercase">Strategy</th>
-        <th style="text-align:left;padding:6px 10px;font-size:11px;color:var(--muted-on-dark);text-transform:uppercase">RM</th>
-        <th style="text-align:left;padding:6px 10px;font-size:11px;color:var(--muted-on-dark);text-transform:uppercase">Advisor</th>
-        <th style="text-align:left;padding:6px 10px;font-size:11px;color:var(--muted-on-dark);text-transform:uppercase">Status</th>
+        <th style="text-align:left;padding:6px 10px;font-size:12.5px;color:var(--muted-on-dark);text-transform:uppercase">Client</th>
+        <th style="text-align:left;padding:6px 10px;font-size:12.5px;color:var(--muted-on-dark);text-transform:uppercase">Strategy</th>
+        <th style="text-align:left;padding:6px 10px;font-size:12.5px;color:var(--muted-on-dark);text-transform:uppercase">RM</th>
+        <th style="text-align:left;padding:6px 10px;font-size:12.5px;color:var(--muted-on-dark);text-transform:uppercase">Advisor</th>
+        <th style="text-align:left;padding:6px 10px;font-size:12.5px;color:var(--muted-on-dark);text-transform:uppercase">Status</th>
       </tr></thead><tbody id="pt-review-body">${reviewRows}</tbody></table></div>
     </div>
     <div>
-      <div style="font-size:13px;font-weight:700;color:var(--primary);text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px">
+      <div style="font-size:15px;font-weight:700;color:var(--primary);text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px">
         Actions Pending <span style="font-weight:400;color:var(--muted);text-transform:none;letter-spacing:0">(${actionPending.length})</span>
       </div>
       <div style="overflow-x:auto"><table style="width:100%"><thead><tr>
-        <th style="text-align:left;padding:6px 10px;font-size:11px;color:var(--muted-on-dark);text-transform:uppercase">Client</th>
-        <th style="text-align:left;padding:6px 10px;font-size:11px;color:var(--muted-on-dark);text-transform:uppercase">Strategy</th>
-        <th style="text-align:left;padding:6px 10px;font-size:11px;color:var(--muted-on-dark);text-transform:uppercase">RM</th>
-        <th style="text-align:left;padding:6px 10px;font-size:11px;color:var(--muted-on-dark);text-transform:uppercase">Advisor</th>
-        <th style="text-align:left;padding:6px 10px;font-size:11px;color:var(--muted-on-dark);text-transform:uppercase">Action Items</th>
+        <th style="text-align:left;padding:6px 10px;font-size:12.5px;color:var(--muted-on-dark);text-transform:uppercase">Client</th>
+        <th style="text-align:left;padding:6px 10px;font-size:12.5px;color:var(--muted-on-dark);text-transform:uppercase">Strategy</th>
+        <th style="text-align:left;padding:6px 10px;font-size:12.5px;color:var(--muted-on-dark);text-transform:uppercase">RM</th>
+        <th style="text-align:left;padding:6px 10px;font-size:12.5px;color:var(--muted-on-dark);text-transform:uppercase">Advisor</th>
+        <th style="text-align:left;padding:6px 10px;font-size:12.5px;color:var(--muted-on-dark);text-transform:uppercase">Action Items</th>
       </tr></thead><tbody id="pt-action-body">${actionRows}</tbody></table></div>
     </div>
   `;
@@ -1505,7 +1505,7 @@ function showClient(strategyIdx, clientIdx) {
   document.getElementById('bc-client').innerHTML = `<span>${c.name} (${c.ndas})</span>`;
   document.getElementById('topbar-title').textContent = `${c.name} — Client Detail`;
   document.getElementById('topbar-meta').innerHTML =
-    `${s.name} &middot; Account ${c.account} (${c.ndas}) &middot; Inception ${c.inception}<br><span style="font-size:14px;">Benchmark: <strong>${c.benchmark_name || '—'}</strong></span>`;
+    `${s.name} &middot; Account ${c.account} (${c.ndas}) &middot; Inception ${c.inception}<br><span style="font-size:16px;">Benchmark: <strong>${c.benchmark_name || '—'}</strong></span>`;
   document.getElementById('topbar-actions').innerHTML =
     `<a class="back-btn" href="#" onclick="showMainView();return false;">&larr; Back to Dashboard</a>
      <a class="back-btn" href="#" onclick="downloadClientExcel(${strategyIdx},${clientIdx});return false;">&#8681; Download Excel</a>
@@ -1576,7 +1576,7 @@ function showClient(strategyIdx, clientIdx) {
       const exitLoadBadge = (() => {
         const el = EXIT_LOAD_DATA[c.ndas + '|' + h.isin];
         if (!el || el.status !== 'yes') return '';
-        return ` <span title="Exit load applies if sold now: ${el.exitLoadPct}% — ${escapeHtml(el.remark||'')} (held ${el.daysHeld}d, window ${el.windowDays}d)" style="cursor:help;color:#9C5F00;font-weight:700;font-size:10px;margin-left:3px">&#9888;EL</span>`;
+        return ` <span title="Exit load applies if sold now: ${el.exitLoadPct}% — ${escapeHtml(el.remark||'')} (held ${el.daysHeld}d, window ${el.windowDays}d)" style="cursor:help;color:#9C5F00;font-weight:700;font-size:11.5px;margin-left:3px">&#9888;EL</span>`;
       })();
       const xferRec = transferInInfo(c.ndas, h.isin);
       const originRec = preciseEntryInfo(c.ndas, h.isin);
@@ -1597,8 +1597,8 @@ function showClient(strategyIdx, clientIdx) {
           <td class="num">${fmtINR(h.gain_loss)}</td>
           <td class="num" style="color:${glColor}">${pctRaw(h.gl_pct)}</td>
           <td class="num">${pctRaw(h.assets_pct)}</td>
-          <td style="font-size:11.5px">${xferCell}</td>
-          <td class="num" title="${escapeHtml(taxInfo.detail)}" style="cursor:help"><span style="background:${taxInfo.fill||'transparent'};color:${taxInfo.color};padding:2px 7px;border-radius:4px;font-size:10.5px;font-weight:700">${taxInfo.label}</span>${exitLoadBadge}</td>
+          <td style="font-size:13px">${xferCell}</td>
+          <td class="num" title="${escapeHtml(taxInfo.detail)}" style="cursor:help"><span style="background:${taxInfo.fill||'transparent'};color:${taxInfo.color};padding:2px 7px;border-radius:4px;font-size:12px;font-weight:700">${taxInfo.label}</span>${exitLoadBadge}</td>
         </tr>`;
     });
     const subPct = subCost ? (subGL / subCost * 100) : 0;
@@ -1622,7 +1622,7 @@ function showClient(strategyIdx, clientIdx) {
       <td colspan="4" style="text-align:right">TOTAL</td>
       <td class="num" title="Cost basis (amount invested)">${fmtINR(grandCost)}</td>
       <td></td>
-      <td class="num" style="background:#DCE9F5" title="Current market value — matches portfolio AUM">${fmtINR(grandMV)} <span style="font-size:10px;color:var(--muted);font-weight:400">(= AUM)</span></td>
+      <td class="num" style="background:#DCE9F5" title="Current market value — matches portfolio AUM">${fmtINR(grandMV)} <span style="font-size:11.5px;color:var(--muted);font-weight:400">(= AUM)</span></td>
       <td class="num">${fmtINR(grandGL)}</td>
       <td class="num" style="color:${grandPct>=0?'var(--green)':'var(--red)'}">${pctRaw(grandPct)}</td>
       <td class="num">${pctRaw(grandAssetsPct)}</td>
@@ -1684,7 +1684,7 @@ function showClient(strategyIdx, clientIdx) {
       <div class="chart-card"><h3>Asset Allocation (% of Portfolio)</h3>
         <div class="chart-canvas-wrap"><canvas id="assetPie"></canvas></div></div>
       ${c.allocation.large_cap != null ? `<div class="chart-card"><h3>Equity Drill-down (% of Equity)</h3>
-        <div class="chart-canvas-wrap"><canvas id="capBar"></canvas></div></div>` : `<div class="chart-card" style="display:flex;align-items:center;justify-content:center"><p style="color:var(--muted);font-size:13px;text-align:center;margin:0">Market-cap breakdown<br>not available<br><span style="font-size:11px">(computed from live holdings)</span></p></div>`}
+        <div class="chart-canvas-wrap"><canvas id="capBar"></canvas></div></div>` : `<div class="chart-card" style="display:flex;align-items:center;justify-content:center"><p style="color:var(--muted);font-size:15px;text-align:center;margin:0">Market-cap breakdown<br>not available<br><span style="font-size:12.5px">(computed from live holdings)</span></p></div>`}
       ${(c.allocation.instrument_mix && c.allocation.instrument_mix.length) ? `
       <div class="chart-card" style="grid-column:1/-1"><h3>Instrument Type Classification (% of Portfolio)</h3>
         <div class="chart-canvas-wrap"><canvas id="instrBar"></canvas></div></div>
@@ -1738,7 +1738,7 @@ function showClient(strategyIdx, clientIdx) {
       const sty=bad?(isAmber?'color:#E67E00;font-weight:600':'color:var(--red);font-weight:600'):'';
       return '<tr style="'+(bg?'background:#f8f9ff;':'')+'"><td style="text-align:left;font-weight:600;padding:10px 12px">'+param+'</td><td style="padding:10px 12px">'+ideal+'</td><td style="padding:10px 12px;'+sty+'">'+current+'</td><td style="padding:10px 12px">'+pill+'</td></tr>';
     }
-    function SEC(title,color){return '<tr><td colspan="4" style="background:'+color+';padding:8px 12px;font-weight:700;font-size:13px;text-transform:uppercase;letter-spacing:0.5px">'+title+'</td></tr>';}
+    function SEC(title,color){return '<tr><td colspan="4" style="background:'+color+';padding:8px 12px;font-weight:700;font-size:15px;text-transform:uppercase;letter-spacing:0.5px">'+title+'</td></tr>';}
 
     let rows = '';
     // ── EQUITY SECTION ──
@@ -1768,13 +1768,13 @@ function showClient(strategyIdx, clientIdx) {
 
     let note = '';
     if (ic.missing_isins && ic.missing_isins.length > 0) {
-      note += '<div style="font-size:12px;color:#9C5F00;margin-top:6px;padding:8px;background:#FFF4EA;border-radius:4px">⚠ '+ic.missing_isins.length+' ISIN(s) not in Advisory V2: '+ic.missing_isins.join(', ')+'</div>';
+      note += '<div style="font-size:14px;color:#9C5F00;margin-top:6px;padding:8px;background:#FFF4EA;border-radius:4px">⚠ '+ic.missing_isins.length+' ISIN(s) not in Advisory V2: '+ic.missing_isins.join(', ')+'</div>';
     }
     var v1=(ic.eq_pct+ic.debt_pct+ic.oth_pct).toFixed(1), v2=(ic.lc_pct+ic.mc_pct+ic.sc_pct).toFixed(1);
-    note += '<div style="font-size:11px;color:var(--muted);margin-top:6px">Validation: Eq+Debt+Others='+v1+'% · LC+MC+SC='+v2+'%</div>';
+    note += '<div style="font-size:12.5px;color:var(--muted);margin-top:6px">Validation: Eq+Debt+Others='+v1+'% · LC+MC+SC='+v2+'%</div>';
 
     return `
-      <div style="text-align:center;margin-bottom:10px;font-size:13px;color:var(--muted)">Risk Profile:
+      <div style="text-align:center;margin-bottom:10px;font-size:15px;color:var(--muted)">Risk Profile:
         <strong style="color:${profileColor}">${ic.risk_profile}</strong></div>
       <table>
         <thead><tr><th style="text-align:left">IPS Parameter</th><th>Ideal</th><th>Current</th><th>Status</th></tr></thead>
@@ -2397,34 +2397,34 @@ function renderFundResultCard(f){
     const heldSince = ta && ta.first_buy_date ? `${ta.first_buy_date}${monthsHeldSince(ta.first_buy_date)!=null?` (${monthsHeldSince(ta.first_buy_date)}mo)`:''}` : formatHeldSinceEntry(cl.entry, cl.ndas, cl.isin);
     const tranches = (ta ? (ta.n_tranches>1 ? `<span title="${escapeHtml(ta.stagger_label||'')}" style="cursor:help">${ta.n_tranches} staggered</span>` : `${ta.n_tranches||1} lump sum`) : '—') + (ta ? legacyBadge(cl.ndas, cl.isin) : '');
     const vc = ta ? (VERDICT_COLOR[ta.verdict]||["var(--muted)","#F0F2F5"]) : null;
-    const timing = ta ? `<span onclick="event.stopPropagation();showVerdictDetail(${jsAttr(cl.ndas)},${jsAttr(f.security)})" title="Click for the full verdict breakdown" style="cursor:pointer;background:${vc[1]};color:${vc[0]};padding:1px 6px;border-radius:4px;font-weight:700;font-size:9.5px">${ta.verdict}</span>` : '<span style="color:var(--muted)">—</span>';
+    const timing = ta ? `<span onclick="event.stopPropagation();showVerdictDetail(${jsAttr(cl.ndas)},${jsAttr(f.security)})" title="Click for the full verdict breakdown" style="cursor:pointer;background:${vc[1]};color:${vc[0]};padding:1px 6px;border-radius:4px;font-weight:700;font-size:11px">${ta.verdict}</span>` : '<span style="color:var(--muted)">—</span>';
     return `<tr class="search-result-row" onclick="globalSearchGoToClient(${cl.stratIdx},${cl.clientIdx})" style="cursor:pointer">
-      <td style="padding:4px 8px;font-size:11.5px;font-weight:600;color:var(--text)">${escapeHtml(cl.name)}</td>
-      <td style="padding:4px 8px;font-size:11px;color:var(--muted)">${escapeHtml(cl.strategyName)}</td>
-      <td style="padding:4px 8px;font-size:11px;color:var(--muted)">${escapeHtml(cl.rm_name||'—')}</td>
-      <td style="padding:4px 8px;font-size:11px;text-align:right">₹${((cl.market_value||0)/1e7).toFixed(2)}&nbsp;Cr</td>
-      <td style="padding:4px 8px;font-size:11px;text-align:right;font-weight:600;color:${cl.gl_pct==null?'var(--muted)':(up?'var(--green)':'var(--red)')}">${cl.gl_pct==null?'—':(up?'+':'')+cl.gl_pct.toFixed(2)+'%'}</td>
-      <td style="padding:4px 8px;font-size:10.5px;color:var(--muted);white-space:nowrap">${heldSince}</td>
-      <td style="padding:4px 8px;font-size:10.5px;color:var(--muted);white-space:nowrap">${tranches}</td>
-      <td style="padding:4px 8px;font-size:10.5px">${timing}</td>
+      <td style="padding:4px 8px;font-size:13px;font-weight:600;color:var(--text)">${escapeHtml(cl.name)}</td>
+      <td style="padding:4px 8px;font-size:12.5px;color:var(--muted)">${escapeHtml(cl.strategyName)}</td>
+      <td style="padding:4px 8px;font-size:12.5px;color:var(--muted)">${escapeHtml(cl.rm_name||'—')}</td>
+      <td style="padding:4px 8px;font-size:12.5px;text-align:right">₹${((cl.market_value||0)/1e7).toFixed(2)}&nbsp;Cr</td>
+      <td style="padding:4px 8px;font-size:12.5px;text-align:right;font-weight:600;color:${cl.gl_pct==null?'var(--muted)':(up?'var(--green)':'var(--red)')}">${cl.gl_pct==null?'—':(up?'+':'')+cl.gl_pct.toFixed(2)+'%'}</td>
+      <td style="padding:4px 8px;font-size:12px;color:var(--muted);white-space:nowrap">${heldSince}</td>
+      <td style="padding:4px 8px;font-size:12px;color:var(--muted);white-space:nowrap">${tranches}</td>
+      <td style="padding:4px 8px;font-size:12px">${timing}</td>
     </tr>`;
   }).join('');
   return `<div style="padding:10px 14px;border-bottom:1px solid var(--border)">
-    <div style="font-weight:600;font-size:13px;color:var(--text)">${escapeHtml(f.security)} <span style="font-size:9.5px;font-weight:600;color:var(--muted);background:#F0F2F5;padding:1px 6px;border-radius:4px;text-transform:uppercase">${escapeHtml(f.category||'')}</span></div>
-    <div style="font-size:11px;color:var(--muted);margin:2px 0 6px">
+    <div style="font-weight:600;font-size:15px;color:var(--text)">${escapeHtml(f.security)} <span style="font-size:11px;font-weight:600;color:var(--muted);background:#F0F2F5;padding:1px 6px;border-radius:4px;text-transform:uppercase">${escapeHtml(f.category||'')}</span></div>
+    <div style="font-size:12.5px;color:var(--muted);margin:2px 0 6px">
       ${f.clients.length} client${f.clients.length===1?'':'s'} &middot; ${strategies.size} strateg${strategies.size===1?'y':'ies'} &middot; ${rms.size} RM${rms.size===1?'':'s'}
       &middot; ₹${(totalMv/1e7).toFixed(2)} Cr total &middot; wtd. gain/loss <strong style="color:${wtdReturn==null?'var(--muted)':(wtdReturn>=0?'var(--green)':'var(--red)')}">${wtdReturn==null?'—':(wtdReturn>=0?'+':'')+wtdReturn.toFixed(2)+'%'}</strong>
     </div>
     <div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;min-width:640px">
       <thead><tr style="border-bottom:1px solid var(--border)">
-        <th style="padding:2px 8px;text-align:left;font-size:9.5px;color:var(--muted-on-dark);text-transform:uppercase">Client</th>
-        <th style="padding:2px 8px;text-align:left;font-size:9.5px;color:var(--muted-on-dark);text-transform:uppercase">Strategy</th>
-        <th style="padding:2px 8px;text-align:left;font-size:9.5px;color:var(--muted-on-dark);text-transform:uppercase">RM</th>
-        <th style="padding:2px 8px;text-align:right;font-size:9.5px;color:var(--muted-on-dark);text-transform:uppercase">Value</th>
-        <th style="padding:2px 8px;text-align:right;font-size:9.5px;color:var(--muted-on-dark);text-transform:uppercase">Gain/Loss</th>
-        <th style="padding:2px 8px;text-align:left;font-size:9.5px;color:var(--muted-on-dark);text-transform:uppercase">Held Since</th>
-        <th style="padding:2px 8px;text-align:left;font-size:9.5px;color:var(--muted-on-dark);text-transform:uppercase">Tranches</th>
-        <th style="padding:2px 8px;text-align:left;font-size:9.5px;color:var(--muted-on-dark);text-transform:uppercase">Timing</th>
+        <th style="padding:2px 8px;text-align:left;font-size:11px;color:var(--muted-on-dark);text-transform:uppercase">Client</th>
+        <th style="padding:2px 8px;text-align:left;font-size:11px;color:var(--muted-on-dark);text-transform:uppercase">Strategy</th>
+        <th style="padding:2px 8px;text-align:left;font-size:11px;color:var(--muted-on-dark);text-transform:uppercase">RM</th>
+        <th style="padding:2px 8px;text-align:right;font-size:11px;color:var(--muted-on-dark);text-transform:uppercase">Value</th>
+        <th style="padding:2px 8px;text-align:right;font-size:11px;color:var(--muted-on-dark);text-transform:uppercase">Gain/Loss</th>
+        <th style="padding:2px 8px;text-align:left;font-size:11px;color:var(--muted-on-dark);text-transform:uppercase">Held Since</th>
+        <th style="padding:2px 8px;text-align:left;font-size:11px;color:var(--muted-on-dark);text-transform:uppercase">Tranches</th>
+        <th style="padding:2px 8px;text-align:left;font-size:11px;color:var(--muted-on-dark);text-transform:uppercase">Timing</th>
       </tr></thead>
       <tbody>${rows}</tbody>
     </table></div>
@@ -2458,7 +2458,7 @@ function globalSearchInput(qRaw){
   fundMatches = fundMatches.slice(0, catList && !q ? 30 : 8);
 
   if (!clientMatches.length && !fundMatches.length) {
-    resultsEl.innerHTML = `<div style="padding:14px;color:var(--muted);font-size:13px">No matches for "${escapeHtml(qRaw)}"${catList?` in ${INSTRUMENT_FILTER_LABELS[catFilter]}`:''}</div>`;
+    resultsEl.innerHTML = `<div style="padding:14px;color:var(--muted);font-size:15px">No matches for "${escapeHtml(qRaw)}"${catList?` in ${INSTRUMENT_FILTER_LABELS[catFilter]}`:''}</div>`;
     resultsEl.style.display = 'block';
     return;
   }
@@ -2473,10 +2473,10 @@ function globalSearchInput(qRaw){
       const fmtCr = v => '₹'+(v/1e7).toFixed(2)+' Cr';
       html += `<div style="padding:12px 14px;background:#F4F6FC;border-bottom:2px solid var(--primary)">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-          <div style="font-weight:700;font-size:14px;color:var(--primary)">${escapeHtml(rmName)} — RM Summary</div>
-          <a href="#" onclick="event.stopPropagation();showRmDetail(${jsAttr(rmName)});return false;" style="font-size:11.5px;font-weight:700">Open full book &rarr;</a>
+          <div style="font-weight:700;font-size:16px;color:var(--primary)">${escapeHtml(rmName)} — RM Summary</div>
+          <a href="#" onclick="event.stopPropagation();showRmDetail(${jsAttr(rmName)});return false;" style="font-size:13px;font-weight:700">Open full book &rarr;</a>
         </div>
-        <div style="display:flex;gap:16px;flex-wrap:wrap;font-size:12px">
+        <div style="display:flex;gap:16px;flex-wrap:wrap;font-size:14px">
           <div><span style="color:var(--muted)">Clients:</span> <strong>${s2.nClients}</strong></div>
           <div><span style="color:var(--muted)">Total AUM:</span> <strong>${fmtCr(s2.totalAum)}</strong></div>
           <div><span style="color:var(--green)">Outperforming:</span> <strong>${s2.outCount}</strong> (${fmtCr(s2.outAum)})</div>
@@ -2490,20 +2490,20 @@ function globalSearchInput(qRaw){
     const sectionLabel = isRmSearch
       ? `RM: ${clientMatches[0].rm_name} &nbsp;(${clientMatches.length} client${clientMatches.length===1?'':'s'})`
       : 'Clients';
-    html += `<div style="padding:8px 14px;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--border)">${sectionLabel}</div>`;
+    html += `<div style="padding:8px 14px;font-size:12.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--border)">${sectionLabel}</div>`;
     clientMatches.forEach(c => {
       const rmLine = c.rm_name ? ` &middot; RM: ${escapeHtml(c.rm_name)}` : '';
       html += `<div class="search-result-row" onclick="globalSearchGoToClient(${c.stratIdx},${c.clientIdx})" style="padding:10px 14px;cursor:pointer;border-bottom:1px solid var(--border)">
-        <div style="font-weight:600;font-size:13px;color:var(--text)">${escapeHtml(c.name)}</div>
-        <div style="font-size:11px;color:var(--muted)">${escapeHtml(c.strategyName)} &middot; ${escapeHtml(c.ndas)}${rmLine}</div>
+        <div style="font-weight:600;font-size:15px;color:var(--text)">${escapeHtml(c.name)}</div>
+        <div style="font-size:12.5px;color:var(--muted)">${escapeHtml(c.strategyName)} &middot; ${escapeHtml(c.ndas)}${rmLine}</div>
       </div>`;
     });
   }
   if (fundMatches.length) {
     const headerLabel = catList && !q ? `Funds / Securities — ${INSTRUMENT_FILTER_LABELS[catFilter]} across all clients` : 'Funds / Securities — where it\'s deployed &amp; how it\'s performing';
-    html += `<div style="padding:8px 14px;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">
+    html += `<div style="padding:8px 14px;font-size:12.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">
       <span>${headerLabel}</span>
-      <a href="#" onclick="openBrowseView(${jsAttr(catFilter)},${jsAttr(qRaw||'')});return false;" style="font-weight:700;text-transform:none;letter-spacing:0;font-size:11.5px">&#9974; Open full view &rarr;</a>
+      <a href="#" onclick="openBrowseView(${jsAttr(catFilter)},${jsAttr(qRaw||'')});return false;" style="font-weight:700;text-transform:none;letter-spacing:0;font-size:13px">&#9974; Open full view &rarr;</a>
     </div>`;
     fundMatches.forEach(f => { html += renderFundResultCard(f); });
   }
@@ -2553,11 +2553,11 @@ function renderBrowseView(initialQuery){
   const cat = window._searchCategoryFilter || 'all';
   root.innerHTML = `
     <div class="chart-card" style="margin-bottom:16px;display:flex;gap:12px;flex-wrap:wrap;align-items:center">
-      <select id="browse-cat-select" onchange="browseViewFilterChange()" style="padding:8px 10px;border-radius:6px;border:1px solid var(--border);font-size:13px">
+      <select id="browse-cat-select" onchange="browseViewFilterChange()" style="padding:8px 10px;border-radius:6px;border:1px solid var(--border);font-size:15px">
         ${Object.keys(INSTRUMENT_FILTER_LABELS).map(k=>`<option value="${k}" ${k===cat?'selected':''}>${INSTRUMENT_FILTER_LABELS[k]}</option>`).join('')}
       </select>
       <input id="browse-query-input" type="text" placeholder="Narrow by fund/security name&hellip;" autocomplete="off" oninput="browseViewFilterChange()"
-        style="flex:1;min-width:220px;padding:8px 12px;border-radius:6px;border:1px solid var(--border);font-size:13px;box-sizing:border-box">
+        style="flex:1;min-width:220px;padding:8px 12px;border-radius:6px;border:1px solid var(--border);font-size:15px;box-sizing:border-box">
     </div>
     <div id="browse-results"></div>
   `;
@@ -2587,7 +2587,7 @@ function renderBrowseResults(){
     return;
   }
   resultsEl.innerHTML = `<div class="chart-card" style="padding:0">
-    <div style="padding:10px 14px;font-size:12px;color:var(--muted);border-bottom:1px solid var(--border)">${matches.length} securit${matches.length===1?'y':'ies'} found</div>
+    <div style="padding:10px 14px;font-size:14px;color:var(--muted);border-bottom:1px solid var(--border)">${matches.length} securit${matches.length===1?'y':'ies'} found</div>
     ${matches.map(renderFundResultCard).join('')}
   </div>`;
 }
@@ -2763,7 +2763,7 @@ function renderCallExecutionLogHtml(){
     </tr>`).join('');
 
   return `<div class="chart-card" style="margin-bottom:20px">
-    <h3>Call Execution Log — ${CALL_EXECUTION_DATA.period} <span style="font-weight:400;color:var(--muted);font-size:12px">(every instructed trade sent to a client that month, not just the named registry calls above — a stock-level sell like "Bharti Airtel" shows up here even though it isn't one of the 5 named calls)</span></h3>
+    <h3>Call Execution Log — ${CALL_EXECUTION_DATA.period} <span style="font-weight:400;color:var(--muted);font-size:14px">(every instructed trade sent to a client that month, not just the named registry calls above — a stock-level sell like "Bharti Airtel" shows up here even though it isn't one of the 5 named calls)</span></h3>
     <div class="footer-note" style="margin-bottom:16px">
       <strong>${totalCalls} calls</strong> sent across ${codes.length} clients this month &middot;
       <strong style="color:var(--green)">${totalExecuted} executed</strong> &middot;
@@ -2832,43 +2832,43 @@ function renderCallRegistryOverallHtml() {
     const dirIcon = DIRECTION_ICON[o.direction] || '';
     const execNote = o.notExecutedClients ? ` &middot; <span style="color:var(--red)">${o.notExecutedClients} client${o.notExecutedClients===1?'':'s'} didn't execute an instructed trade</span>` : '';
     const timing = callTimingByTheme(o.theme);
-    const timingCell = !timing ? '<span style="color:var(--muted);font-size:11px">—</span>'
-      : timing.n < 2 ? `<span style="font-size:11px;color:var(--muted)">single entry</span>`
-      : `<span style="font-size:11px;${timing.spreadDays>=14?'color:var(--red);font-weight:600':'color:var(--muted)'}" title="${timing.n} clients entered between ${timing.first.date} (${CLIENT_NAME_BY_NDAS[timing.first.ndas]||timing.first.ndas}) and ${timing.last.date} (${CLIENT_NAME_BY_NDAS[timing.last.ndas]||timing.last.ndas})">${timing.spreadDays}d spread</span>`;
+    const timingCell = !timing ? '<span style="color:var(--muted);font-size:12.5px">—</span>'
+      : timing.n < 2 ? `<span style="font-size:12.5px;color:var(--muted)">single entry</span>`
+      : `<span style="font-size:12.5px;${timing.spreadDays>=14?'color:var(--red);font-weight:600':'color:var(--muted)'}" title="${timing.n} clients entered between ${timing.first.date} (${CLIENT_NAME_BY_NDAS[timing.first.ndas]||timing.first.ndas}) and ${timing.last.date} (${CLIENT_NAME_BY_NDAS[timing.last.ndas]||timing.last.ndas})">${timing.spreadDays}d spread</span>`;
     if (timing && timing.n >= 2 && timing.spreadDays >= 14) {
       timingIssues.push({ callLabel: o.callLabel, calledDate: o.calledDate, timing });
     }
     return `<tr>
       <td style="text-align:left">${dirIcon} ${escapeHtml(o.callLabel)}</td>
-      <td style="font-size:11px;color:var(--muted)">${o.calledDate}</td>
+      <td style="font-size:12.5px;color:var(--muted)">${o.calledDate}</td>
       <td>${o.numClientsExposed}</td>
       <td style="color:${o.weightedGlPct==null?'var(--muted)':(o.weightedGlPct>=0?'var(--green)':'var(--red)')};font-weight:600">${o.weightedGlPct==null?'—':(o.weightedGlPct>=0?'+':'')+o.weightedGlPct.toFixed(2)+'%'}</td>
-      <td style="font-size:11px;color:var(--muted)">${o.weightedBenchmarkPct==null?'—':(o.weightedBenchmarkPct>=0?'+':'')+o.weightedBenchmarkPct.toFixed(2)+'%'}</td>
+      <td style="font-size:12.5px;color:var(--muted)">${o.weightedBenchmarkPct==null?'—':(o.weightedBenchmarkPct>=0?'+':'')+o.weightedBenchmarkPct.toFixed(2)+'%'}</td>
       <td style="color:${vc[0]};font-weight:600">${o.weightedAlphaPct==null?'—':(o.weightedAlphaPct>=0?'+':'')+o.weightedAlphaPct.toFixed(2)+'%'}</td>
-      <td><span style="background:${vc[1]};color:${vc[0]};padding:2px 9px;border-radius:4px;font-weight:700;font-size:10.5px">${verdictLabel}</span></td>
+      <td><span style="background:${vc[1]};color:${vc[0]};padding:2px 9px;border-radius:4px;font-weight:700;font-size:12px">${verdictLabel}</span></td>
       <td>${timingCell}</td>
-      <td style="font-size:11px;color:var(--muted)">${o.goodCount}g / ${o.badCount}b / ${o.unknownCount}u &middot; ${fmtCr(o.totalDeployedMv)} deployed${execNote}</td>
+      <td style="font-size:12.5px;color:var(--muted)">${o.goodCount}g / ${o.badCount}b / ${o.unknownCount}u &middot; ${fmtCr(o.totalDeployedMv)} deployed${execNote}</td>
     </tr>`;
   }).join('');
   const chemExited = findExitedCallHistory({label:"Chemicals", pattern:/chemicals/i});
   const chemAvg = chemExited.length ? chemExited.reduce((a,x)=>a+(x.totalContribution||0),0)/chemExited.length : null;
   const chemRow = `<tr>
       <td style="text-align:left">&#9660; Chemicals — Exit</td>
-      <td style="font-size:11px;color:var(--muted)">2026-06-05</td>
+      <td style="font-size:12.5px;color:var(--muted)">2026-06-05</td>
       <td>0</td>
-      <td colspan="3" style="font-size:11px;color:var(--muted)">Fully exited — ${chemExited.length} client${chemExited.length===1?'':'s'} held historically, avg contribution while held <strong style="color:${chemAvg>=0?'var(--green)':'var(--red)'}">${chemAvg!=null?(chemAvg>=0?'+':'')+chemAvg.toFixed(2)+'%':'—'}</strong></td>
-      <td><span style="background:#F0F2F5;color:var(--muted);padding:2px 9px;border-radius:4px;font-weight:700;font-size:10.5px">EXITED</span></td>
+      <td colspan="3" style="font-size:12.5px;color:var(--muted)">Fully exited — ${chemExited.length} client${chemExited.length===1?'':'s'} held historically, avg contribution while held <strong style="color:${chemAvg>=0?'var(--green)':'var(--red)'}">${chemAvg!=null?(chemAvg>=0?'+':'')+chemAvg.toFixed(2)+'%':'—'}</strong></td>
+      <td><span style="background:#F0F2F5;color:var(--muted);padding:2px 9px;border-radius:4px;font-weight:700;font-size:12px">EXITED</span></td>
       <td></td>
       <td></td>
     </tr>`;
   const timingPanel = timingIssues.length ? `<div class="chart-card" style="margin-bottom:20px;border-left:3px solid var(--red)">
-    <h3 style="color:var(--red)">&#9888; Timing Issues Across Clients <span style="font-weight:400;color:var(--muted);font-size:12px">(calls where clients' actual entry dates were spread &ge;14 days apart — a call sent once but acted on very differently client to client)</span></h3>
-    <ul style="margin:0;padding-left:20px;font-size:12.5px;line-height:1.7">
+    <h3 style="color:var(--red)">&#9888; Timing Issues Across Clients <span style="font-weight:400;color:var(--muted);font-size:14px">(calls where clients' actual entry dates were spread &ge;14 days apart — a call sent once but acted on very differently client to client)</span></h3>
+    <ul style="margin:0;padding-left:20px;font-size:14.5px;line-height:1.7">
       ${timingIssues.map(ti => `<li><strong>${escapeHtml(ti.callLabel)}</strong> (called ${ti.calledDate}): ${ti.timing.n} clients entered across a <strong style="color:var(--red)">${ti.timing.spreadDays}-day</strong> spread — earliest ${escapeHtml(CLIENT_NAME_BY_NDAS[ti.timing.first.ndas]||ti.timing.first.ndas)} (${ti.timing.first.date}), latest ${escapeHtml(CLIENT_NAME_BY_NDAS[ti.timing.last.ndas]||ti.timing.last.ndas)} (${ti.timing.last.date}).</li>`).join('')}
     </ul>
   </div>` : '';
   return `<div class="chart-card" style="margin-bottom:20px">
-    <h3>Call Registry — Summary <span style="font-weight:400;color:var(--muted);font-size:12px">(one row per named, dated Asset X call — g/b/u = clients where the call has been good/bad/unclear for them)</span></h3>
+    <h3>Call Registry — Summary <span style="font-weight:400;color:var(--muted);font-size:14px">(one row per named, dated Asset X call — g/b/u = clients where the call has been good/bad/unclear for them)</span></h3>
     <div style="overflow-x:auto"><table><thead><tr><th style="text-align:left">Call</th><th>Called</th><th>Clients</th><th>Wtd Return</th><th>Benchmark</th><th>Alpha</th><th>Verdict</th><th>Timing</th><th>Detail</th></tr></thead>
     <tbody>${rows}${chemRow}</tbody></table></div>
   </div>${timingPanel}`;
@@ -2894,11 +2894,11 @@ function renderCallsView(){
       <td style="text-align:left">${d.label}</td>
       <td>${nClients}</td>
       <td style="color:${aggReturn==null?'var(--muted)':(aggReturn>=0?'var(--green)':'var(--red)')};font-weight:600">${aggReturn==null?'—':(aggReturn>=0?'+':'')+aggReturn.toFixed(2)+'%'}</td>
-      <td style="font-size:11px;color:var(--muted)">${nHolders ? `${nHolders} holding${nHolders===1?'':'s'} &middot; ${fmtCr(totalMv)} total exposure` : 'No client currently holds any fund in this category'}</td>
+      <td style="font-size:12.5px;color:var(--muted)">${nHolders ? `${nHolders} holding${nHolders===1?'':'s'} &middot; ${fmtCr(totalMv)} total exposure` : 'No client currently holds any fund in this category'}</td>
     </tr>`;
   }).join('');
   const catHtml = `<div class="chart-card" style="margin-bottom:20px">
-    <h3>Instrument Categories — Summary <span style="font-weight:400;color:var(--muted);font-size:12px">(AIF/SIF, liquid, debt, hybrid, commodity, REIT/InvIT, equity funds — market-cap tilts detected by name)</span></h3>
+    <h3>Instrument Categories — Summary <span style="font-weight:400;color:var(--muted);font-size:14px">(AIF/SIF, liquid, debt, hybrid, commodity, REIT/InvIT, equity funds — market-cap tilts detected by name)</span></h3>
     <table><thead><tr><th style="text-align:left">Category</th><th>Clients</th><th>Aggregate Return</th><th>Detail</th></tr></thead>
     <tbody>${catRows}</tbody></table>
   </div>`;
@@ -2911,7 +2911,7 @@ function renderCallsView(){
       <td style="color:${x.wtdGlPct==null?'var(--muted)':(x.wtdGlPct>=0?'var(--green)':'var(--red)')};font-weight:600">${x.wtdGlPct==null?'—':(x.wtdGlPct>=0?'+':'')+x.wtdGlPct.toFixed(2)+'%'}</td>
     </tr>`).join('');
   const stockHtml = `<div class="chart-card" style="margin-bottom:20px">
-    <h3>Direct Equity Stocks — Summary <span style="font-weight:400;color:var(--muted);font-size:12px">(${stockData.length} unique listed stocks across all clients)</span></h3>
+    <h3>Direct Equity Stocks — Summary <span style="font-weight:400;color:var(--muted);font-size:14px">(${stockData.length} unique listed stocks across all clients)</span></h3>
     <div style="max-height:480px;overflow-y:auto"><table><thead><tr><th style="text-align:left">Stock</th><th>Clients</th><th>Total Exposure</th><th>Wtd. Gain/Loss</th></tr></thead>
     <tbody>${stockRows}</tbody></table></div>
   </div>`;
@@ -3016,7 +3016,7 @@ function transferInInfo(ndas, isin) {
 function legacyBadge(ndas, isin) {
   const rec = transferInInfo(ndas, isin);
   if (!rec) return '';
-  return ` <span title="Also includes shares transferred in (originally acquired ${rec.transferDate}) — not entirely from a call made here" style="cursor:help;color:var(--muted);font-style:italic;font-size:9.5px">+legacy</span>`;
+  return ` <span title="Also includes shares transferred in (originally acquired ${rec.transferDate}) — not entirely from a call made here" style="cursor:help;color:var(--muted);font-style:italic;font-size:11px">+legacy</span>`;
 }
 function formatHeldSinceEntry(entry, ndas, isin) {
   const rec = transferInInfo(ndas, isin);
@@ -3055,8 +3055,8 @@ function showDetailModal(titleHtml, bodyHtml) {
   }
   overlay.innerHTML = `<div style="background:#fff;color:var(--text);border-radius:10px;max-width:680px;width:100%;box-shadow:0 12px 40px rgba(0,0,0,.3)">
     <div style="display:flex;justify-content:space-between;align-items:center;padding:16px 20px;border-bottom:1px solid var(--border)">
-      <div style="font-weight:700;font-size:15px">${titleHtml}</div>
-      <a href="#" onclick="closeDetailModal();return false;" style="font-size:22px;color:var(--muted);text-decoration:none;line-height:1;padding:0 4px">&times;</a>
+      <div style="font-weight:700;font-size:17px">${titleHtml}</div>
+      <a href="#" onclick="closeDetailModal();return false;" style="font-size:25.5px;color:var(--muted);text-decoration:none;line-height:1;padding:0 4px">&times;</a>
     </div>
     <div style="padding:16px 20px;max-height:70vh;overflow-y:auto">${bodyHtml}</div>
   </div>`;
@@ -3088,17 +3088,17 @@ function showVerdictDetail(ndas, security) {
   const vc = VERDICT_COLOR[verdict] || ["var(--muted)","#F0F2F5"];
   const tranchesHtml = ta && ta.n_tranches > 1 && Array.isArray(ta.tranche_dates) && ta.tranche_dates.length
     ? `<div style="margin-top:6px">
-        <div style="font-size:11px;color:var(--muted);text-transform:uppercase;font-weight:700;margin-bottom:4px">Buy dates</div>
-        ${ta.tranche_dates.map(d=>`<span style="display:inline-block;background:#F0F2F5;border-radius:4px;padding:2px 8px;font-size:11px;margin:0 6px 6px 0">${escapeHtml(d)}</span>`).join('')}
+        <div style="font-size:12.5px;color:var(--muted);text-transform:uppercase;font-weight:700;margin-bottom:4px">Buy dates</div>
+        ${ta.tranche_dates.map(d=>`<span style="display:inline-block;background:#F0F2F5;border-radius:4px;padding:2px 8px;font-size:12.5px;margin:0 6px 6px 0">${escapeHtml(d)}</span>`).join('')}
       </div>` : '';
-  const metric = (label, value, color) => `<div><div style="color:var(--muted);font-size:11px;text-transform:uppercase">${label}</div><div style="font-weight:700;font-size:14px${color?`;color:${color}`:''}">${value}</div></div>`;
+  const metric = (label, value, color) => `<div><div style="color:var(--muted);font-size:12.5px;text-transform:uppercase">${label}</div><div style="font-weight:700;font-size:16px${color?`;color:${color}`:''}">${value}</div></div>`;
   const body = `
     <div style="margin-bottom:12px">
-      <div style="font-size:12.5px;color:var(--muted)">${escapeHtml(client.name)} &middot; ${escapeHtml(strat.name)} (${escapeHtml(ndas)})</div>
-      <div style="font-weight:700;font-size:15px;margin-top:2px">${escapeHtml(security)}</div>
+      <div style="font-size:14.5px;color:var(--muted)">${escapeHtml(client.name)} &middot; ${escapeHtml(strat.name)} (${escapeHtml(ndas)})</div>
+      <div style="font-weight:700;font-size:17px;margin-top:2px">${escapeHtml(security)}</div>
     </div>
-    <div style="display:inline-block;background:${vc[1]};color:${vc[0]};padding:5px 14px;border-radius:6px;font-weight:700;font-size:13px;margin-bottom:8px">${verdict}</div>
-    <div style="font-size:12.5px;color:var(--muted);margin-bottom:16px">${VERDICT_LEGEND[verdict]||''}</div>
+    <div style="display:inline-block;background:${vc[1]};color:${vc[0]};padding:5px 14px;border-radius:6px;font-weight:700;font-size:15px;margin-bottom:8px">${verdict}</div>
+    <div style="font-size:14.5px;color:var(--muted);margin-bottom:16px">${VERDICT_LEGEND[verdict]||''}</div>
     ${ta ? `
     <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px 20px;margin-bottom:6px">
       ${metric('First buy date', `${ta.first_buy_date||'—'}${monthsHeldSince(ta.first_buy_date)!=null?` (${monthsHeldSince(ta.first_buy_date)}mo ago)`:''}`)}
@@ -3111,9 +3111,9 @@ function showVerdictDetail(ndas, security) {
       ${ta.current_price!=null ? metric('Current price', `&#8377;${ta.current_price.toFixed(2)}`) : ''}
       ${ta.total_qty!=null ? metric('Total qty', ta.total_qty) : ''}
     </div>
-    ${ta.stagger_label ? `<div style="font-size:12px;color:var(--muted);font-style:italic;margin-top:8px">${escapeHtml(ta.stagger_label)}</div>` : ''}
+    ${ta.stagger_label ? `<div style="font-size:14px;color:var(--muted);font-style:italic;margin-top:8px">${escapeHtml(ta.stagger_label)}</div>` : ''}
     ${tranchesHtml}
-    ` : `<div style="font-size:12.5px;color:var(--muted)">No trade-level attribution data is available for this holding — likely held since before the ~14-month tracked window, or not yet computed.</div>`}
+    ` : `<div style="font-size:14.5px;color:var(--muted)">No trade-level attribution data is available for this holding — likely held since before the ~14-month tracked window, or not yet computed.</div>`}
     <div style="margin-top:18px;padding-top:12px;border-top:1px solid var(--border)">
       <a href="#" onclick="closeDetailModal();globalSearchGoToClient(${stratIdx},${clientIdx});return false;">View full client page &rarr;</a>
     </div>
@@ -3131,15 +3131,15 @@ function showRmDetail(rmName) {
   const rows = s2.clientDetails.slice().sort((a,b)=>(b.c.aum||0)-(a.c.aum||0)).map(({c, strategyName, stratIdx, clientIdx}) => {
     const alpha = (c.psi!=null && c.bsi!=null) ? c.psi - c.bsi : null;
     return `<tr class="search-result-row" style="cursor:pointer" onclick="closeDetailModal();globalSearchGoToClient(${stratIdx},${clientIdx})">
-      <td style="padding:6px 10px;font-size:12.5px;font-weight:600">${escapeHtml(c.name)}</td>
-      <td style="padding:6px 10px;font-size:12px;color:var(--muted)">${escapeHtml(strategyName)}</td>
-      <td style="padding:6px 10px;font-size:12px;text-align:right">${fmtCr(c.aum||0)}</td>
-      <td style="padding:6px 10px;font-size:12px;text-align:right;font-weight:600;color:${c.outperform?'var(--green)':'var(--red)'}">${c.outperform?'Outperforming':'Underperforming'}</td>
-      <td style="padding:6px 10px;font-size:12px;text-align:right;color:${alpha==null?'var(--muted)':(alpha>=0?'var(--green)':'var(--red)')}">${alpha==null?'—':(alpha>=0?'+':'')+alpha.toFixed(2)+'%'}</td>
+      <td style="padding:6px 10px;font-size:14.5px;font-weight:600">${escapeHtml(c.name)}</td>
+      <td style="padding:6px 10px;font-size:14px;color:var(--muted)">${escapeHtml(strategyName)}</td>
+      <td style="padding:6px 10px;font-size:14px;text-align:right">${fmtCr(c.aum||0)}</td>
+      <td style="padding:6px 10px;font-size:14px;text-align:right;font-weight:600;color:${c.outperform?'var(--green)':'var(--red)'}">${c.outperform?'Outperforming':'Underperforming'}</td>
+      <td style="padding:6px 10px;font-size:14px;text-align:right;color:${alpha==null?'var(--muted)':(alpha>=0?'var(--green)':'var(--red)')}">${alpha==null?'—':(alpha>=0?'+':'')+alpha.toFixed(2)+'%'}</td>
     </tr>`;
   }).join('');
   const body = `
-    <div style="display:flex;gap:20px;flex-wrap:wrap;font-size:12.5px;margin-bottom:16px;padding-bottom:14px;border-bottom:1px solid var(--border)">
+    <div style="display:flex;gap:20px;flex-wrap:wrap;font-size:14.5px;margin-bottom:16px;padding-bottom:14px;border-bottom:1px solid var(--border)">
       <div><span style="color:var(--muted)">Clients:</span> <strong>${s2.nClients}</strong></div>
       <div><span style="color:var(--muted)">Total AUM:</span> <strong>${fmtCr(s2.totalAum)}</strong></div>
       <div><span style="color:var(--green)">Outperforming:</span> <strong>${s2.outCount}</strong> (${fmtCr(s2.outAum)})</div>
@@ -3148,11 +3148,11 @@ function showRmDetail(rmName) {
     </div>
     <div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;min-width:520px">
       <thead><tr style="border-bottom:1px solid var(--border)">
-        <th style="padding:4px 10px;text-align:left;font-size:10.5px;color:var(--muted-on-dark);text-transform:uppercase">Client</th>
-        <th style="padding:4px 10px;text-align:left;font-size:10.5px;color:var(--muted-on-dark);text-transform:uppercase">Strategy</th>
-        <th style="padding:4px 10px;text-align:right;font-size:10.5px;color:var(--muted-on-dark);text-transform:uppercase">AUM</th>
-        <th style="padding:4px 10px;text-align:right;font-size:10.5px;color:var(--muted-on-dark);text-transform:uppercase">Status</th>
-        <th style="padding:4px 10px;text-align:right;font-size:10.5px;color:var(--muted-on-dark);text-transform:uppercase">SI Alpha</th>
+        <th style="padding:4px 10px;text-align:left;font-size:12px;color:var(--muted-on-dark);text-transform:uppercase">Client</th>
+        <th style="padding:4px 10px;text-align:left;font-size:12px;color:var(--muted-on-dark);text-transform:uppercase">Strategy</th>
+        <th style="padding:4px 10px;text-align:right;font-size:12px;color:var(--muted-on-dark);text-transform:uppercase">AUM</th>
+        <th style="padding:4px 10px;text-align:right;font-size:12px;color:var(--muted-on-dark);text-transform:uppercase">Status</th>
+        <th style="padding:4px 10px;text-align:right;font-size:12px;color:var(--muted-on-dark);text-transform:uppercase">SI Alpha</th>
       </tr></thead>
       <tbody>${rows}</tbody>
     </table></div>
@@ -3174,10 +3174,10 @@ const CALL_VERDICT_COLOR = { GOOD: ["var(--green)","var(--green-bg, #C6EFCE)"], 
 const DIRECTION_ICON = { BUY: "&#9650;", SELL: "&#9660;" };
 
 function originBadge(origin) {
-  if (origin === "transferred_in") return '<span style="color:var(--muted);font-style:italic;font-size:10.5px">Transferred in</span>';
-  if (origin === "mixed") return '<span style="color:#856404;font-style:italic;font-size:10.5px" title="Transferred in AND later topped up — blended cost basis, excluded from the call verdict">Mixed</span>';
-  if (origin === "deployed") return '<span style="color:var(--green);font-style:italic;font-size:10.5px">Deployed</span>';
-  return '<span style="color:var(--muted);font-size:10.5px">—</span>';
+  if (origin === "transferred_in") return '<span style="color:var(--muted);font-style:italic;font-size:12px">Transferred in</span>';
+  if (origin === "mixed") return '<span style="color:#856404;font-style:italic;font-size:12px" title="Transferred in AND later topped up — blended cost basis, excluded from the call verdict">Mixed</span>';
+  if (origin === "deployed") return '<span style="color:var(--green);font-style:italic;font-size:12px">Deployed</span>';
+  return '<span style="color:var(--muted);font-size:12px">—</span>';
 }
 
 // Actual instructed-trade rows (from the monthly execution mail log) whose ISIN belongs to a
@@ -3194,13 +3194,13 @@ function getMatchingExecutionTrades(ndas, isins) {
 function renderExecTradeRows(trades) {
   return (trades || []).map(t => {
     const statusBadge = t.executed
-      ? '<span style="background:#E8F5E9;color:var(--green);padding:2px 7px;border-radius:4px;font-weight:700;font-size:10.5px">EXECUTED</span>'
-      : '<span style="background:#FFEBEE;color:var(--red);padding:2px 7px;border-radius:4px;font-weight:700;font-size:10.5px">NOT EXECUTED</span>';
+      ? '<span style="background:#E8F5E9;color:var(--green);padding:2px 7px;border-radius:4px;font-weight:700;font-size:12px">EXECUTED</span>'
+      : '<span style="background:#FFEBEE;color:var(--red);padding:2px 7px;border-radius:4px;font-weight:700;font-size:12px">NOT EXECUTED</span>';
     const amt = t.weightInr != null ? '₹' + (Math.abs(t.weightInr) / 1e7).toFixed(2) + ' Cr' : '<span style="color:var(--muted)">—</span>';
     const resultPct = t.executed ? t.callWasGood : (t.callWasGood != null ? -t.callWasGood : null);
     const resultLabel = t.executed ? 'Return since call' : 'Impact of not executing';
     return `<tr>
-      <td style="font-size:11px;color:var(--muted);white-space:nowrap">${t.callDate}</td>
+      <td style="font-size:12.5px;color:var(--muted);white-space:nowrap">${t.callDate}</td>
       <td style="text-align:left">${t.security || '<span style="color:var(--muted)">—</span>'}${t.noData ? ' <span title="No price history available for this instrument" style="cursor:help">&#9432;</span>' : ''}</td>
       <td style="font-weight:600">${t.side}</td>
       <td>${amt}</td>
@@ -3225,7 +3225,7 @@ function renderCallRegistryCard(entry, execTrades) {
       <td class="num">${fmtINR(l.market_value)}</td>
       <td class="num" style="color:${l.gl_pct>=0?'var(--green)':'var(--red)'}">${l.gl_pct>=0?'+':''}${l.gl_pct.toFixed(2)}%</td>
       <td>${originBadge(l.origin)}</td>
-      <td style="font-size:11px;color:var(--muted)">${l.buyDate||'—'}</td>
+      <td style="font-size:12.5px;color:var(--muted)">${l.buyDate||'—'}</td>
     </tr>`).join('');
   const notes = [];
   if (entry.mixedMarketValue > 0) notes.push(`₹${(entry.mixedMarketValue/1e7).toFixed(2)} Cr transferred in and later topped up (mixed cost basis) — excluded from the verdict below`);
@@ -3233,33 +3233,33 @@ function renderCallRegistryCard(entry, execTrades) {
   execTrades = execTrades || [];
   const execBlock = execTrades.length ? `
     <div style="margin-top:8px">
-      <div style="font-size:11px;color:var(--muted);text-transform:uppercase;font-weight:700;margin-bottom:4px">Instructed trades on this call${typeof CALL_EXECUTION_DATA!=='undefined'?' — '+CALL_EXECUTION_DATA.period:''}</div>
+      <div style="font-size:12.5px;color:var(--muted);text-transform:uppercase;font-weight:700;margin-bottom:4px">Instructed trades on this call${typeof CALL_EXECUTION_DATA!=='undefined'?' — '+CALL_EXECUTION_DATA.period:''}</div>
       ${renderExecTradeTable(execTrades)}
     </div>` : (entry.executionStatus ? (
     entry.executionStatus.anyNotExecuted
-      ? `<div style="font-size:11.5px;color:var(--red);margin-top:4px">&#9888; ${entry.executionStatus.numTrades} instructed trade${entry.executionStatus.numTrades===1?'':'s'} on this call, not all executed</div>`
-      : `<div style="font-size:11.5px;color:var(--green);margin-top:4px">&#10003; ${entry.executionStatus.numTrades} instructed trade${entry.executionStatus.numTrades===1?'':'s'} on this call, executed</div>`
-  ) : `<div style="font-size:11px;color:var(--muted);margin-top:4px">No instructed-trade record for this call in the current execution log — likely called outside that window.</div>`);
+      ? `<div style="font-size:13px;color:var(--red);margin-top:4px">&#9888; ${entry.executionStatus.numTrades} instructed trade${entry.executionStatus.numTrades===1?'':'s'} on this call, not all executed</div>`
+      : `<div style="font-size:13px;color:var(--green);margin-top:4px">&#10003; ${entry.executionStatus.numTrades} instructed trade${entry.executionStatus.numTrades===1?'':'s'} on this call, executed</div>`
+  ) : `<div style="font-size:12.5px;color:var(--muted);margin-top:4px">No instructed-trade record for this call in the current execution log — likely called outside that window.</div>`);
   const verdictBlock = entry.deployedMarketValue > 0 && entry.alphaPct != null ? `
-    <div style="display:flex;gap:18px;flex-wrap:wrap;margin:6px 0;font-size:12px">
+    <div style="display:flex;gap:18px;flex-wrap:wrap;margin:6px 0;font-size:14px">
       <div>Return since call<br><strong style="color:${entry.weightedGlPct>=0?'var(--green)':'var(--red)'}">${entry.weightedGlPct>=0?'+':''}${entry.weightedGlPct.toFixed(2)}%</strong></div>
       <div>${escapeHtml(entry.benchmarkLabel||'')}<br><strong>${entry.benchmarkReturnPct>=0?'+':''}${entry.benchmarkReturnPct.toFixed(2)}%</strong></div>
       <div>Alpha<br><strong style="color:${vc[0]}">${entry.alphaPct>=0?'+':''}${entry.alphaPct.toFixed(2)}%</strong></div>
       <div>Since<br><strong>${entry.weightedBuyDate}</strong></div>
-    </div>` : `<div style="font-size:12px;color:var(--muted);margin:6px 0">No clean deployed position to judge — see notes below.</div>`;
+    </div>` : `<div style="font-size:14px;color:var(--muted);margin:6px 0">No clean deployed position to judge — see notes below.</div>`;
   return `
     <div style="border:1px solid var(--border);border-radius:8px;padding:12px 14px;margin-bottom:10px">
       <div style="display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:8px">
         <div><span style="font-weight:700">${dirIcon} ${escapeHtml(entry.callLabel)}</span>
-          <span style="font-size:11px;color:var(--muted)"> · called ${entry.calledDate} · ${entry.direction}</span></div>
-        <span style="background:${vc[1]};color:${vc[0]};padding:2px 9px;border-radius:4px;font-weight:700;font-size:11px">${entry.verdict}</span>
+          <span style="font-size:12.5px;color:var(--muted)"> · called ${entry.calledDate} · ${entry.direction}</span></div>
+        <span style="background:${vc[1]};color:${vc[0]};padding:2px 9px;border-radius:4px;font-weight:700;font-size:12.5px">${entry.verdict}</span>
       </div>
       ${verdictBlock}
-      ${notes.map(n=>`<div style="font-size:11px;color:var(--muted);margin-top:2px">${n}</div>`).join('')}
+      ${notes.map(n=>`<div style="font-size:12.5px;color:var(--muted);margin-top:2px">${n}</div>`).join('')}
       ${execBlock}
       <table style="table-layout:fixed;width:100%;margin-top:8px">
         <colgroup><col style="width:40%"><col style="width:16%"><col style="width:14%"><col style="width:16%"><col style="width:14%"></colgroup>
-        <thead><tr><th style="text-align:left;font-size:11px">Security</th><th style="font-size:11px">Value</th><th style="font-size:11px">G/L</th><th style="font-size:11px">Origin</th><th style="font-size:11px">Since</th></tr></thead>
+        <thead><tr><th style="text-align:left;font-size:12.5px">Security</th><th style="font-size:12.5px">Value</th><th style="font-size:12.5px">G/L</th><th style="font-size:12.5px">Origin</th><th style="font-size:12.5px">Since</th></tr></thead>
         <tbody>${legRows}</tbody>
       </table>
     </div>`;
@@ -3279,8 +3279,8 @@ function renderCallRegistrySection(c) {
   let chemBlock = '';
   if (chemHolder) {
     chemBlock = `<div style="border:1px solid var(--border);border-radius:8px;padding:12px 14px;margin-bottom:10px">
-      <div style="font-weight:700">&#9660; Chemicals — Exit <span style="font-size:11px;color:var(--muted)"> · called 2026-06-05 · SELL</span></div>
-      <div style="font-size:12px;margin-top:4px">Held <strong>${chemHolder.security}</strong> from ${chemHolder.firstMonthHeld} to ${chemHolder.lastMonthHeld||chemHolder.firstMonthHeld}, contributing <strong style="color:${chemHolder.totalContribution>=0?'var(--green)':'var(--red)'}">${chemHolder.totalContribution>=0?'+':''}${chemHolder.totalContribution.toFixed(2)}%</strong> while held. Fully exited per the Jun 2026 call.</div>
+      <div style="font-weight:700">&#9660; Chemicals — Exit <span style="font-size:12.5px;color:var(--muted)"> · called 2026-06-05 · SELL</span></div>
+      <div style="font-size:14px;margin-top:4px">Held <strong>${chemHolder.security}</strong> from ${chemHolder.firstMonthHeld} to ${chemHolder.lastMonthHeld||chemHolder.firstMonthHeld}, contributing <strong style="color:${chemHolder.totalContribution>=0?'var(--green)':'var(--red)'}">${chemHolder.totalContribution>=0?'+':''}${chemHolder.totalContribution.toFixed(2)}%</strong> while held. Fully exited per the Jun 2026 call.</div>
     </div>`;
   }
 
@@ -3295,7 +3295,7 @@ function renderCallRegistrySection(c) {
   const otherTrades = allTrades.filter(t => !(t.isin && usedIsins.has(t.isin)));
   const otherTradesBlock = otherTrades.length ? `
     <div style="margin-top:4px;margin-bottom:10px">
-      <div style="font-weight:700;font-size:13px;margin-bottom:4px">Other Instructed Trades <span style="font-weight:400;font-size:11px;color:var(--muted)">(this month's execution log, not tied to one of the 5 named calls above)</span></div>
+      <div style="font-weight:700;font-size:15px;margin-bottom:4px">Other Instructed Trades <span style="font-weight:400;font-size:12.5px;color:var(--muted)">(this month's execution log, not tied to one of the 5 named calls above)</span></div>
       ${renderExecTradeTable(otherTrades)}
     </div>` : '';
 
@@ -4751,7 +4751,7 @@ function buildIPSSummary(){
 
   s+='<div style="margin-bottom:24px">';
   s+='<h2 style="color:#0E2841;margin:0 0 4px">Investment Policy Statement — All Clients</h2>';
-  s+='<div style="color:#888;font-size:13px">As of 31 July 2026 · '+totalAll+' total clients · '+ipsCreatedCount+' IPS created · '+d.no_ips.length+' excluded</div></div>';
+  s+='<div style="color:#888;font-size:15px">As of 31 July 2026 · '+totalAll+' total clients · '+ipsCreatedCount+' IPS created · '+d.no_ips.length+' excluded</div></div>';
 
   // Data-quality guard — see auditLcMcScConsistency(): LC/MC/SC and International Equity must be
   // mutually exclusive slices of equity; a sum over 100% means a fund got double-counted as both.
@@ -4759,14 +4759,14 @@ function buildIPSSummary(){
   if (lcMcScIssues.length) {
     s+='<div style="background:#FFF3CD;border:1px solid #F0D273;border-radius:8px;padding:14px 18px;margin-bottom:20px">';
     s+='<div style="font-weight:700;color:#856404;margin-bottom:4px">⚠ Data Quality Warning — Large/Mid/Small-Cap % overlaps with International Equity %</div>';
-    s+='<div style="font-size:12.5px;color:#856404">'+lcMcScIssues.map(function(x){return x.name+' (sums to '+x.sum+'%, '+x.intl+'% intl)';}).join(' · ')+' — a domestic market-cap classification and International Equity should never overlap for the same holding. Re-verify against Advisory V2 before relying on these clients\' Large/Mid/Small-Cap bands.</div>';
+    s+='<div style="font-size:14.5px;color:#856404">'+lcMcScIssues.map(function(x){return x.name+' (sums to '+x.sum+'%, '+x.intl+'% intl)';}).join(' · ')+' — a domestic market-cap classification and International Equity should never overlap for the same holding. Re-verify against Advisory V2 before relying on these clients\' Large/Mid/Small-Cap bands.</div>';
     s+='</div>';
   }
 
   s+='<div style="display:flex;gap:12px;margin-bottom:24px;flex-wrap:wrap">';
-  s+='<div style="flex:1;min-width:150px;background:#FFE0E0;border-radius:8px;padding:16px;text-align:center"><div style="font-size:28px;font-weight:800;color:#B71C1C">'+pc.Aggressive+'</div><div style="font-size:12px;font-weight:600;color:#B71C1C">AGGRESSIVE</div></div>';
-  s+='<div style="flex:1;min-width:150px;background:#FFF3CD;border-radius:8px;padding:16px;text-align:center"><div style="font-size:28px;font-weight:800;color:#856404">'+pc.Moderate+'</div><div style="font-size:12px;font-weight:600;color:#856404">MODERATE</div></div>';
-  s+='<div style="flex:1;min-width:150px;background:#E5ECFF;border-radius:8px;padding:16px;text-align:center"><div style="font-size:28px;font-weight:800;color:#222A9C">'+pc.Conservative+'</div><div style="font-size:12px;font-weight:600;color:#222A9C">CONSERVATIVE</div></div></div>';
+  s+='<div style="flex:1;min-width:150px;background:#FFE0E0;border-radius:8px;padding:16px;text-align:center"><div style="font-size:32px;font-weight:800;color:#B71C1C">'+pc.Aggressive+'</div><div style="font-size:14px;font-weight:600;color:#B71C1C">AGGRESSIVE</div></div>';
+  s+='<div style="flex:1;min-width:150px;background:#FFF3CD;border-radius:8px;padding:16px;text-align:center"><div style="font-size:32px;font-weight:800;color:#856404">'+pc.Moderate+'</div><div style="font-size:14px;font-weight:600;color:#856404">MODERATE</div></div>';
+  s+='<div style="flex:1;min-width:150px;background:#E5ECFF;border-radius:8px;padding:16px;text-align:center"><div style="font-size:32px;font-weight:800;color:#222A9C">'+pc.Conservative+'</div><div style="font-size:14px;font-weight:600;color:#222A9C">CONSERVATIVE</div></div></div>';
 
   s+='<h3 style="color:#0E2841;margin:0 0 12px">Client IPS Summary</h3>';
   s+='<table class="scorecard" style="width:100%;margin-bottom:24px"><thead><tr><th>#</th><th>Client</th><th>AUM (Cr)</th><th>Profile</th><th>Equity %</th><th>Top AMC</th><th>Top Scheme</th><th>Breaches</th><th></th></tr></thead><tbody>';
@@ -4781,12 +4781,12 @@ function buildIPSSummary(){
     s+='<tr><td>'+displayRow+'</td>';
     s+='<td style="font-weight:600">'+ipsName(c)+'</td>';
     s+='<td>₹'+c.aum_cr.toFixed(1)+'</td>';
-    s+='<td><span style="background:'+pc2+';padding:2px 8px;border-radius:4px;font-size:12px;font-weight:600">'+c.risk_profile+'</span></td>';
+    s+='<td><span style="background:'+pc2+';padding:2px 8px;border-radius:4px;font-size:14px;font-weight:600">'+c.risk_profile+'</span></td>';
     s+='<td>'+c.eq_pct.toFixed(1)+'%</td>';
-    s+='<td style="font-size:12px">'+c.top_amc_pct.toFixed(1)+'% <span style="color:#888">('+c.top_amc.substring(0,15)+')</span></td>';
-    s+='<td style="font-size:12px">'+c.top_scheme_pct.toFixed(1)+'% <span style="color:#888">('+c.top_scheme.substring(0,25)+')</span></td>';
+    s+='<td style="font-size:14px">'+c.top_amc_pct.toFixed(1)+'% <span style="color:#888">('+c.top_amc.substring(0,15)+')</span></td>';
+    s+='<td style="font-size:14px">'+c.top_scheme_pct.toFixed(1)+'% <span style="color:#888">('+c.top_scheme.substring(0,25)+')</span></td>';
     s+='<td>'+(b>0?'<span style="color:#FF5F49;font-weight:700">'+b+' ⚠</span>':'<span style="color:#08AF5C">✓</span>')+'</td>';
-    s+='<td><button onclick="buildClientIPS('+i+')" style="background:#0E2841;color:#fff;border:none;padding:5px 14px;border-radius:4px;cursor:pointer;font-size:12px">View IPS</button></td></tr>';
+    s+='<td><button onclick="buildClientIPS('+i+')" style="background:#0E2841;color:#fff;border:none;padding:5px 14px;border-radius:4px;cursor:pointer;font-size:14px">View IPS</button></td></tr>';
   }
   s+='</tbody></table>';
 
@@ -4825,20 +4825,20 @@ function buildClientIPS(idx){
   function TR(p,i,cu,ch,bg){
     var bad=ch?ch[0]:false,co=ch?ch[1]:'#888',lb=ch?ch[2]:'—';
     var isAmb=co==='#E67E00';
-    var pill=bad?(isAmb?'<span style="background:#FFF3CD;color:#856404;padding:2px 8px;border-radius:4px;font-size:12px;font-weight:600">'+lb+'</span>':'<span style="background:#FFE0E0;color:#B71C1C;padding:2px 8px;border-radius:4px;font-size:12px;font-weight:600">'+lb+'</span>'):(co==='#08AF5C'?'<span style="background:#E8F5E9;color:#2E7D32;padding:2px 8px;border-radius:4px;font-size:12px;font-weight:600">'+lb+'</span>':'<span style="color:#888">—</span>');
+    var pill=bad?(isAmb?'<span style="background:#FFF3CD;color:#856404;padding:2px 8px;border-radius:4px;font-size:14px;font-weight:600">'+lb+'</span>':'<span style="background:#FFE0E0;color:#B71C1C;padding:2px 8px;border-radius:4px;font-size:14px;font-weight:600">'+lb+'</span>'):(co==='#08AF5C'?'<span style="background:#E8F5E9;color:#2E7D32;padding:2px 8px;border-radius:4px;font-size:14px;font-weight:600">'+lb+'</span>':'<span style="color:#888">—</span>');
     return '<tr style="'+(bg?'background:#f8f9ff;':'')+'"><td style="font-weight:600;padding:10px 12px">'+p+'</td><td style="padding:10px 12px">'+i+'</td><td style="padding:10px 12px;'+(bad?'color:#FF5F49;font-weight:700':'')+'">'+cu+'</td><td style="padding:10px 12px">'+pill+'</td></tr>';
   }
-  function SEC(t,co){return '<tr><td colspan="4" style="background:'+co+';padding:8px 12px;font-weight:700;font-size:13px;text-transform:uppercase;letter-spacing:0.5px">'+t+'</td></tr>';}
+  function SEC(t,co){return '<tr><td colspan="4" style="background:'+co+';padding:8px 12px;font-weight:700;font-size:15px;text-transform:uppercase;letter-spacing:0.5px">'+t+'</td></tr>';}
 
   var pbg=c.risk_profile==='Aggressive'?'#FFE0E0':c.risk_profile==='Moderate'?'#FFF3CD':'#E5ECFF';
   var s='<div style="margin-bottom:16px"><a onclick="buildIPSSummary()" style="cursor:pointer;color:#222A9C;font-weight:600;text-decoration:underline">← Back to IPS Summary</a></div>';
   s+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px"><div>';
   s+='<h2 style="color:#0E2841;margin:0">Investment Policy Statement</h2>';
-  s+='<div style="font-size:18px;font-weight:700;color:#222A9C;margin-top:4px">'+ipsName(c)+'</div>';
-  s+='<div style="color:#888;font-size:13px;margin-top:2px">AUM: ₹'+c.aum_cr.toFixed(2)+' Cr · '+c.num_holdings+' holdings</div></div>';
+  s+='<div style="font-size:20.5px;font-weight:700;color:#222A9C;margin-top:4px">'+ipsName(c)+'</div>';
+  s+='<div style="color:#888;font-size:15px;margin-top:2px">AUM: ₹'+c.aum_cr.toFixed(2)+' Cr · '+c.num_holdings+' holdings</div></div>';
   s+='<div style="text-align:center;padding:12px 24px;border-radius:8px;background:'+pbg+'">';
-  s+='<div style="font-size:11px;font-weight:600;opacity:0.7">RISK PROFILE</div>';
-  s+='<div style="font-size:20px;font-weight:800">'+c.risk_profile+'</div></div></div>';
+  s+='<div style="font-size:12.5px;font-weight:600;opacity:0.7">RISK PROFILE</div>';
+  s+='<div style="font-size:23px;font-weight:800">'+c.risk_profile+'</div></div></div>';
 
   s+='<table class="scorecard" style="width:100%"><thead><tr><th style="width:30%;text-align:left">IPS Parameter</th><th style="width:14%">Ideal</th><th style="width:36%">Current</th><th style="width:20%">Status</th></tr></thead><tbody>';
 
@@ -4868,12 +4868,12 @@ function buildClientIPS(idx){
   s+='</tbody></table>';
 
   var t1=c.eq_pct+c.debt_pct+c.oth_pct, t2=c.lc_pct+c.mc_pct+c.sc_pct;
-  s+='<div style="margin-top:12px;padding:10px;background:#f8f9ff;border-radius:8px;font-size:12px"><strong>Validation:</strong> ';
+  s+='<div style="margin-top:12px;padding:10px;background:#f8f9ff;border-radius:8px;font-size:14px"><strong>Validation:</strong> ';
   s+='<span style="color:'+(Math.abs(t1-100)<1.5?'#08AF5C':'#FF5F49')+'">Eq+Debt+Others='+t1.toFixed(1)+'%</span> · ';
   s+='<span style="color:'+(Math.abs(t2-100)<1.5||t2===0?'#08AF5C':'#FF5F49')+'">LC+MC+SC='+t2.toFixed(1)+'%</span></div>';
 
   if(c.missing_isins&&c.missing_isins.length>0){
-    s+='<div style="margin-top:8px;padding:10px;background:#FFF3CD;border-radius:8px;font-size:12px"><strong>⚠ Data Quality:</strong> '+c.missing_isins.length+' ISIN(s) not in Advisory V2:<br><span style="color:#888">'+c.missing_isins.join('<br>')+'</span></div>';
+    s+='<div style="margin-top:8px;padding:10px;background:#FFF3CD;border-radius:8px;font-size:14px"><strong>⚠ Data Quality:</strong> '+c.missing_isins.length+' ISIN(s) not in Advisory V2:<br><span style="color:#888">'+c.missing_isins.join('<br>')+'</span></div>';
   }
   el.innerHTML=s;
 }
@@ -4916,11 +4916,11 @@ function augmentClientView() {
       const w = Math.max(Math.abs(i.val)/mx*100, 3);
       const a = fmtINR(i.val);
       bars += '<div style="display:flex;align-items:center;gap:8px;margin:5px 0">' +
-        '<div style="width:130px;font-size:12px;font-weight:600;text-align:right">' + i.label + '</div>' +
+        '<div style="width:130px;font-size:14px;font-weight:600;text-align:right">' + i.label + '</div>' +
         '<div style="flex:1;background:#f0f0f0;border-radius:4px;height:26px">' +
           '<div style="width:' + w + '%;background:' + i.color + ';border-radius:4px;height:100%"></div>' +
         '</div>' +
-        '<div style="width:150px;font-size:12px;font-weight:700;padding-left:8px">₹' + a + ' (' + i.pct.toFixed(1) + '%)</div></div>';
+        '<div style="width:150px;font-size:14px;font-weight:700;padding-left:8px">₹' + a + ' (' + i.pct.toFixed(1) + '%)</div></div>';
     });
   }
   const tp = pk.cash + pk.liquid + pk.overnight + pk.arbitrage;
@@ -5019,8 +5019,8 @@ function buildChecklist(){
   function mgmtBadge(ndas){
     var passive = ndas && typeof isPassivelyManaged === "function" && isPassivelyManaged(ndas);
     return passive
-      ? '<span style="background:#F0F2F5;color:#555;padding:2px 8px;border-radius:4px;font-size:10.5px;font-weight:700">Passive</span>'
-      : '<span style="background:#E5ECFF;color:#222A9C;padding:2px 8px;border-radius:4px;font-size:10.5px;font-weight:700">Active</span>';
+      ? '<span style="background:#F0F2F5;color:#555;padding:2px 8px;border-radius:4px;font-size:12px;font-weight:700">Passive</span>'
+      : '<span style="background:#E5ECFF;color:#222A9C;padding:2px 8px;border-radius:4px;font-size:12px;font-weight:700">Active</span>';
   }
   function profileBadge(p){
     var cfg={
@@ -5029,7 +5029,7 @@ function buildChecklist(){
       'Moderate':['#FFF3CD','#856404'],
       'Conservative':['#E5ECFF','#222A9C']
     }[p]||['#F0F2F5','#888'];
-    return '<span style="background:'+cfg[0]+';color:'+cfg[1]+';padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700">'+p+'</span>';
+    return '<span style="background:'+cfg[0]+';color:'+cfg[1]+';padding:2px 8px;border-radius:4px;font-size:12.5px;font-weight:700">'+p+'</span>';
   }
 
   var s='';
@@ -5040,18 +5040,18 @@ function buildChecklist(){
   var ipsClientsList = IPS_DATA.clients.filter(function(c){ return !PASSIVE_NDAS.has(ipsNdas(c)); });
   var totalBreaches=0;
   ipsClientsList.forEach(function(c){ if(getBreaches(c).length>0) totalBreaches++; });
-  s+='<div style="color:#888;font-size:13px;margin-bottom:16px">As of 31 July 2026 &middot; '+
+  s+='<div style="color:#888;font-size:15px;margin-bottom:16px">As of 31 July 2026 &middot; '+
      ipsClientsList.length+' funded clients with IPS &middot; '+
      (ipsClientsList.length-totalBreaches)+' compliant &middot; '+totalBreaches+' with deviations &middot; '+
      IPS_DATA.no_ips.length+' no IPS &middot; '+UNFUNDED_DATA.length+' unfunded</div>';
 
   // Legend
-  s+='<div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;font-size:12px">';
+  s+='<div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;font-size:14px">';
   s+='<span style="background:#E8F5E9;color:#2E7D32;padding:3px 10px;border-radius:4px;font-weight:600">✓ No Deviations</span>';
   s+='<span style="background:#FFE0E0;color:#B71C1C;padding:3px 10px;border-radius:4px;font-weight:600">✗ Breach</span>';
   s+='<span style="background:#FFF3CD;color:#856404;padding:3px 10px;border-radius:4px;font-weight:600">&#8212; No IPS</span>';
   s+='<span style="background:#F0F2F5;color:#888;padding:3px 10px;border-radius:4px;font-weight:600">Unfunded</span>';
-  s+='<span style="font-size:11px;color:#888;align-self:center">&larr; Click any funded client name to open their drill-down</span>';
+  s+='<span style="font-size:12.5px;color:#888;align-self:center">&larr; Click any funded client name to open their drill-down</span>';
   s+='</div>';
 
   s+='<div style="overflow-x:auto">';
@@ -5062,14 +5062,14 @@ function buildChecklist(){
     if(i===5) align='text-align:center;';
     if(i===12) align='text-align:left;min-width:260px;';
     if(i===13) align='text-align:left;min-width:200px;';
-    s+='<th style="padding:10px 10px;font-size:11px;font-weight:700;white-space:nowrap;'+align+'">'+h+'</th>';
+    s+='<th style="padding:10px 10px;font-size:12.5px;font-weight:700;white-space:nowrap;'+align+'">'+h+'</th>';
   });
   s+='</tr></thead><tbody>';
 
   var row=0;
 
   // ── Section: Clients with IPS ────────────────────────────────────────────
-  s+='<tr><td colspan="14" style="padding:7px 10px;background:#E8F5E9;font-weight:700;font-size:11px;color:#2E7D32;text-transform:uppercase;letter-spacing:0.5px">Clients with IPS ('+ipsClientsList.length+')</td></tr>';
+  s+='<tr><td colspan="14" style="padding:7px 10px;background:#E8F5E9;font-weight:700;font-size:12.5px;color:#2E7D32;text-transform:uppercase;letter-spacing:0.5px">Clients with IPS ('+ipsClientsList.length+')</td></tr>';
 
   ipsClientsList.forEach(function(c){
     row++;
@@ -5105,11 +5105,11 @@ function buildChecklist(){
 
     var devCell;
     if(breaches.length===0){
-      devCell='<span style="background:#E8F5E9;color:#2E7D32;padding:2px 10px;border-radius:4px;font-size:11px;font-weight:600">✓ No deviations</span>';
+      devCell='<span style="background:#E8F5E9;color:#2E7D32;padding:2px 10px;border-radius:4px;font-size:12.5px;font-weight:600">✓ No deviations</span>';
     } else {
       devCell='<div style="display:flex;flex-wrap:wrap;gap:3px">';
       breaches.forEach(function(b){
-        devCell+='<span style="background:#FFE0E0;color:#B71C1C;padding:2px 7px;border-radius:4px;font-size:11px;font-weight:600">'+b+'</span>';
+        devCell+='<span style="background:#FFE0E0;color:#B71C1C;padding:2px 7px;border-radius:4px;font-size:12.5px;font-weight:600">'+b+'</span>';
       });
       devCell+='</div>';
     }
@@ -5119,26 +5119,26 @@ function buildChecklist(){
     var lastReview=mis.last_review||'—';
     var actionItems=mis.action_items;
     s+='<tr style="background:'+rowbg+'">';
-    s+='<td style="padding:9px 10px;text-align:center;color:#888;font-size:12px">'+row+'</td>';
+    s+='<td style="padding:9px 10px;text-align:center;color:#888;font-size:14px">'+row+'</td>';
     s+='<td style="padding:9px 12px">'+nameCell+'</td>';
-    s+='<td style="padding:9px 10px;font-family:monospace;font-size:12px;color:#555">'+(ndas||'—')+'</td>';
-    s+='<td style="padding:9px 10px;font-size:12px">'+strategy+'</td>';
-    s+='<td style="padding:9px 10px;font-size:13px;font-weight:600;text-align:right">'+aum_cr.toFixed(2)+'</td>';
+    s+='<td style="padding:9px 10px;font-family:monospace;font-size:14px;color:#555">'+(ndas||'—')+'</td>';
+    s+='<td style="padding:9px 10px;font-size:14px">'+strategy+'</td>';
+    s+='<td style="padding:9px 10px;font-size:15px;font-weight:600;text-align:right">'+aum_cr.toFixed(2)+'</td>';
     s+='<td style="padding:9px 10px;text-align:center">'+mgmtBadge(ndas)+'</td>';
-    s+='<td style="padding:9px 10px;font-size:12px">'+rm+'</td>';
-    s+='<td style="padding:9px 10px;font-size:12px">'+srm+'</td>';
-    s+='<td style="padding:9px 10px;font-size:12px;font-weight:600">'+advisor+'</td>';
-    s+='<td style="padding:9px 10px;font-size:12px">'+lastReview+'</td>';
-    s+='<td style="padding:9px 10px;text-align:center"><span style="background:#E8F5E9;color:#2E7D32;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700">Yes</span></td>';
+    s+='<td style="padding:9px 10px;font-size:14px">'+rm+'</td>';
+    s+='<td style="padding:9px 10px;font-size:14px">'+srm+'</td>';
+    s+='<td style="padding:9px 10px;font-size:14px;font-weight:600">'+advisor+'</td>';
+    s+='<td style="padding:9px 10px;font-size:14px">'+lastReview+'</td>';
+    s+='<td style="padding:9px 10px;text-align:center"><span style="background:#E8F5E9;color:#2E7D32;padding:2px 8px;border-radius:4px;font-size:12.5px;font-weight:700">Yes</span></td>';
     s+='<td style="padding:9px 10px;text-align:center">'+profileBadge(c.risk_profile)+'</td>';
     s+='<td style="padding:9px 10px">'+devCell+'</td>';
-    var aiCell=actionItems?'<div style="font-size:12px;line-height:1.6">'+actionItems.replace(/\n/g,'<br>')+'</div>':'<span style="color:#aaa">—</span>';
+    var aiCell=actionItems?'<div style="font-size:14px;line-height:1.6">'+actionItems.replace(/\n/g,'<br>')+'</div>':'<span style="color:#aaa">—</span>';
     s+='<td style="padding:9px 10px">'+aiCell+'</td>';
     s+='</tr>';
   });
 
   // ── Section: No IPS ──────────────────────────────────────────────────────
-  s+='<tr><td colspan="14" style="padding:7px 10px;background:#FFF3CD;font-weight:700;font-size:11px;color:#856404;text-transform:uppercase;letter-spacing:0.5px">No IPS Required ('+IPS_DATA.no_ips.length+')</td></tr>';
+  s+='<tr><td colspan="14" style="padding:7px 10px;background:#FFF3CD;font-weight:700;font-size:12.5px;color:#856404;text-transform:uppercase;letter-spacing:0.5px">No IPS Required ('+IPS_DATA.no_ips.length+')</td></tr>';
 
   IPS_DATA.no_ips.forEach(function(c){
     row++;
@@ -5169,26 +5169,26 @@ function buildChecklist(){
     var lastReview2=mis2.last_review||'—';
     var actionItems2=mis2.action_items;
     s+='<tr style="background:'+rowbg+'">';
-    s+='<td style="padding:9px 10px;text-align:center;color:#888;font-size:12px">'+row+'</td>';
+    s+='<td style="padding:9px 10px;text-align:center;color:#888;font-size:14px">'+row+'</td>';
     s+='<td style="padding:9px 12px">'+nameCell+'</td>';
-    s+='<td style="padding:9px 10px;font-family:monospace;font-size:12px;color:#555">'+(ndas||'—')+'</td>';
-    s+='<td style="padding:9px 10px;font-size:12px">'+strategy+'</td>';
-    s+='<td style="padding:9px 10px;font-size:13px;font-weight:600;text-align:right">'+(aum_cr>0?aum_cr.toFixed(2):'—')+'</td>';
+    s+='<td style="padding:9px 10px;font-family:monospace;font-size:14px;color:#555">'+(ndas||'—')+'</td>';
+    s+='<td style="padding:9px 10px;font-size:14px">'+strategy+'</td>';
+    s+='<td style="padding:9px 10px;font-size:15px;font-weight:600;text-align:right">'+(aum_cr>0?aum_cr.toFixed(2):'—')+'</td>';
     s+='<td style="padding:9px 10px;text-align:center">'+mgmtBadge(ndas)+'</td>';
-    s+='<td style="padding:9px 10px;font-size:12px">'+rm+'</td>';
-    s+='<td style="padding:9px 10px;font-size:12px">'+srm+'</td>';
-    s+='<td style="padding:9px 10px;font-size:12px;font-weight:600">'+advisor2+'</td>';
-    s+='<td style="padding:9px 10px;font-size:12px">'+lastReview2+'</td>';
-    s+='<td style="padding:9px 10px;text-align:center"><span style="background:#FFF3CD;color:#856404;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700">No</span></td>';
+    s+='<td style="padding:9px 10px;font-size:14px">'+rm+'</td>';
+    s+='<td style="padding:9px 10px;font-size:14px">'+srm+'</td>';
+    s+='<td style="padding:9px 10px;font-size:14px;font-weight:600">'+advisor2+'</td>';
+    s+='<td style="padding:9px 10px;font-size:14px">'+lastReview2+'</td>';
+    s+='<td style="padding:9px 10px;text-align:center"><span style="background:#FFF3CD;color:#856404;padding:2px 8px;border-radius:4px;font-size:12.5px;font-weight:700">No</span></td>';
     s+='<td style="padding:9px 10px;text-align:center;color:#aaa">—</td>';
-    s+='<td style="padding:9px 10px;font-size:12px;color:#888;font-style:italic">'+(c.reason||'—')+'</td>';
-    var aiCell2=actionItems2?'<div style="font-size:12px;line-height:1.6">'+actionItems2.replace(/\n/g,'<br>')+'</div>':'<span style="color:#aaa">—</span>';
+    s+='<td style="padding:9px 10px;font-size:14px;color:#888;font-style:italic">'+(c.reason||'—')+'</td>';
+    var aiCell2=actionItems2?'<div style="font-size:14px;line-height:1.6">'+actionItems2.replace(/\n/g,'<br>')+'</div>':'<span style="color:#aaa">—</span>';
     s+='<td style="padding:9px 10px">'+aiCell2+'</td>';
     s+='</tr>';
   });
 
   // ── Section: Unfunded ────────────────────────────────────────────────────
-  s+='<tr><td colspan="14" style="padding:7px 10px;background:#F0F2F5;font-weight:700;font-size:11px;color:#555;text-transform:uppercase;letter-spacing:0.5px">Unfunded ('+UNFUNDED_DATA.length+')</td></tr>';
+  s+='<tr><td colspan="14" style="padding:7px 10px;background:#F0F2F5;font-weight:700;font-size:12.5px;color:#555;text-transform:uppercase;letter-spacing:0.5px">Unfunded ('+UNFUNDED_DATA.length+')</td></tr>';
 
   UNFUNDED_DATA.forEach(function(u){
     row++;
@@ -5202,20 +5202,20 @@ function buildChecklist(){
     var lastReview3=mis3.last_review||'—';
     var actionItems3=mis3.action_items;
     s+='<tr style="background:'+rowbg+';opacity:0.6">';
-    s+='<td style="padding:9px 10px;text-align:center;color:#888;font-size:12px">'+row+'</td>';
-    s+='<td style="padding:9px 12px;font-weight:600;font-size:13px;color:#888">'+(u.client_name||u.name||'—')+'</td>';
-    s+='<td style="padding:9px 10px;font-family:monospace;font-size:12px;color:#aaa">'+u.code+'</td>';
-    s+='<td style="padding:9px 10px;font-size:12px;color:#888">'+uStrat+'</td>';
+    s+='<td style="padding:9px 10px;text-align:center;color:#888;font-size:14px">'+row+'</td>';
+    s+='<td style="padding:9px 12px;font-weight:600;font-size:15px;color:#888">'+(u.client_name||u.name||'—')+'</td>';
+    s+='<td style="padding:9px 10px;font-family:monospace;font-size:14px;color:#aaa">'+u.code+'</td>';
+    s+='<td style="padding:9px 10px;font-size:14px;color:#888">'+uStrat+'</td>';
     s+='<td style="padding:9px 10px;color:#aaa;text-align:right">—</td>';
     s+='<td style="padding:9px 10px;text-align:center;color:#aaa">—</td>';
-    s+='<td style="padding:9px 10px;font-size:12px;color:#888">'+(u.rm||'—')+'</td>';
-    s+='<td style="padding:9px 10px;font-size:12px;color:#888">'+(u.srm||'—')+'</td>';
-    s+='<td style="padding:9px 10px;font-size:12px;color:#888;font-weight:600">'+advisor3+'</td>';
-    s+='<td style="padding:9px 10px;font-size:12px;color:#888">'+lastReview3+'</td>';
+    s+='<td style="padding:9px 10px;font-size:14px;color:#888">'+(u.rm||'—')+'</td>';
+    s+='<td style="padding:9px 10px;font-size:14px;color:#888">'+(u.srm||'—')+'</td>';
+    s+='<td style="padding:9px 10px;font-size:14px;color:#888;font-weight:600">'+advisor3+'</td>';
+    s+='<td style="padding:9px 10px;font-size:14px;color:#888">'+lastReview3+'</td>';
     s+='<td style="padding:9px 10px;text-align:center;color:#aaa">—</td>';
     s+='<td style="padding:9px 10px;text-align:center;color:#aaa">—</td>';
-    s+='<td style="padding:9px 10px;font-size:12px;color:#aaa;font-style:italic">Unfunded — pending onboarding</td>';
-    var aiCell3=actionItems3?'<div style="font-size:12px;line-height:1.6">'+actionItems3.replace(/\n/g,'<br>')+'</div>':'<span style="color:#aaa">—</span>';
+    s+='<td style="padding:9px 10px;font-size:14px;color:#aaa;font-style:italic">Unfunded — pending onboarding</td>';
+    var aiCell3=actionItems3?'<div style="font-size:14px;line-height:1.6">'+actionItems3.replace(/\n/g,'<br>')+'</div>':'<span style="color:#aaa">—</span>';
     s+='<td style="padding:9px 10px">'+aiCell3+'</td>';
     s+='</tr>';
   });
