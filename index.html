@@ -141,6 +141,7 @@
 
 
 
+
 <style id="ndpms-polish">
 /* ---- Aug-2026 refresh: typography + spacing polish (override layer, non-destructive) ---- */
 :root{--shadow-sm:0 1px 3px rgba(14,40,65,.06);--shadow-md:0 6px 20px -6px rgba(14,40,65,.14);--radius:14px;}
@@ -183,7 +184,7 @@ h2{letter-spacing:-.3px;} h3{letter-spacing:-.2px;}
  <div class="topbar-inner">
   <div>
     <h1 id="topbar-title">NDPMS Strategies Outlook and Updates</h1>
-    <div class="meta" id="topbar-meta">Data as of 31 July 2026</strong> &middot; covers Allocate Select, LVPMS &amp; CoPilot</div>
+    <div class="meta" id="topbar-meta">Data as of 16 August 2026</strong> &middot; covers Allocate Select, LVPMS &amp; CoPilot</div>
   </div>
   <div id="topbar-search-wrap" style="position:relative;flex:1;max-width:380px;min-width:200px">
     <input id="global-search-input" type="text" placeholder="&#128269; Search client, fund, or RM&hellip;" autocomplete="off"
@@ -542,7 +543,7 @@ function isReviewExempt(holdings) {
 // Chittavajhula Venkat Subramanya Sharma (AONDCP0012) — new account (funded 29-Jun-2026),
 // still deploying capital; revisit once fully invested.
 const MANUAL_REVIEW_EXEMPT_NDAS = ['NDAS0010', 'AONDCP0001', 'AONDCP0009', 'AONDCP0012'];
-// Parses the dashboard's "Data as of 31 July 2026") into {month, year} (month 0-indexed).
+// Parses the dashboard's "Data as of 16 August 2026") into {month, year} (month 0-indexed).
 const MONTH_FULL = {January:0,February:1,March:2,April:3,May:4,June:5,July:6,August:7,September:8,October:9,November:10,December:11};
 function getReportingMonthYear() {
   const el = document.getElementById('topbar-meta');
@@ -2173,7 +2174,7 @@ function downloadClientExcel(strategyIdx, clientIdx) {
   if (commAoa.length === 1) commAoa.push(['—', 'No gold/silver holdings', '—', '—']);
   XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(commAoa), 'Commodities');
 
-  const fname = `${(c.name||'client').replace(/[^a-z0-9]+/gi,'_')}_${c.ndas||c.account}_15Jul2026.xlsx`;
+  const fname = `${(c.name||'client').replace(/[^a-z0-9]+/gi,'_')}_${c.ndas||c.account}_16Aug2026.xlsx`;
   XLSX.writeFile(wb, fname);
 }
 
@@ -2384,7 +2385,7 @@ function showMainView() {
   document.getElementById('main-view').style.display = 'block';
   document.getElementById('topbar-title').textContent = 'NDPMS Strategies Outlook and Updates';
   document.getElementById('topbar-meta').innerHTML =
-    'Data as of 31 July 2026</strong> &middot; covers Allocate Select, LVPMS &amp; CoPilot';
+    'Data as of 16 August 2026</strong> &middot; covers Allocate Select, LVPMS &amp; CoPilot';
   document.getElementById('topbar-actions').innerHTML =
     '<a class="refresh-btn" id="ips-btn" href="#" onclick="toggleIPSView();return false;">&#128203; IPS Review</a>' +
     '<a class="refresh-btn" id="checklist-btn" href="#" onclick="toggleChecklistView();return false;" style="margin-left:8px">&#9776; Client Checklist</a>' +
@@ -4995,7 +4996,7 @@ function toggleIPSView(){
   document.getElementById('calls-view').style.display='none';
   document.getElementById('ips-view').style.display='';
   document.getElementById('topbar-title').textContent='IPS Review — All Clients';
-  document.getElementById('topbar-meta').innerHTML='Data as of 31 July 2026</strong>';
+  document.getElementById('topbar-meta').innerHTML='Data as of 16 August 2026</strong>';
   document.getElementById('topbar-actions').innerHTML=
     '<a class="refresh-btn" href="#" onclick="showMainView();return false;">&larr; Back to Dashboard</a>';
   buildIPSSummary();
@@ -5015,7 +5016,7 @@ function buildIPSSummary(){
 
   s+='<div style="margin-bottom:24px">';
   s+='<h2 style="color:#0E2841;margin:0 0 4px">Investment Policy Statement — All Clients</h2>';
-  s+='<div style="color:#888;font-size:15px">As of 31 July 2026 · '+totalAll+' total clients · '+ipsCreatedCount+' IPS created · '+d.no_ips.length+' excluded</div></div>';
+  s+='<div style="color:#888;font-size:15px">As of 16 August 2026 · '+totalAll+' total clients · '+ipsCreatedCount+' IPS created · '+d.no_ips.length+' excluded</div></div>';
 
   // Data-quality guard — see auditLcMcScConsistency(): LC/MC/SC and International Equity must be
   // mutually exclusive slices of equity; a sum over 100% means a fund got double-counted as both.
@@ -5267,7 +5268,7 @@ function toggleChecklistView(){
   document.getElementById('calls-view').style.display='none';
   document.getElementById('checklist-view').style.display='';
   document.getElementById('topbar-title').textContent='Client Level Checklist';
-  document.getElementById('topbar-meta').innerHTML='Data as of 31 July 2026</strong> · All NDPMS clients incl. unfunded';
+  document.getElementById('topbar-meta').innerHTML='Data as of 16 August 2026</strong> · All NDPMS clients incl. unfunded';
   document.getElementById('topbar-actions').innerHTML=
     '<a class="refresh-btn" href="#" onclick="showMainView();return false;">&larr; Back to Dashboard</a>';
   buildChecklist();
@@ -5304,7 +5305,7 @@ function buildChecklist(){
   var ipsClientsList = IPS_DATA.clients.filter(function(c){ return !PASSIVE_NDAS.has(ipsNdas(c)); });
   var totalBreaches=0;
   ipsClientsList.forEach(function(c){ if(getBreaches(c).length>0) totalBreaches++; });
-  s+='<div style="color:#888;font-size:15px;margin-bottom:16px">As of 31 July 2026 &middot; '+
+  s+='<div style="color:#888;font-size:15px;margin-bottom:16px">As of 16 August 2026 &middot; '+
      ipsClientsList.length+' funded clients with IPS &middot; '+
      (ipsClientsList.length-totalBreaches)+' compliant &middot; '+totalBreaches+' with deviations &middot; '+
      IPS_DATA.no_ips.length+' no IPS &middot; '+UNFUNDED_DATA.length+' unfunded</div>';
@@ -5489,6 +5490,8 @@ function buildChecklist(){
 }
 
 </script>
+
+
 
 
 
