@@ -142,6 +142,7 @@
 
 
 
+
 <style id="ndpms-polish">
 /* ---- Aug-2026 refresh: typography + spacing polish (override layer, non-destructive) ---- */
 :root{--shadow-sm:0 1px 3px rgba(14,40,65,.06);--shadow-md:0 6px 20px -6px rgba(14,40,65,.14);--radius:14px;}
@@ -173,6 +174,19 @@ tbody tr:hover{background:rgba(36,43,161,.035);}
 .strategy-tab.active{box-shadow:inset 0 -3px 0 var(--primary);}
 /* chart cards */
 .chart-card{padding:20px!important;border-radius:var(--radius)!important;box-shadow:var(--shadow-sm)!important;border:1px solid var(--border);}
+/* --- main-view chart layout: 2 rows, no dead space (was 3-col grid leaving ~800px empty
+       beside the single-column "% Outperforming" chart). Scoped to #main-view so client /
+       IPS / feature pages keep their own grids untouched. --- */
+#main-view .charts-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:18px!important;align-items:stretch!important;margin-bottom:26px!important}
+#main-view .charts-grid>.chart-card{grid-column:auto!important}          /* row 1: two side-by-side */
+#main-view .charts-grid>.chart-card:last-child{grid-column:1/-1!important} /* row 2: wide alpha chart */
+/* Do NOT hard-set canvas heights: renderStrategy() sizes horizontal-bar wrappers by label
+   count (labels*32+40) so Y-axis labels stay legible. Instead let the card flex so the
+   shorter chart grows to match its row-mate — fills the row, compresses nothing. */
+#main-view .charts-grid>.chart-card{display:flex!important;flex-direction:column!important}
+#main-view .charts-grid>.chart-card>*:last-child{flex:1 1 auto;min-height:260px}
+@media (max-width:900px){ #main-view .charts-grid{grid-template-columns:1fr!important}
+  #main-view .charts-grid>.chart-card{grid-column:1/-1!important} }
 /* topbar a touch more presence */
 .topbar{padding:22px 0!important;box-shadow:0 3px 14px -4px rgba(14,40,65,.35)!important;}
 /* headings rhythm */
@@ -5490,6 +5504,8 @@ function buildChecklist(){
 }
 
 </script>
+
+
 
 
 
