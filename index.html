@@ -4360,14 +4360,24 @@ function buildClientDeck(clientRecord){
     const topHolding = (sc.holdings||[]).slice().sort((a,b)=>(b.assets_pct||0)-(a.assets_pct||0))[0];
     const breachWeightPct = items.filter(r=>r.status==="over").reduce((a,r)=>a+(parseFloat(r.current)||0),0);
     const cashPctNow = cashEquivPct(typeof ipsNdas === "function" ? ipsNdas(ips) : null);
+    // Compliant/breach flag per row, so "Today" reads at a glance instead of requiring the reader
+    // to compare two prose strings themselves -- same red/green convention used everywhere else in
+    // this deck (IPS Contours, Priority Actions), applied here for the first time. Adapted from the
+    // reference decks' own before/after and gap-analysis tables (2026-08-18 feedback: "take what you
+    // can... add value").
     const rows = [
-      {label:"Largest single holding", today: topHolding ? pct(topHolding.assets_pct) : "—", target: `≤ ${tmBands.scheme.max}% (single-scheme guideline)`},
-      {label:"IPS breach weight (sum of over-band positions)", today: pct(breachWeightPct), target: "0% — no position outside its band"},
-      {label:"International equity (% of equity)", today: pct(ips.intl_eq_pct), target: ASSET_X_INTL_EQ_NOTE},
-      {label:"Cash & Cash Equivalents", today: cashPctNow!=null ? pct(cashPctNow) : "—", target: tmBands.cash.label},
+      {label:"Largest single holding", today: topHolding ? pct(topHolding.assets_pct) : "—", target: `≤ ${tmBands.scheme.max}% (single-scheme guideline)`,
+        compliant: topHolding ? (topHolding.assets_pct||0) <= tmBands.scheme.max : null},
+      {label:"IPS breach weight (sum of over-band positions)", today: pct(breachWeightPct), target: "0% — no position outside its band",
+        compliant: breachWeightPct <= 0.01},
+      {label:"International equity (% of equity)", today: pct(ips.intl_eq_pct), target: ASSET_X_INTL_EQ_NOTE, compliant: null},
+      {label:"Cash & Cash Equivalents", today: cashPctNow!=null ? pct(cashPctNow) : "—", target: tmBands.cash.label,
+        compliant: cashPctNow!=null ? cashPctNow <= (tmBands.cash.max!=null?tmBands.cash.max:5) : null},
     ];
     const tRows = [[C("Metric",{b:1,color:BRAND.WHITE,fill:BRAND.BLUE,align:"left"}),C("Today",{b:1,color:BRAND.WHITE,fill:BRAND.BLUE}),C("Proposed / Target",{b:1,color:BRAND.WHITE,fill:BRAND.BLUE})]];
-    rows.forEach(r => tRows.push([C(r.label,{align:"left"}), C(r.today,{b:1}), C(r.target,{color:BRAND.GREY})]));
+    rows.forEach(r => tRows.push([C(r.label,{align:"left"}),
+      C(r.today,{b:1,color:r.compliant==null?BRAND.INK:(r.compliant?BRAND.DGREEN:BRAND.DRED),fill:r.compliant==null?BRAND.WHITE:(r.compliant?BRAND.LGREEN:BRAND.LRED)}),
+      C(r.target,{color:BRAND.GREY})]));
     s.addTable(tRows,{x:0.5,y:1.6,w:12.33,colW:[5.5,3.4,3.43],rowH:0.85,border:{type:"solid",color:BRAND.LINE,pt:1}});
     s.addText("Proposed values are IPS/house-view guidelines, not forecasts of return. See Priority Actions for the specific trades and amounts to get there.",
       {x:0.5,y:1.6+tRows.length*0.85+0.2,w:12.33,h:0.6,fontFace:BRAND.FONT,fontSize:10.5,color:BRAND.GREY,italic:true});
@@ -5926,7 +5936,7 @@ window.CLIENT_XIRR_DATA={"ANGNR0004":{"xirrPct":7.08,"invested":353010673.0,"cur
          and PMS/AIF (manual-addition flag). Found via user feedback that earlier-session features
          "got missed" -- audited every titleBar(...) call in buildClientDeck() against this regex and
          added every real feature slide that wasn't matching. */
-      var KEEP=/^(Portfolio Snapshot|Total Portfolio Holdings|Asset Allocation & Market-Cap|Concentration & Tail|Fund Performance vs Benchmark|What Your Funds Cost|Instrument & Asset-Class Return|Attribution Analysis|Calls |Sector Exposure|Group Concentration|PMS \/ AIF|Priority Actions|Redeployment)/;
+      var KEEP=/^(Portfolio Snapshot|Total Portfolio Holdings|Before & After|Asset Allocation & Market-Cap|Concentration & Tail|Fund Performance vs Benchmark|What Your Funds Cost|Instrument & Asset-Class Return|Attribution Analysis|Calls |Sector Exposure|Group Concentration|PMS \/ AIF|Priority Actions|Redeployment)/;
       var keepIdx={};
       try{
         var probe=new Real(); probe.defineLayout({name:"W",width:13.333,height:7.5}); probe.layout="W";
