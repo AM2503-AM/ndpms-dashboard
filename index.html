@@ -4731,19 +4731,36 @@ function buildClientDeck(clientRecord){
     titleBar(s,"Attribution Analysis", monthsUsed.length ? `Contribution to return · ${monthsUsed[0]} to ${monthsUsed[monthsUsed.length-1]} · tied to Asset X house view` : "No attribution data in this window");
     const top = withBucket.slice(0,5), bottom = withBucket.slice(-5).reverse();
     const rowH = 0.82;
+    // Per user feedback 2026-08-18 ("attribution page all its showing is asset x commodities gold
+    // 3-4 times"): a client holding several funds in the same Asset X bucket (e.g. multiple gold/
+    // commodity positions) had the identical stance sentence repeated on every single row -- real
+    // information (which specific security drove the return) got buried under duplicated boilerplate.
+    // Fix, matching the reference decks' own pattern (one synthesized rationale line, not one per
+    // holding): print the italic Asset X stance line only the FIRST time a bucket appears within
+    // each list (top / bottom tracked separately) -- every row still shows its own name/contribution,
+    // just not a fourth identical copy of the same one-line house view.
+    const seenTop = new Set(), seenBottom = new Set();
     s.addText("Calls That Went Right",{x:0.5,y:1.5,w:5.9,h:0.35,fontFace:BRAND.FONTB,bold:true,fontSize:14,color:BRAND.DGREEN});
     top.forEach((f,i)=>{ const y=1.95+i*rowH;
       s.addShape(pptx.ShapeType.roundRect,{x:0.5,y,w:5.9,h:rowH-0.1,fill:{color:BRAND.LGREEN},line:{type:"none"},rectRadius:0.05});
       s.addText(f.name,{x:0.65,y:y+0.06,w:4.0,h:0.3,fontFace:BRAND.FONTB,bold:true,fontSize:10.5,color:BRAND.INK,valign:"middle"});
       s.addText("+"+f.contribution.toFixed(2)+"%",{x:4.7,y:y+0.06,w:1.6,h:0.3,fontFace:BRAND.FONTB,bold:true,fontSize:12,color:BRAND.DGREEN,align:"right",valign:"middle"});
-      if (f.view) s.addText(`Asset X — ${f.bucket}: ${f.view.stance}`,{x:0.65,y:y+0.36,w:5.6,h:0.3,fontFace:BRAND.FONT,italic:true,fontSize:8.5,color:STANCE_COLOR[f.view.stance]||BRAND.GREY,valign:"middle"});
+      if (f.view && !seenTop.has(f.bucket)) { seenTop.add(f.bucket);
+        s.addText(`Asset X — ${f.bucket}: ${f.view.stance}`,{x:0.65,y:y+0.36,w:5.6,h:0.3,fontFace:BRAND.FONT,italic:true,fontSize:8.5,color:STANCE_COLOR[f.view.stance]||BRAND.GREY,valign:"middle"});
+      } else if (f.view) {
+        s.addText(f.bucket,{x:0.65,y:y+0.36,w:5.6,h:0.3,fontFace:BRAND.FONT,italic:true,fontSize:8.5,color:BRAND.GREY,valign:"middle"});
+      }
     });
     s.addText("Calls That Went Wrong",{x:6.7,y:1.5,w:5.9,h:0.35,fontFace:BRAND.FONTB,bold:true,fontSize:14,color:BRAND.DRED});
     bottom.forEach((f,i)=>{ const y=1.95+i*rowH;
       s.addShape(pptx.ShapeType.roundRect,{x:6.7,y,w:5.9,h:rowH-0.1,fill:{color:BRAND.LRED},line:{type:"none"},rectRadius:0.05});
       s.addText(f.name,{x:6.85,y:y+0.06,w:4.0,h:0.3,fontFace:BRAND.FONTB,bold:true,fontSize:10.5,color:BRAND.INK,valign:"middle"});
       s.addText(f.contribution.toFixed(2)+"%",{x:10.9,y:y+0.06,w:1.6,h:0.3,fontFace:BRAND.FONTB,bold:true,fontSize:12,color:BRAND.DRED,align:"right",valign:"middle"});
-      if (f.view) s.addText(`Asset X — ${f.bucket}: ${f.view.stance}`,{x:6.85,y:y+0.36,w:5.6,h:0.3,fontFace:BRAND.FONT,italic:true,fontSize:8.5,color:STANCE_COLOR[f.view.stance]||BRAND.GREY,valign:"middle"});
+      if (f.view && !seenBottom.has(f.bucket)) { seenBottom.add(f.bucket);
+        s.addText(`Asset X — ${f.bucket}: ${f.view.stance}`,{x:6.85,y:y+0.36,w:5.6,h:0.3,fontFace:BRAND.FONT,italic:true,fontSize:8.5,color:STANCE_COLOR[f.view.stance]||BRAND.GREY,valign:"middle"});
+      } else if (f.view) {
+        s.addText(f.bucket,{x:6.85,y:y+0.36,w:5.6,h:0.3,fontFace:BRAND.FONT,italic:true,fontSize:8.5,color:BRAND.GREY,valign:"middle"});
+      }
     });
     footer(s,"Contribution = weighted return contribution over the review window, per security · stance from the current Asset X view");
   })();
@@ -5901,7 +5918,15 @@ window.CLIENT_XIRR_DATA={"ANGNR0004":{"xirrPct":7.08,"invested":353010673.0,"cur
                 attribution:D.familyAttribution||null,
                 mis:(typeof MIS_DATA!=="undefined"?MIS_DATA["NDAS0011"]:null)||null,
                 ips:F.ipsRecord||null };
-      var KEEP=/^(Portfolio Snapshot|Asset Allocation & Market-Cap|Concentration & Tail|Fund Performance vs Benchmark|What Your Funds Cost|Instrument & Asset-Class Return|Attribution Analysis|Calls |Sector Exposure|Group Concentration)/;
+      /* 2026-08-18: was silently dropping several previously-built slides that don't start their
+         title with one of the original prefixes -- Total Portfolio Holdings (the rich per-holding
+         table with cost/gain-loss/tax-if-sold/exit-load/transfer-in flags, distinct from this deck's
+         own compact "Holdings by Account" value/% table), Priority Actions (the IPS-driven order
+         sheet with real ₹ amounts, buildGapAnalysisItems), Redeployment (proceeds-available exits),
+         and PMS/AIF (manual-addition flag). Found via user feedback that earlier-session features
+         "got missed" -- audited every titleBar(...) call in buildClientDeck() against this regex and
+         added every real feature slide that wasn't matching. */
+      var KEEP=/^(Portfolio Snapshot|Total Portfolio Holdings|Asset Allocation & Market-Cap|Concentration & Tail|Fund Performance vs Benchmark|What Your Funds Cost|Instrument & Asset-Class Return|Attribution Analysis|Calls |Sector Exposure|Group Concentration|PMS \/ AIF|Priority Actions|Redeployment)/;
       var keepIdx={};
       try{
         var probe=new Real(); probe.defineLayout({name:"W",width:13.333,height:7.5}); probe.layout="W";
