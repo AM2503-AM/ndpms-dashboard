@@ -4624,9 +4624,14 @@ function buildClientDeck(clientRecord){
       s.addText(k.value,{x,y:1.73,w:kpiW,h:0.6,fontFace:BRAND.FONTB,bold:true,fontSize:20,color:BRAND.BLUE,align:"center"});
       s.addText(k.label,{x,y:2.33,w:kpiW,h:0.35,fontFace:BRAND.FONT,fontSize:9,color:BRAND.GREY,align:"center"});
     });
+    // Per-fund annual fee is typically a few thousand rupees -- money() (always "X.XX Cr") rounds
+    // every single row to "₹0.00 Cr", which reads as broken even though the underlying number is
+    // fine. Show these small rupee amounts in plain, comma-formatted rupees instead; keep money()
+    // (Cr) only for the book-wide KPI total above, which is large enough for Cr to be legible.
+    const moneySmall = v => v==null ? "—" : "₹"+Math.round(v).toLocaleString('en-IN');
     const rows = [[C("Scheme",{b:1,color:BRAND.WHITE,fill:BRAND.BLUE,align:"left",size:9.5}),C("Wt %",{b:1,color:BRAND.WHITE,fill:BRAND.BLUE,size:9.5}),C("TER %",{b:1,color:BRAND.WHITE,fill:BRAND.BLUE,size:9.5}),C("Annual Fee",{b:1,color:BRAND.WHITE,fill:BRAND.BLUE,size:9.5})]];
     withTer.sort((a,b)=>(b.market_value||0)-(a.market_value||0)).slice(0,10).forEach(h=>{
-      rows.push([C(h.security,{align:"left",size:8.5}), C(pct(h.assets_pct),{size:8.5}), C(h.ter.toFixed(2)+"%",{size:8.5}), C(money(h.market_value*h.ter/100),{size:8.5})]);
+      rows.push([C(h.security,{align:"left",size:8.5}), C(pct(h.assets_pct),{size:8.5}), C(h.ter.toFixed(2)+"%",{size:8.5}), C(moneySmall(h.market_value*h.ter/100),{size:8.5})]);
     });
     const rowH = Math.min(0.42, Math.max(0.32, 3.7/rows.length));
     s.addTable(rows,{x:0.5,y:3.05,w:8.0,colW:[4.4,1.0,1.1,1.5],rowH,border:{type:"solid",color:BRAND.LINE,pt:1}});
@@ -4759,9 +4764,41 @@ function buildClientDeck(clientRecord){
     if (!entries.length && !chemHolder) return;
     const hasTradeSlide = typeof CALL_EXECUTION_DATA !== "undefined" && CALL_EXECUTION_DATA.clients[sc.ndas] && CALL_EXECUTION_DATA.clients[sc.ndas].trades && CALL_EXECUTION_DATA.clients[sc.ndas].trades.length;
     const s = pptx.addSlide(); s.background = {color: BRAND.WHITE};
-    titleBar(s, hasTradeSlide ? "Calls (1/2) — Registry & Verdicts" : "Calls — Registry & Verdicts", "Every named, dated Asset X call this client has exposure to — verdict is on the call, not the fund. A 2-leg rotation gets one row with a blended alpha.");
-    const rowH = 0.68;
-    const rows = entries.slice(0,7);
+    titleBar(s, hasTradeSlide ? "Calls (1/2) — Registry & Verdicts" : "Calls — Registry & Verdicts", "Every named, dated Asset X call this client has exposure to, with its own return vs. benchmark, entry timing, and exit-readiness — verdict is on the call, not the fund.");
+
+    // "If sold today" vetting, condensed to one line -- the same LTCG/exit-load fields the
+    // dashboard's Calls page already computes per leg (build_call_registry.py / HOLDING_ORIGIN_DATA
+    // + EXIT_LOAD_DATA), which the PPT previously only cross-referenced via a footer line pointing
+    // back to the dashboard (see the "Not done" note in the ndpms-monthly-update skill, Step 31) --
+    // brought inline here per 2026-08-18 feedback asking for "timing, tranches, vetting... against
+    // relevant benchmarks... an actual analysis" instead of a bare alpha number.
+    function vetLegs(legs){
+      if (!legs || !legs.length) return null;
+      const known = legs.filter(l=>l.ltcg===true||l.ltcg===false);
+      const allLtcg = known.length && known.every(l=>l.ltcg===true);
+      const allStcg = known.length && known.every(l=>l.ltcg===false);
+      const anyLoad = legs.some(l=>l.exitLoadStatus==="yes");
+      const tax = !known.length ? "tax n/a" : (allLtcg ? "LTCG" : (allStcg ? "STCG" : "mixed LTCG/STCG"));
+      return { text: tax+", "+(anyLoad?"load applies":"no load"), warn: anyLoad||allStcg||(!allLtcg&&!allStcg) };
+    }
+    // One leg's own return vs. its own named benchmark, entry date, and vetting -- this is the
+    // "actual analysis" behind a bare alpha%, not just a differently-labeled restatement of it.
+    // weightedBuyDate is the literal string "n/a" when the underlying data has no dated first-buy
+    // for this call (older calls, or a data gap) -- omit the "since" clause rather than printing
+    // "since n/a", which reads as a bug even though the field itself is behaving as documented.
+    function legDetail(leg, label){
+      if (!leg || !(leg.deployedMarketValue>0) || leg.alphaPct==null) return label ? `${label}: no clean deployed position` : "No clean deployed position to judge — see the dashboard's Calls page for transferred-in/mixed detail.";
+      const v = vetLegs(leg.legs);
+      const pre = label ? `${label}: ` : "";
+      const since = (leg.weightedBuyDate && leg.weightedBuyDate!=="n/a") ? ` · since ${leg.weightedBuyDate}` : "";
+      return `${pre}${leg.weightedGlPct>=0?"+":""}${leg.weightedGlPct.toFixed(1)}% vs ${leg.benchmarkLabel||"benchmark"} ${leg.benchmarkReturnPct>=0?"+":""}${leg.benchmarkReturnPct.toFixed(1)}%${since}` + (v?` · ${v.text}`:"");
+    }
+
+    // Richer rows (a second detail line per call) need more vertical room than the old single-line
+    // list -- capped at 6 (was 7) and given a taller, count-scaled row height so 4-6 calls still
+    // fit inside the 1.5-6.9in content band without overflowing.
+    const rows = entries.slice(0,6);
+    const rowH = Math.min(0.98, Math.max(0.66, 5.3/Math.max(1,rows.length)));
     // 2026-08-13: a rotation call (isPaired) has no single deployedMarketValue/alphaPct/direction at
     // top level any more -- it has combinedAlphaPct/combinedVerdict plus a buyLeg+sellLeg. Also:
     // a call held <3 months (tooEarly) shows as an amber "TOO EARLY" row instead of a firm
@@ -4776,27 +4813,31 @@ function buildClientDeck(clientRecord){
       const fillColor = !hasVerdict ? BRAND.GREYPANEL : (e.tooEarly ? BRAND.PANEL : (good?BRAND.LGREEN:BRAND.LRED));
       const dirArrow = e.isPaired ? "▲/▼" : (e.direction === "BUY" ? "▲" : "▼");
       s.addShape(pptx.ShapeType.roundRect,{x:0.4,y,w:12.53,h:rowH-0.08,fill:{color:fillColor},line:{type:"none"},rectRadius:0.05});
-      s.addText(`${dirArrow} ${e.callLabel}`,{x:0.55,y:y+0.04,w:3.7,h:rowH-0.16,fontFace:BRAND.FONTB,bold:true,fontSize:10,color:BRAND.BLUE,valign:"middle"});
-      s.addText(`Called ${e.calledDate}`,{x:4.35,y:y+0.04,w:1.5,h:rowH-0.16,fontFace:BRAND.FONT,fontSize:8,color:BRAND.GREY,valign:"middle"});
+      s.addText(`${dirArrow} ${e.callLabel}`,{x:0.55,y:y+0.04,w:3.7,h:0.3,fontFace:BRAND.FONTB,bold:true,fontSize:10,color:BRAND.BLUE,valign:"middle"});
+      s.addText(`Called ${e.calledDate}`,{x:4.35,y:y+0.04,w:1.5,h:0.3,fontFace:BRAND.FONT,fontSize:8,color:BRAND.GREY,valign:"middle"});
       s.addText(hasVerdict ? `${e.isPaired?"combined ":""}${alpha>=0?"+":""}${alpha.toFixed(2)}% alpha` : "no clean deployed position",
-        {x:5.95,y:y+0.04,w:3.1,h:rowH-0.16,fontFace:BRAND.FONTB,bold:true,fontSize:10,color:!hasVerdict?BRAND.GREY:(e.tooEarly?BRAND.AMBER:(good?BRAND.DGREEN:BRAND.DRED)),align:"right",valign:"middle"});
+        {x:5.95,y:y+0.04,w:3.1,h:0.3,fontFace:BRAND.FONTB,bold:true,fontSize:10,color:!hasVerdict?BRAND.GREY:(e.tooEarly?BRAND.AMBER:(good?BRAND.DGREEN:BRAND.DRED)),align:"right",valign:"middle"});
       const verdictTag = e.tooEarly ? "TOO EARLY TO CALL" : (hasVerdict ? (good?"GOOD":"BAD") : "");
-      if (verdictTag) s.addText(verdictTag,{x:9.2,y:y+0.04,w:1.9,h:rowH-0.16,fontFace:BRAND.FONTB,bold:true,fontSize:8,italic:true,color:e.tooEarly?BRAND.AMBER:(good?BRAND.DGREEN:BRAND.DRED),align:"right",valign:"middle"});
+      if (verdictTag) s.addText(verdictTag,{x:9.2,y:y+0.04,w:1.9,h:0.3,fontFace:BRAND.FONTB,bold:true,fontSize:8,italic:true,color:e.tooEarly?BRAND.AMBER:(good?BRAND.DGREEN:BRAND.DRED),align:"right",valign:"middle"});
       const execTag = e.executionStatus ? (e.executionStatus.anyNotExecuted ? "NOT ALL EXECUTED" : "EXECUTED") : "";
-      if (execTag) s.addText(execTag,{x:11.15,y:y+0.04,w:1.78,h:rowH-0.16,fontFace:BRAND.FONTB,bold:true,fontSize:7.5,italic:true,color:e.executionStatus.anyNotExecuted?BRAND.DRED:BRAND.DGREEN,align:"right",valign:"middle"});
+      if (execTag) s.addText(execTag,{x:11.15,y:y+0.04,w:1.78,h:0.3,fontFace:BRAND.FONTB,bold:true,fontSize:7.5,italic:true,color:e.executionStatus.anyNotExecuted?BRAND.DRED:BRAND.DGREEN,align:"right",valign:"middle"});
+      // Detail line: own return vs. benchmark, entry timing, and if-sold-today vetting.
+      const detail = e.isPaired ? `${legDetail(e.buyLeg,"Bought")}   |   ${legDetail(e.sellLeg,"Sold")}` : legDetail(hasVerdict?e:null);
+      s.addText(detail,{x:0.55,y:y+0.36,w:12.2,h:Math.max(0.24,rowH-0.42),fontFace:BRAND.FONT,fontSize:7.8,color:BRAND.GREY,valign:"top"});
     });
     let yNext = 1.5 + rows.length*rowH + 0.1;
     if (chemHolder) {
-      s.addShape(pptx.ShapeType.roundRect,{x:0.4,y:yNext,w:12.53,h:rowH-0.08,fill:{color:BRAND.GREYPANEL},line:{type:"none"},rectRadius:0.05});
-      s.addText(`▼ Chemicals — Exit`,{x:0.55,y:yNext+0.04,w:3.7,h:rowH-0.16,fontFace:BRAND.FONTB,bold:true,fontSize:10,color:BRAND.BLUE,valign:"middle"});
-      s.addText("Called 2026-06-05",{x:4.35,y:yNext+0.04,w:1.5,h:rowH-0.16,fontFace:BRAND.FONT,fontSize:8,color:BRAND.GREY,valign:"middle"});
+      const chemH = 0.5;
+      s.addShape(pptx.ShapeType.roundRect,{x:0.4,y:yNext,w:12.53,h:chemH-0.08,fill:{color:BRAND.GREYPANEL},line:{type:"none"},rectRadius:0.05});
+      s.addText(`▼ Chemicals — Exit`,{x:0.55,y:yNext+0.04,w:3.7,h:chemH-0.16,fontFace:BRAND.FONTB,bold:true,fontSize:10,color:BRAND.BLUE,valign:"middle"});
+      s.addText("Called 2026-06-05",{x:4.35,y:yNext+0.04,w:1.5,h:chemH-0.16,fontFace:BRAND.FONT,fontSize:8,color:BRAND.GREY,valign:"middle"});
       s.addText(`${chemHolder.totalContribution>=0?"+":""}${chemHolder.totalContribution.toFixed(2)}% while held`,
-        {x:5.95,y:yNext+0.04,w:3.1,h:rowH-0.16,fontFace:BRAND.FONTB,bold:true,fontSize:10,color:chemHolder.totalContribution>=0?BRAND.DGREEN:BRAND.DRED,align:"right",valign:"middle"});
+        {x:5.95,y:yNext+0.04,w:3.1,h:chemH-0.16,fontFace:BRAND.FONTB,bold:true,fontSize:10,color:chemHolder.totalContribution>=0?BRAND.DGREEN:BRAND.DRED,align:"right",valign:"middle"});
       s.addText(`${chemHolder.firstMonthHeld} to ${chemHolder.lastMonthHeld||chemHolder.firstMonthHeld} — fully exited`,
-        {x:9.2,y:yNext+0.04,w:3.73,h:rowH-0.16,fontFace:BRAND.FONT,fontSize:8,color:BRAND.GREY,align:"right",valign:"middle"});
-      yNext += rowH;
+        {x:9.2,y:yNext+0.04,w:3.73,h:chemH-0.16,fontFace:BRAND.FONT,fontSize:8,color:BRAND.GREY,align:"right",valign:"middle"});
+      yNext += chemH;
     }
-    footer(s,"Alpha vs. the call's own benchmark (silver spot, gold spot, Nifty 500 TRI, or the factor rotated into/out of, per call) · transferred-in holdings excluded from the verdict · TOO EARLY = call live less than 3 months, not yet old enough to call good/bad · check the dashboard's Calls page for per-fund exit-load/tax detail before dealing");
+    footer(s,"Return/Alpha vs. the call's own benchmark (silver spot, gold spot, Nifty 500 TRI, or the factor rotated into/out of, per call) · timing = market-value-weighted entry date · tax/load = if this position were sold today · transferred-in holdings excluded from the verdict/vetting · TOO EARLY = call live less than 3 months");
   })();
 
   // ---------- CALLS (2/2) — literal trade-level instructions this month (conditional) ----------
@@ -5643,18 +5684,23 @@ window.CLIENT_XIRR_DATA={"ANGNR0004":{"xirrPct":7.08,"invested":353010673.0,"cur
   }
   function footer(s,txt){ s.addText(txt,{x:0.55,y:7.02,w:12.2,h:0.3,fontFace:B.FONT,fontSize:8.5,color:MUTED}); }
 
-  /* Column model — merge accounts with identical portfolios, naming both in the header. */
+  /* Column model — one column per account, always three (Jay, Ruchita, Nitin), even though Jay
+     and Ruchita's portfolios happen to be identical right now. Per user request 2026-08-18: the
+     point of a per-account IPS/Holdings comparison is a genuine three-way record (each account
+     has its own NDAS code, its own review, its own file), not just spotting numeric differences —
+     collapsing two accounts into one column because their numbers currently match was the wrong
+     read of "three columns side by side". Every OTHER table in this deck (Snapshot/Performance/
+     Concentration/Recommendations/Review — see below) is consolidated to family level instead of
+     repeated per account, since those genuinely don't vary enough to earn a whole extra slide each. */
   function buildCols(M){
     var by={}; M.forEach(function(m){ by[m.ndas]=m; });
     var j=by["NDAS0011"], r=by["NDAS0012"], nt=by["NDAS0013"], cols=[];
-    var same = j&&r && Math.abs((j.aum||0)-(r.aum||0))<100 && j.alloc.eq===r.alloc.eq
-               && j.perf.psi===r.perf.psi && j.numHoldings===r.numHoldings;
-    if(same) cols.push({label:"Jay & Ruchita Shah", sub:"NDAS0011 · NDAS0012", m:j, merged:true});
-    else { if(j) cols.push({label:"Jay Shah",sub:"NDAS0011",m:j}); if(r) cols.push({label:"Ruchita Shah",sub:"NDAS0012",m:r}); }
+    if(j) cols.push({label:"Jay Shah", sub:"NDAS0011", m:j});
+    if(r) cols.push({label:"Ruchita Shah", sub:"NDAS0012", m:r});
     if(nt) cols.push({label:"Nitin Shah", sub:"NDAS0013", m:nt});
     return cols;
   }
-  var MERGED_NOTE="Jay and Ruchita hold identical portfolios (same securities, weights and returns), so they share one column — the figures shown apply to each account.";
+  var IDENTICAL_NOTE="Jay and Ruchita currently hold identical portfolios (same securities, weights and returns) — shown as separate columns since each is its own account record.";
 
   function clientTable(s,cols,rows,opts){
     opts=opts||{};
@@ -5725,12 +5771,30 @@ window.CLIENT_XIRR_DATA={"ANGNR0004":{"xirrPct":7.08,"invested":353010673.0,"cur
       ["Cash & Equivalents",{text:pct(F.conc.cashPct),options:{align:"center"}}],
       ["IPS Deviations",{text:String(F.breaches.filter(function(b){return b.status==="breach";}).length),options:{align:"center"}}]
     ],{x:6.85,y:2.5,w:5.92,colW:[3.92,2.0],border:{pt:0.5,color:"D5D9E0"},fontFace:B.FONT,fontSize:10.5,rowH:0.33,valign:"middle"});
-    s.addShape(pptx.ShapeType.roundRect,{x:0.55,y:5.4,w:12.22,h:1.2,fill:{color:B.DARKNAVY},rectRadius:0.06});
-    s.addText("From here on, every table is reported per account",
-      {x:0.8,y:5.55,w:11.7,h:0.35,fontFace:B.FONTB,fontSize:13,bold:true,color:B.GOLD});
-    s.addText("Charts and fund-level analysis are shown once — they are the same picture for all three accounts. "+MERGED_NOTE,
-      {x:0.8,y:5.92,w:11.7,h:0.6,fontFace:B.FONT,fontSize:10.5,color:"E8ECFF"});
-    footer(s,"Family aggregate of "+F.ndasCodes+" · earliest inception "+(F.inception||"—"));
+    /* Review & Actions — advisor/RM/last-review/pending-actions are identical across all three
+       accounts (same family, same team), so this is shown ONCE here rather than as its own
+       per-account slide (the old "Review Status & Actions by Account" slide repeated the exact
+       same text in every column — zero comparative value). Falls back to M[0] since these fields
+       don't vary member-to-member. */
+    var m0=M[0]||{};
+    s.addShape(pptx.ShapeType.roundRect,{x:0.55,y:5.32,w:12.22,h:0.52,fill:{color:B.DARKNAVY},rectRadius:0.06});
+    s.addText("Advisor: "+(m0.advisor||"Preet/Anushka")+"   ·   RM: "+(m0.rm||"—")+"   ·   Service RM: "+(m0.srm||"—")
+      +"   ·   Last review: "+(m0.lastReview||"—")+"   ·   Pending actions: "+(m0.actionItems||"None recorded"),
+      {x:0.75,y:5.32,w:11.9,h:0.52,fontFace:B.FONT,fontSize:9.5,color:"E8ECFF",valign:"middle"});
+    /* Per-account reference — the few numbers that genuinely differ account to account (AUM,
+       account code, XIRR) get one compact strip here instead of a whole "by Account" slide. */
+    var refRows=[["Per-account reference"].concat(cols.map(function(c){return {text:c.label+"\n"+c.sub,bold:true,color:"FFFFFF",fill:B.DARKNAVY};})),
+      ["AUM"].concat(mapCols(cols,function(m){return {text:cr(m.aum)};})),
+      ["Account code"].concat(mapCols(cols,function(m){return {text:String(m.account||m.ndas)};})),
+      ["XIRR (money-weighted)"].concat(mapCols(cols,function(m){return {text:sgn(m.xirr),color:col(m.xirr)};}))];
+    s.addTable(refRows.map(function(r,i){ if(i===0) return [{text:r[0],options:{bold:true,color:"FFFFFF",fill:{color:B.DARKNAVY},align:"left"}}]
+        .concat(r.slice(1).map(function(c){return {text:c.text,options:{bold:true,color:c.color||"FFFFFF",fill:{color:B.DARKNAVY},align:"center"}};}));
+      var fill=(i%2)?"FFFFFF":B.PANEL;
+      return [{text:r[0],options:{bold:true,fill:{color:fill},align:"left"}}].concat(r.slice(1).map(function(c){
+        return {text:c.text,options:{fill:{color:fill},align:"center",color:c.color||"1A1A1A"}};}));
+    }),{x:0.55,y:5.98,w:12.22,colW:[3.4].concat(cols.map(function(){return (12.22-3.4)/cols.length;})),
+      border:{pt:0.5,color:"D5D9E0"},fontFace:B.FONT,fontSize:9,rowH:0.24,valign:"middle"});
+    footer(s,"Family aggregate of "+F.ndasCodes+" · earliest inception "+(F.inception||"—")+" · Jay & Ruchita currently hold identical portfolios.");
 
     /* 3. ASSET X HOUSE VIEW (August) */
     if(typeof ASSETX_IMAGE!=="undefined" && ASSETX_IMAGE){
@@ -5738,76 +5802,28 @@ window.CLIENT_XIRR_DATA={"ANGNR0004":{"xirrPct":7.08,"invested":353010673.0,"cur
       sx.addImage({data:ASSETX_IMAGE,x:0,y:0,w:13.333,h:7.5});
     }
 
-    /* 4. SNAPSHOT + ALLOCATION PER ACCOUNT */
-    s=pptx.addSlide(); s.background={color:B.WHITE};
-    header(s,"Snapshot & Allocation by Account","Each account computed on its own holdings",{text:"PER ACCOUNT",fill:B.DARKNAVY,color:B.WHITE});
-    clientTable(s,cols,[
-      ["AUM"].concat(mapCols(cols,function(m){return {text:cr(m.aum),bold:true};})),
-      ["Account code"].concat(mapCols(cols,function(m,c){return {text:c.merged?"100397 · 100398":String(m.account||m.ndas)};})),
-      ["Inception"].concat(mapCols(cols,function(m){return {text:m.inception||"—"};})),
-      ["Holdings"].concat(mapCols(cols,function(m){return {text:String(m.numHoldings)};})),
-      ["Risk profile"].concat(mapCols(cols,function(m){return {text:m.riskProfile||"—"};})),
-      ["Unrealised G/L"].concat(mapCols(cols,function(m){return {text:sgn(m.glPct),color:col(m.glPct)};})),
-      ["Equity %"].concat(mapCols(cols,function(m){return {text:pct(m.alloc.eq),bold:true};})),
-      ["Debt %"].concat(mapCols(cols,function(m){return {text:pct(m.alloc.debt)};})),
-      ["Others / Alternates %"].concat(mapCols(cols,function(m){return {text:pct(m.alloc.oth)};})),
-      ["Large Cap (of dom. equity)"].concat(mapCols(cols,function(m){return {text:pct(m.caps.lc)};})),
-      ["Mid Cap"].concat(mapCols(cols,function(m){return {text:pct(m.caps.mc)};})),
-      ["Small Cap"].concat(mapCols(cols,function(m){return {text:pct(m.caps.sc)};})),
-      ["International Equity (of eq)"].concat(mapCols(cols,function(m){return {text:pct(m.caps.intl)};})),
-      ["Commodities"].concat(mapCols(cols,function(m){return {text:pct(m.caps.commodity)};}))
-    ],{firstCol:"Snapshot & allocation",rowH:0.315,fontSize:10});
-    footer(s,MERGED_NOTE);
-
-    /* 5. PERFORMANCE PER ACCOUNT */
-    s=pptx.addSlide(); s.background={color:B.WHITE};
-    header(s,"Performance by Account","Portfolio vs blended benchmark, plus money-weighted return",{text:"PER ACCOUNT",fill:B.DARKNAVY,color:B.WHITE});
-    function pr(lbl,pk,bk){ return [lbl].concat(mapCols(cols,function(m){
-        var p=m.perf[pk], b=m.perf[bk];
-        return {text:sgn(p)+"  vs  "+sgn(b),color:(typeof p==="number"&&typeof b==="number")?(p>=b?GREEN:RED):"1A1A1A"};})); }
-    clientTable(s,cols,[
-      pr("1 Month","p1m","b1m"), pr("3 Months","p3m","b3m"), pr("6 Months","p6m","b6m"), pr("Since Inception","psi","bsi"),
-      ["Alpha (SI)"].concat(mapCols(cols,function(m){return {text:sgn(m.alpha),bold:true,color:col(m.alpha)};})),
-      ["Verdict"].concat(mapCols(cols,function(m){return {text:m.perf.outperform?"Outperforming":"Underperforming",bold:true,color:m.perf.outperform?GREEN:RED};})),
-      ["XIRR (money-weighted)"].concat(mapCols(cols,function(m){return {text:sgn(m.xirr),bold:true,color:col(m.xirr)};})),
-      ["Capital invested"].concat(mapCols(cols,function(m){return {text:cr(m.invested)};})),
-      ["Net flow"].concat(mapCols(cols,function(m){return {text:cr(m.netFlow)};})),
-      ["Turnover (sells / AUM)"].concat(mapCols(cols,function(m){return {text:(m.turnoverPct!=null?pct(m.turnoverPct):"—")};}))
-    ],{firstCol:"Period (portfolio vs benchmark)",rowH:0.36,fontSize:10});
-    footer(s,"Time-weighted returns from unitized client NAV; sub-year accounts are not annualised. XIRR is annualised from dated cashflows.");
-
-    /* 6. IPS CONTOURS PER ACCOUNT */
+    /* 4. IPS CONTOURS BY ACCOUNT — one of only two slides kept per-account (see note above).
+       Commodities / international-equity are informational-only when below band (never a real
+       portfolio-risk breach the way equity/debt/concentration are) — previously flagged in the
+       same alarming red as a hard breach, contradicting this slide's own footer. Now rendered in
+       a distinct amber "informational" style instead. */
     s=pptx.addSlide(); s.background={color:B.WHITE};
     header(s,"IPS Contours by Account","Every parameter tested against the band",{text:"PER ACCOUNT",fill:B.DARKNAVY,color:B.WHITE});
+    var INFO_PARAMS={"Commodities":1,"Intl Equity (% of eq)":1};
     var params=(M[0].breaches||[]).map(function(b){return b.param;});
     clientTable(s,cols,params.map(function(p){
       return [p].concat(mapCols(cols,function(m){
         var b=(m.breaches||[]).filter(function(x){return x.param===p;})[0];
         if(!b) return {text:"—"};
         var bad=b.status==="breach";
+        if(bad && INFO_PARAMS[p]) return {text:pct(b.value)+"  ("+b.band+")",color:"8A6D00",bold:false,fill:"FFF3D6"};
         return {text:pct(b.value)+"  ("+b.band+")",color:bad?RED:GREEN,bold:bad,fill:bad?"FFE2E2":null};
       }));
     }),{firstCol:"IPS parameter (value vs band)",rowH:0.31,fontSize:9.5});
-    footer(s,"Red = outside the band for that account's risk profile. Commodities / international-equity rows are informational when below band.");
+    footer(s,"Red = outside the band for that account's risk profile. Amber (Commodities / international-equity, below band) is informational only, not a real breach. "+IDENTICAL_NOTE);
 
-    /* 7. CONCENTRATION + SECTOR PER ACCOUNT */
-    s=pptx.addSlide(); s.background={color:B.WHITE};
-    header(s,"Concentration & Sector by Account","Manager, scheme, liquidity and sector tilts",{text:"PER ACCOUNT",fill:B.DARKNAVY,color:B.WHITE});
-    var maxSec=Math.max.apply(null,cols.map(function(c){return (c.m.sectors||[]).length;}));
-    var rows7=[
-      ["Largest AMC"].concat(mapCols(cols,function(m){return {text:(m.conc.topAmc||"—")+" · "+pct(m.conc.topAmcPct),color:(m.conc.topAmcPct>25?RED:GREEN)};})),
-      ["Largest scheme"].concat(mapCols(cols,function(m){return {text:String(m.conc.topScheme||"—").slice(0,24)+" · "+pct(m.conc.topSchemePct),color:(m.conc.topSchemePct>15?RED:GREEN)};})),
-      ["Lock-in %"].concat(mapCols(cols,function(m){return {text:pct(m.conc.lockedPct),color:(m.conc.lockedPct>20?RED:GREEN)};})),
-      ["Cash & equivalents %"].concat(mapCols(cols,function(m){return {text:pct(m.conc.cashPct),color:(m.conc.cashPct>5?RED:GREEN)};}))
-    ];
-    for(var i=0;i<Math.min(maxSec,5);i++){ (function(i){
-      rows7.push(["#"+(i+1)+" sector"].concat(mapCols(cols,function(m){ var sx2=(m.sectors||[])[i];
-        return {text:sx2?(sx2.sector+" · "+pct(sx2.pct)):"—"};})));
-    })(i); }
-    clientTable(s,cols,rows7,{firstCol:"Concentration & sectors",rowH:0.36,fontSize:9.8});
-    footer(s,"AMC concentration counts every product managed by that AMC. Sector exposure includes mutual-fund look-through (V2 data).");
-
-    /* 8. HOLDINGS — one table, a value/weight pair per account */
+    /* 5. HOLDINGS — one table, a value/weight pair per account (the second of the two slides
+       kept per-account). Column widths recomputed for three real accounts instead of two. */
     s=pptx.addSlide(); s.background={color:B.WHITE};
     header(s,"Holdings by Account","Same securities across the family; value and weight shown per account",{text:"PER ACCOUNT",fill:B.DARKNAVY,color:B.WHITE});
     var base=cols[0].m.holdings||[];
@@ -5820,8 +5836,8 @@ window.CLIENT_XIRR_DATA={"ANGNR0004":{"xirrPct":7.08,"invested":353010673.0,"cur
     var hrows=[hhead];
     base.slice(0,17).forEach(function(h,idx){
       var fill=(idx%2)?"FFFFFF":B.PANEL;
-      var row=[{text:String(h.security||"").slice(0,38),options:{fill:{color:fill}}},
-               {text:String(h.category||""),options:{fill:{color:fill}}}];
+      var row=[{text:String(h.security||"").slice(0,30),options:{fill:{color:fill}}},
+               {text:String(h.category||"").slice(0,14),options:{fill:{color:fill}}}];
       cols.forEach(function(c){
         var mh=(c.m.holdings||[]).filter(function(x){return (x.isin&&h.isin&&x.isin===h.isin)||x.security===h.security;})[0];
         row.push({text:mh?lakh(mh.market_value):"—",options:{fill:{color:fill},align:"right"}});
@@ -5833,43 +5849,36 @@ window.CLIENT_XIRR_DATA={"ANGNR0004":{"xirrPct":7.08,"invested":353010673.0,"cur
     cols.forEach(function(c){ trow.push({text:lakh(c.m.aum),options:{bold:true,fill:{color:B.GREYPANEL},align:"right"}});
                               trow.push({text:"100.0%",options:{bold:true,fill:{color:B.GREYPANEL},align:"right"}}); });
     hrows.push(trow);
-    var hw=[4.0,1.9]; cols.forEach(function(){ hw.push(2.05); hw.push(1.06); });
-    s.addTable(hrows,{x:0.55,y:1.3,w:12.22,colW:hw,border:{pt:0.5,color:"D5D9E0"},fontFace:B.FONT,fontSize:8.6,rowH:0.275,valign:"middle"});
-    footer(s,"Values in ₹ lakh. "+MERGED_NOTE);
+    var hw=[3.3,1.4]; cols.forEach(function(){ hw.push(1.6); hw.push(0.75); });
+    s.addTable(hrows,{x:0.55,y:1.3,w:12.22,colW:hw,border:{pt:0.5,color:"D5D9E0"},fontFace:B.FONT,fontSize:7.8,rowH:0.275,valign:"middle"});
+    footer(s,"Values in ₹ lakh. "+IDENTICAL_NOTE);
 
-    /* 9. RECOMMENDATIONS PER ACCOUNT (from the Asset X house view) */
+    /* 6. RECOMMENDATIONS — family level, not per account. The underlying Asset X house-view
+       actions don't vary meaningfully account to account (the rupee gap-to-band amount differs by
+       a few thousand rupees at most, not the substance of the recommendation), so this is one
+       column instead of the three-way table it used to be. Built directly from M since amounts are
+       account-specific in the source data — using M[0] (Jay) for the action text and summing/
+       averaging AUM-weighted amounts across all three accounts for a single family-level figure. */
     var areas=[]; M.forEach(function(m){ (m.recommendations||[]).forEach(function(r){ if(areas.indexOf(r.area)<0) areas.push(r.area); }); });
     if(areas.length){
       s=pptx.addSlide(); s.background={color:B.WHITE};
-      header(s,"Recommendations by Account","Aligned to the Asset X house view — "+(ax.month||""),{text:"PER ACCOUNT",fill:B.DARKNAVY,color:B.WHITE});
-      clientTable(s,cols,areas.map(function(a){
-        return [a].concat(mapCols(cols,function(m){
-          var r=(m.recommendations||[]).filter(function(x){return x.area===a;})[0];
-          if(!r) return {text:"—"};
-          return {text:r.action, color:(r.priority<=1?RED:(r.priority<=2?"8A6D00":"1A1A1A")), bold:r.priority<=1};
-        }));
-      }),{firstCol:"Area (priority-ordered)",rowH:0.62,fontSize:9});
+      header(s,"Recommendations","Aligned to the Asset X house view — "+(ax.month||""),{text:"FAMILY LEVEL",fill:B.GOLD,color:B.DARKNAVY});
+      var recRows=[[{text:"Area (priority-ordered)",options:{bold:true,color:B.WHITE,fill:{color:B.DARKNAVY},align:"left"}},
+                    {text:"Recommendation",options:{bold:true,color:B.WHITE,fill:{color:B.DARKNAVY},align:"left"}}]];
+      areas.forEach(function(a,i){
+        var recs=M.map(function(m){ return (m.recommendations||[]).filter(function(x){return x.area===a;})[0]; }).filter(Boolean);
+        if(!recs.length) return;
+        var r=recs[0], fill=(i%2)?"FFFFFF":B.PANEL;
+        recRows.push([{text:a,options:{bold:true,fill:{color:fill}}},
+          {text:r.action,options:{fill:{color:fill},color:(r.priority<=1?RED:(r.priority<=2?"8A6D00":"1A1A1A")),bold:r.priority<=1}}]);
+      });
+      var recRowH=Math.min(1.05,Math.max(0.62,4.9/recRows.length));
+      s.addTable(recRows,{x:0.55,y:1.3,w:12.22,colW:[2.6,9.62],border:{pt:0.5,color:"D5D9E0"},fontFace:B.FONT,fontSize:10.5,rowH:recRowH,valign:"middle"});
       s.addText("House view — total equity "+(ax.totalEquityTarget||"—")+"% · domestic "+(ax.domSplit||"—")
         +" · factors 50/25/25 Momentum/LowVol/Value · global "+(ax.globalSplit||"—")+" · commodities "+(ax.commodities||"—"),
         {x:0.55,y:6.6,w:12.22,h:0.34,fontFace:B.FONT,fontSize:8.2,color:MUTED});
-      footer(s,"Red = highest priority. Rupee amounts are indicative, from each account's own AUM and gap to band.");
+      footer(s,"Red = highest priority. One recommendation set for the family — rupee gap-to-band amounts differ only slightly by account and are on the dashboard if needed.");
     }
-
-    /* 10. REVIEW & ACTIONS PER ACCOUNT */
-    s=pptx.addSlide(); s.background={color:B.WHITE};
-    header(s,"Review Status & Actions by Account","Advisor, last review and pending items",{text:"PER ACCOUNT",fill:B.DARKNAVY,color:B.WHITE});
-    clientTable(s,cols,[
-      ["Advisor"].concat(mapCols(cols,function(m){return {text:m.advisor||"Preet/Anushka"};})),
-      ["Relationship Manager"].concat(mapCols(cols,function(m){return {text:m.rm||"—"};})),
-      ["Service RM"].concat(mapCols(cols,function(m){return {text:m.srm||"—"};})),
-      ["Last review"].concat(mapCols(cols,function(m){return {text:m.lastReview||"—"};})),
-      ["IPS deviations"].concat(mapCols(cols,function(m){var k=(m.breaches||[]).filter(function(b){return b.status==="breach";}).length;
-          return {text:String(k),bold:true,color:k?RED:GREEN};})),
-      ["Deviation detail"].concat(mapCols(cols,function(m){var d2=(m.breaches||[]).filter(function(b){return b.status==="breach";})
-          .map(function(b){return b.param;}).join(", "); return {text:d2||"None"};})),
-      ["Pending actions"].concat(mapCols(cols,function(m){return {text:m.actionItems||"None recorded"};}))
-    ],{firstCol:"Review & actions",rowH:0.42,fontSize:10});
-    footer(s,"Sourced from the NDPMS MIS. Deviations computed per account against that account's risk-profile bands.");
 
     /* ---- COMMON ANALYSIS: charts + fund-level tables, rendered ONCE at family level ----
        Delegates to the existing buildClientDeck() with a synthetic family client (combined
