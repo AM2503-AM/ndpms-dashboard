@@ -5697,10 +5697,69 @@ window.CLIENT_XIRR_DATA={"ANGNR0004":{"xirrPct":7.08,"invested":353010673.0,"cur
       +tbl('<th>Client</th><th class="num">XIRR</th><th class="num">Invested (Cr)</th><th class="num">Current (Cr)</th><th class="num">Sells (Cr)</th><th class="num">Realized (Cr)</th><th class="num">Turnover</th>',body,720)+'</div>';
   }
 
+  // Strategy-level attribution -- 2026-08-20 per user request, modelled on the reference dashboard
+  // (vans5620.github.io/returndashboard: "% Contribution to Portfolio Return" by Asset Class,
+  // per risk-profile/strategy cohort, AUM-weighted). Reuses the exact same per-security contribution
+  // figures (`r.c`, ATTRIBUTION_DATA[ndas].months[].rows[]) as each client's own Attribution section
+  // -- rolled up by asset class and AUM-weighted across every client in the strategy, not a separate
+  // computation. Per the user's explicit correctness requirement ("the period for which the account
+  // is [new] should be only showing returns [for the months it actually has]"): a client only
+  // contributes over the months their own account has actually existed (`months.slice(-windowMonths)`
+  // naturally can't return months before inception, since they're simply not in that client's array)
+  // -- never a fabricated pre-inception figure, and the rendered "months covered" range makes the
+  // true window visible instead of mislabeling a short window as a long one (the same class of bug
+  // just fixed in STRATEGY_DATA's own p3m/p6m/p12m fields).
+  function renderStrategyAttribution(){
+    const ASSET_CLASS_ORDER = ['Equity','Hybrid','Alternative Assets','Fixed Income','Cash and Equivalent'];
+    function cohortContribution(clients, windowMonths){
+      const totalAum = clients.reduce((a,c)=>a+(c.aum||0),0);
+      const byAc = {};
+      const monthsSeen = new Set();
+      clients.forEach(c=>{
+        const attr = (typeof ATTRIBUTION_DATA!=='undefined') ? ATTRIBUTION_DATA[c.ndas] : null;
+        if(!attr || !attr.months || !attr.months.length) return;
+        const used = attr.months.slice(-windowMonths);
+        used.forEach(m=>monthsSeen.add(m.m));
+        const wt = totalAum ? (c.aum||0)/totalAum : 0;
+        const bySecThisClient = {};
+        used.forEach(m=>(m.rows||[]).forEach(r=>{ bySecThisClient[r.a]=(bySecThisClient[r.a]||0)+(r.c||0); }));
+        Object.entries(bySecThisClient).forEach(([ac,contrib])=>{ byAc[ac]=(byAc[ac]||0)+contrib*wt; });
+      });
+      return { byAc, monthsUsed: Array.from(monthsSeen).sort(), totalAum, nClients: clients.length };
+    }
+    function acTable(res){
+      const total = Object.values(res.byAc).reduce((a,v)=>a+v,0);
+      let body='';
+      ASSET_CLASS_ORDER.forEach(ac=>{
+        if(!(ac in res.byAc)) return;
+        const v=res.byAc[ac];
+        body+='<tr><td>'+esc(ac)+'</td><td class="num" style="font-weight:600;color:'+(v>=0?'var(--green-text)':'var(--red-text)')+'">'+(v>=0?'+':'')+v.toFixed(2)+'%</td></tr>';
+      });
+      body+='<tr><td style="font-weight:700">TOTAL</td><td class="num" style="font-weight:700">'+(total>=0?'+':'')+total.toFixed(2)+'%</td></tr>';
+      return tbl('<th>Asset Class</th><th class="num">% Contribution</th>',body,280);
+    }
+    let html = '<div class="container"><h2 class="section-title">Strategy-Level Attribution — % Contribution to Portfolio Return</h2>'
+      +'<p style="color:var(--muted);margin:-8px 0 16px;max-width:900px">Same per-security contribution figures as each client&rsquo;s own Attribution section, rolled up by asset class and AUM-weighted across every client in the strategy. A client only contributes over the months their account has actually existed &mdash; never a fabricated pre-inception figure. Since Inception blends different account ages by design (older accounts naturally carry more months); see each period&rsquo;s months-covered range below its heading.</p>';
+    STRATEGY_DATA.forEach(strat=>{
+      const clients = strat.clients||[];
+      const latest = cohortContribution(clients, 1);
+      const si = cohortContribution(clients, 999);
+      const totalAum = clients.reduce((a,c)=>a+(c.aum||0),0);
+      html += '<div class="chart-card" style="margin-bottom:20px">'
+        +'<h3>'+esc(strat.name)+' <span style="font-weight:400;color:var(--muted);font-size:14px">('+clients.length+' clients &middot; '+cr(totalAum)+')</span></h3>'
+        +'<div style="display:flex;gap:24px;flex-wrap:wrap">'
+        +'<div><div style="font-size:13px;font-weight:700;color:var(--muted);margin-bottom:6px">LATEST MONTH'+(latest.monthsUsed.length?' ('+latest.monthsUsed[latest.monthsUsed.length-1]+')':' (no data)')+'</div>'+acTable(latest)+'</div>'
+        +'<div><div style="font-size:13px;font-weight:700;color:var(--muted);margin-bottom:6px">SINCE INCEPTION'+(si.monthsUsed.length?' ('+si.monthsUsed[0]+' to '+si.monthsUsed[si.monthsUsed.length-1]+')':' (no data)')+'</div>'+acTable(si)+'</div>'
+        +'</div></div>';
+    });
+    return html+'</div>';
+  }
+
   const VIEWS=[['recon-btn','&#128203; Exec Recon','ndpms-recon-view',renderExecRecon],
     ['sector-btn','&#127970; Sectors','ndpms-sector-view',renderSectors],
     ['analytics-btn','&#128200; XIRR & Churn','ndpms-analytics-view',renderAnalytics],
-    ['nf-btn','&#128181; Net Flows','ndpms-netflows-view',renderNetFlows]];
+    ['nf-btn','&#128181; Net Flows','ndpms-netflows-view',renderNetFlows],
+    ['stratattr-btn','&#128202; Strategy Attribution','ndpms-stratattr-view',renderStrategyAttribution]];
   function makeView(id,html){ let v=document.getElementById(id); if(!v){ v=document.createElement('div'); v.id=id; v.style.display='none'; v.style.padding='16px 0';
       const a=document.getElementById('main-view')||document.querySelector('.container'); (a.parentElement||document.body).appendChild(v);} v.innerHTML=html; return v; }
   function showFeatureView(id){ document.querySelectorAll('#main-view,[id$="-view"]').forEach(x=>{ if(x) x.style.display='none'; }); const v=document.getElementById(id); if(v) v.style.display='block'; window.scrollTo(0,0); }
