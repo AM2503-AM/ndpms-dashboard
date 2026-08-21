@@ -5841,15 +5841,20 @@ window.REALIZED_PNL_DATA={"ANGNR0004":{"buyValueCr":7.17,"sellValueCr":10.76,"nS
   }
 
   /* =======================  view plumbing  ======================= */
-  // 2026-08-21: "stratattr-btn" (renderStrategyAttribution) was preserved as a function when this
-  // VIEWS array was consolidated (see the "PRESERVED" comment below) but never re-added to it --
-  // meaning the feature was fully working but unreachable from any button. Re-added here rather
-  // than leaving verified-working code silently orphaned.
+  // 2026-08-21: NOT re-adding "stratattr-btn" (renderStrategyAttribution) here, on purpose, after
+  // actually reading what "diag-btn" (Attribution & Calls, added since) renders: its "By asset
+  // class" section is the exact same AUM-weighted per-strategy contribution breakdown
+  // renderStrategyAttribution() computes, PLUS call verdicts PLUS a per-client worked/didn't-work/
+  // too-early breakdown on top -- a strict superset, not a parallel feature. Restoring the older,
+  // narrower button here would recreate the exact "too many overlapping Calls/Attribution buttons"
+  // confusion this whole fix was for. renderStrategyAttribution() is left in place (unused) rather
+  // than deleted, in case Attribution & Calls is ever pared back and this narrower view is wanted
+  // again -- don't wire it back into VIEWS without re-checking Attribution & Calls doesn't already
+  // cover it, the way it does right now.
   var VIEWS=[["diag-btn","&#127919; Attribution &amp; Calls","ndpms-diag-view",renderDiag],
              ["sector-btn","&#127970; Sectors","ndpms-sector-view",renderSectors],
              ["analytics-btn","&#128200; XIRR &amp; Churn","ndpms-analytics-view",renderAnalytics],
-             ["nf-btn","&#128181; Net Flows","ndpms-netflows-view",renderNetFlows],
-             ["stratattr-btn","&#128202; Strategy Attribution","ndpms-stratattr-view",renderStrategyAttribution]];
+             ["nf-btn","&#128181; Net Flows","ndpms-netflows-view",renderNetFlows]];
   function makeView(id,html){ var v=document.getElementById(id);
     if(!v){ v=document.createElement('div'); v.id=id; v.style.display='none'; v.style.padding='16px 0';
       var a=document.getElementById('main-view')||document.querySelector('.container'); (a.parentElement||document.body).appendChild(v); }
