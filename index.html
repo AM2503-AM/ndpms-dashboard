@@ -1582,6 +1582,7 @@ function showClient(strategyIdx, clientIdx) {
   const s = STRATEGY_DATA[strategyIdx];
   const c = s.clients[clientIdx];
 
+  hideAllViews();
   document.getElementById('main-view').style.display = 'none';
   document.getElementById('client-view').style.display = 'block';
   document.getElementById('bc-strategy').innerHTML = `<strong>${s.name}</strong>`;
@@ -2422,7 +2423,23 @@ function buildClientCharts(c) {
   }
 }
 
+// 2026-08-21: added after a real, recurring bug class -- every "go to page X" function
+// (showMainView/showClient/toggleIPSView/toggleChecklistView/toggleCallsView) hid a HARDCODED
+// list of view containers that predates the later "ndpms-diag-view"/"ndpms-sector-view"/
+// "ndpms-analytics-view"/"ndpms-netflows-view" elements a trailing script block adds on top of
+// the dashboard. None of those five functions knew those newer elements existed, so leaving one
+// of them open (e.g. clicking "Sectors") and then clicking "IPS Review" left the Sectors view
+// sitting there instead of being hidden -- reported as "IPS Review shows Sectors" / a confusing
+// "Calls" vs "Attribution & Calls" overlap. Same root cause the "Export Deviations button now
+// survives navigation" fix (see skill history) already hit once for a single button; this is the
+// same class of bug for whole page containers, at a bigger scale. Fix: one generic sweep of every
+// element whose id ends in "-view", called at the top of each of those five functions, so a future
+// feature-view added anywhere else never needs this list touched again.
+function hideAllViews(){
+  document.querySelectorAll('[id$="-view"]').forEach(function(v){ v.style.display = 'none'; });
+}
 function showMainView() {
+  hideAllViews();
   document.getElementById('client-view').style.display = 'none';
   document.getElementById('main-view').style.display = 'block';
   document.getElementById('topbar-title').textContent = 'NDPMS Strategies Outlook and Updates';
@@ -2839,6 +2856,7 @@ function findExitedCallHistory(theme) {
 }
 
 function toggleCallsView(){
+  hideAllViews();
   document.getElementById('main-view').style.display='none';
   document.getElementById('client-view').style.display='none';
   document.getElementById('ips-view').style.display='none';
@@ -5103,6 +5121,7 @@ function downloadClientReview(strategyIdx, clientIdx){
   return buildClientDeck(clientRecord).catch(e => alert('Review generation failed: ' + e.message));
 }
 function toggleIPSView(){
+  hideAllViews();
   document.getElementById('main-view').style.display='none';
   document.getElementById('client-view').style.display='none';
   document.getElementById('checklist-view').style.display='none';
@@ -5375,6 +5394,7 @@ function buildNdasMap(){
 // ═══════════════════════════════════════════
 
 function toggleChecklistView(){
+  hideAllViews();
   document.getElementById('main-view').style.display='none';
   document.getElementById('client-view').style.display='none';
   document.getElementById('ips-view').style.display='none';
@@ -5821,10 +5841,15 @@ window.REALIZED_PNL_DATA={"ANGNR0004":{"buyValueCr":7.17,"sellValueCr":10.76,"nS
   }
 
   /* =======================  view plumbing  ======================= */
+  // 2026-08-21: "stratattr-btn" (renderStrategyAttribution) was preserved as a function when this
+  // VIEWS array was consolidated (see the "PRESERVED" comment below) but never re-added to it --
+  // meaning the feature was fully working but unreachable from any button. Re-added here rather
+  // than leaving verified-working code silently orphaned.
   var VIEWS=[["diag-btn","&#127919; Attribution &amp; Calls","ndpms-diag-view",renderDiag],
              ["sector-btn","&#127970; Sectors","ndpms-sector-view",renderSectors],
              ["analytics-btn","&#128200; XIRR &amp; Churn","ndpms-analytics-view",renderAnalytics],
-             ["nf-btn","&#128181; Net Flows","ndpms-netflows-view",renderNetFlows]];
+             ["nf-btn","&#128181; Net Flows","ndpms-netflows-view",renderNetFlows],
+             ["stratattr-btn","&#128202; Strategy Attribution","ndpms-stratattr-view",renderStrategyAttribution]];
   function makeView(id,html){ var v=document.getElementById(id);
     if(!v){ v=document.createElement('div'); v.id=id; v.style.display='none'; v.style.padding='16px 0';
       var a=document.getElementById('main-view')||document.querySelector('.container'); (a.parentElement||document.body).appendChild(v); }
