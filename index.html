@@ -1718,9 +1718,14 @@ function auditLcMcScConsistency(clients) {
 
   (clients || []).forEach(c => {
 
-    const sum = (c.lc_pct||0) + (c.mc_pct||0) + (c.sc_pct||0) + (c.intl_eq_pct||0);
-
-    if (sum > 100.5) issues.push({ name: ipsName(c), sum: sum.toFixed(1), intl: (c.intl_eq_pct||0).toFixed(1) });
+    // LC/MC/SC are normalized to 100% of DOMESTIC cap-classified equity (Step 30, 2026-08-05);
+    // International Equity is tracked as a separate slice on its own band, not part of this pie
+    // (matches buildClientIPS's own "LC+MC+SC=100%" validation and audit.py's [A2] check). A
+    // client with real international exposure legitimately has lc+mc+sc=100 AND intl_eq_pct>0 at
+    // the same time -- that is not an overlap. The actual anomaly this should catch is LC+MC+SC
+    // itself failing to sum to ~100 of domestic equity.
+    const sum = (c.lc_pct||0) + (c.mc_pct||0) + (c.sc_pct||0);
+    if (sum > 0.5 && Math.abs(sum - 100) > 1.0) issues.push({ name: ipsName(c), sum: sum.toFixed(1), intl: (c.intl_eq_pct||0).toFixed(1) });
 
   });
 
@@ -3614,11 +3619,11 @@ function showClient(strategyIdx, clientIdx) {
 
     rows += TR('Equity',tm.equity.label,ic.eq_pct.toFixed(1)+'%',chk(ic.eq_pct,tm.equity.min,tm.equity.max),false);
 
-    rows += TR('Large Cap (% of Equity)',tm.lc.label,ic.lc_pct.toFixed(1)+'%',chkMn(ic.lc_pct,tm.lc.min),true);
+    rows += TR('Large Cap (% of Domestic Equity)',tm.lc.label,ic.lc_pct.toFixed(1)+'%',chkMn(ic.lc_pct,tm.lc.min),true);
 
-    rows += TR('Mid Cap (% of Equity)',tm.mc.label,ic.mc_pct.toFixed(1)+'%',chkMx(ic.mc_pct,tm.mc.max),true);
+    rows += TR('Mid Cap (% of Domestic Equity)',tm.mc.label,ic.mc_pct.toFixed(1)+'%',chkMx(ic.mc_pct,tm.mc.max),true);
 
-    rows += TR('Small Cap (% of Equity)',tm.sc.label,ic.sc_pct.toFixed(1)+'%',chkMx(ic.sc_pct,tm.sc.max),true);
+    rows += TR('Small Cap (% of Domestic Equity)',tm.sc.label,ic.sc_pct.toFixed(1)+'%',chkMx(ic.sc_pct,tm.sc.max),true);
 
     rows += TR('International Equity (% of Equity)',tm.intl_eq.label,ic.intl_eq_pct.toFixed(1)+'%',chk(ic.intl_eq_pct,tm.intl_eq.min,tm.intl_eq.max),false);
 
@@ -4278,11 +4283,11 @@ function downloadClientExcel(strategyIdx, clientIdx) {
 
     ipsAoa.push(['Equity Allocation', 'Equity', tm.equity.label, ic.eq_pct.toFixed(1)+'%', chk(ic.eq_pct, tm.equity.min, tm.equity.max)]);
 
-    ipsAoa.push(['Equity Allocation', 'Large Cap (% of Equity)', tm.lc.label, ic.lc_pct.toFixed(1)+'%', chkMn(ic.lc_pct, tm.lc.min)]);
+    ipsAoa.push(['Equity Allocation', 'Large Cap (% of Domestic Equity)', tm.lc.label, ic.lc_pct.toFixed(1)+'%', chkMn(ic.lc_pct, tm.lc.min)]);
 
-    ipsAoa.push(['Equity Allocation', 'Mid Cap (% of Equity)', tm.mc.label, ic.mc_pct.toFixed(1)+'%', chkMx(ic.mc_pct, tm.mc.max)]);
+    ipsAoa.push(['Equity Allocation', 'Mid Cap (% of Domestic Equity)', tm.mc.label, ic.mc_pct.toFixed(1)+'%', chkMx(ic.mc_pct, tm.mc.max)]);
 
-    ipsAoa.push(['Equity Allocation', 'Small Cap (% of Equity)', tm.sc.label, ic.sc_pct.toFixed(1)+'%', chkMx(ic.sc_pct, tm.sc.max)]);
+    ipsAoa.push(['Equity Allocation', 'Small Cap (% of Domestic Equity)', tm.sc.label, ic.sc_pct.toFixed(1)+'%', chkMx(ic.sc_pct, tm.sc.max)]);
 
     ipsAoa.push(['Equity Allocation', 'International Equity (% of Equity)', tm.intl_eq.label, ic.intl_eq_pct.toFixed(1)+'%', chk(ic.intl_eq_pct, tm.intl_eq.min, tm.intl_eq.max)]);
 
@@ -5750,7 +5755,13 @@ function renderCallExecutionLogHtml(){
 
 
 
-  const callLevelRows = CALL_EXECUTION_DATA.callLevel.map(g => `<tr>
+  // callLevel is not produced by the current automated builder (build_call_execution_auto.py
+  // only emits {period, clients, delayedAccountNotes}) -- guard so a missing field degrades to
+  // an empty table instead of throwing and blanking this entire view (found 2026-08-31: an
+  // uncaught TypeError here aborted renderCallsView() before it reached the working per-client
+  // table and the rest of the Calls view).
+  const callLevel = CALL_EXECUTION_DATA.callLevel || [];
+  const callLevelRows = callLevel.map(g => `<tr>
 
       <td style="text-align:left">${g.security || '<span style="color:var(--muted)">—</span>'}</td>
 
@@ -5810,7 +5821,7 @@ function renderCallExecutionLogHtml(){
 
     <h4 style="margin:24px 0 8px">By Security</h4>
 
-    <table style="table-layout:fixed;width:100%">
+    ${callLevel.length ? `<table style="table-layout:fixed;width:100%">
 
       <colgroup><col style="width:32%"><col style="width:10%"><col style="width:12%"><col style="width:12%"><col style="width:12%"><col style="width:11%"><col style="width:11%"></colgroup>
 
@@ -5818,7 +5829,7 @@ function renderCallExecutionLogHtml(){
 
       <tbody>${callLevelRows}</tbody>
 
-    </table>
+    </table>` : `<div class="attr-empty">Not available — the automated builder (build_call_execution_auto.py) produces per-client totals only (see "By Client" above), not a by-security breakdown.</div>`}
 
   </div>`;
 
@@ -7496,11 +7507,11 @@ function buildIpsRows(ips){
 
   rows.push({param:"Single AMC — max allocation", ideal:`≤ ${tm.amc.max}%`, current:`${pct(ips.top_amc_pct)}${ips.top_amc ? ` (${ips.top_amc})` : ''}`, status: (ips.top_amc_pct<=tm.amc.max||!bir_amcMaterial)?"ok":"over"});
 
-  rows.push({param:"Large-cap allocation (of equity)", ideal:tm.lc.label, current:pct(ips.lc_pct), status: ips.lc_pct>=tm.lc.min?"ok":"under"});
+  rows.push({param:"Large-cap allocation (of domestic equity)", ideal:tm.lc.label, current:pct(ips.lc_pct), status: ips.lc_pct>=tm.lc.min?"ok":"under"});
 
-  rows.push({param:"Mid-cap allocation (of equity)", ideal:tm.mc.label, current:pct(ips.mc_pct), status: ips.mc_pct<=tm.mc.max?"ok":"over"});
+  rows.push({param:"Mid-cap allocation (of domestic equity)", ideal:tm.mc.label, current:pct(ips.mc_pct), status: ips.mc_pct<=tm.mc.max?"ok":"over"});
 
-  rows.push({param:"Small-cap allocation (of equity)", ideal:tm.sc.label, current:pct(ips.sc_pct), status: ips.sc_pct<=tm.sc.max?"ok":"over"});
+  rows.push({param:"Small-cap allocation (of domestic equity)", ideal:tm.sc.label, current:pct(ips.sc_pct), status: ips.sc_pct<=tm.sc.max?"ok":"over"});
 
   rows.push({param:"International equity", ideal:tm.intl_eq.label, current:pct(ips.intl_eq_pct), status: ips.intl_eq_pct===0?"gap":(inBand(ips.intl_eq_pct,tm.intl_eq.min,tm.intl_eq.max)?"ok":"over")});
 
@@ -10276,9 +10287,10 @@ function buildIPSSummary(){
 
 
 
-  // Data-quality guard — see auditLcMcScConsistency(): LC/MC/SC and International Equity must be
-
-  // mutually exclusive slices of equity; a sum over 100% means a fund got double-counted as both.
+  // Data-quality guard — see auditLcMcScConsistency(): Large/Mid/Small-Cap must sum to ~100% of
+  // DOMESTIC cap-classified equity (Step 30, 2026-08-05); International Equity is a separate band
+  // on its own, not part of that 100% -- so it does NOT get added into this check (a client with
+  // real international exposure legitimately has lc+mc+sc=100 and intl_eq_pct>0 simultaneously).
 
   var lcMcScIssues = auditLcMcScConsistency(d.clients);
 
@@ -10286,9 +10298,9 @@ function buildIPSSummary(){
 
     s+='<div style="background:#FFF3CD;border:1px solid #F0D273;border-radius:8px;padding:14px 18px;margin-bottom:20px">';
 
-    s+='<div style="font-weight:700;color:#856404;margin-bottom:4px">⚠ Data Quality Warning — Large/Mid/Small-Cap % overlaps with International Equity %</div>';
+    s+='<div style="font-weight:700;color:#856404;margin-bottom:4px">⚠ Data Quality Warning — Large/Mid/Small-Cap % does not sum to 100% of domestic equity</div>';
 
-    s+='<div style="font-size:14.5px;color:#856404">'+lcMcScIssues.map(function(x){return x.name+' (sums to '+x.sum+'%, '+x.intl+'% intl)';}).join(' · ')+' — a domestic market-cap classification and International Equity should never overlap for the same holding. Re-verify against Advisory V2 before relying on these clients\' Large/Mid/Small-Cap bands.</div>';
+    s+='<div style="font-size:14.5px;color:#856404">'+lcMcScIssues.map(function(x){return x.name+' (LC+MC+SC sums to '+x.sum+'%, '+x.intl+'% held separately in international equity)';}).join(' · ')+' — Large/Mid/Small-Cap should sum to 100% of domestic cap-classified equity, independent of International Equity. Re-verify against Advisory V2 before relying on these clients\' Large/Mid/Small-Cap bands.</div>';
 
     s+='</div>';
 
@@ -10458,11 +10470,11 @@ function buildClientIPS(idx){
 
   s+=TR('Equity',tm.equity.label,c.eq_pct.toFixed(1)+'%',R(c.eq_pct,tm.equity.min,tm.equity.max),false);
 
-  s+=TR('Large Cap (% of Equity)',tm.lc.label,c.lc_pct.toFixed(1)+'%',Rmn(c.lc_pct,tm.lc.min),true);
+  s+=TR('Large Cap (% of Domestic Equity)',tm.lc.label,c.lc_pct.toFixed(1)+'%',Rmn(c.lc_pct,tm.lc.min),true);
 
-  s+=TR('Mid Cap (% of Equity)',tm.mc.label,c.mc_pct.toFixed(1)+'%',Rmx(c.mc_pct,tm.mc.max),true);
+  s+=TR('Mid Cap (% of Domestic Equity)',tm.mc.label,c.mc_pct.toFixed(1)+'%',Rmx(c.mc_pct,tm.mc.max),true);
 
-  s+=TR('Small Cap (% of Equity)',tm.sc.label,c.sc_pct.toFixed(1)+'%',Rmx(c.sc_pct,tm.sc.max),true);
+  s+=TR('Small Cap (% of Domestic Equity)',tm.sc.label,c.sc_pct.toFixed(1)+'%',Rmx(c.sc_pct,tm.sc.max),true);
 
   s+=TR('International Equity (% of Equity)',tm.intl_eq.label,c.intl_eq_pct.toFixed(1)+'%',R(c.intl_eq_pct,tm.intl_eq.min,tm.intl_eq.max),false);
 
