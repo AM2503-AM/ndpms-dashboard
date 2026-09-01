@@ -70,6 +70,19 @@
 
   .refresh-btn:hover,.back-btn:hover{transform:translateY(-1px)}
 
+  /* Group the topbar's 8 main-view nav buttons by function (compliance/action vs analytics)
+     instead of one flat wrapping row -- pure CSS via flex `order`, no DOM/JS change needed, so it
+     applies wherever any of these ids get (re)inserted. Reported 2026-09-01: nav "become too
+     cluttered without proper visibility" as the button count grew feature-by-feature over time. */
+  #topbar-actions #ips-btn{order:1}
+  #topbar-actions #checklist-btn{order:2}
+  #topbar-actions #export-deviations-btn{order:3}
+  #topbar-actions #calls-btn{order:4;margin-left:22px!important}
+  #topbar-actions #diag-btn{order:5}
+  #topbar-actions #sector-btn{order:6}
+  #topbar-actions #analytics-btn{order:7}
+  #topbar-actions #nf-btn{order:8}
+
   .container{padding:24px 28px;width:100%;box-sizing:border-box}
 
   .strategy-tabs{display:flex;gap:4px;border-bottom:2px solid var(--border);margin-bottom:24px;overflow-x:auto;justify-content:center}
@@ -11421,6 +11434,8 @@ function buildChecklist(){
 
 
 </script>
+
+
 
 
 
