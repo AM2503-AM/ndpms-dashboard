@@ -991,6 +991,56 @@ function clientPerfSparkline(ndas) {
     + '</div>';
 }
 
+// Trend/consistency classification, added 2026-09-01 per direct request: "in the scheme level view
+// can we change something so i see over time what has been working and what hasn't across
+// instruments, clients -- who's consistently underperforming, who's started becoming positive".
+// Reuses clientPerfSparkline's own anomaly filter (a broken per-row calc on brand-new positions can
+// imply a false >25% monthly swing -- same threshold, same reasoning) and attrBenchWeights() (the
+// same fixed equity/arb blend already used for this client's benchmark elsewhere) so a month's
+// benchmark return here is the client's OWN benchmark mix, not one generic index for everybody.
+function clientTrendClassification(ndas, benchmarkName) {
+  if (typeof ATTRIBUTION_DATA === 'undefined') return null;
+  var rec = ATTRIBUTION_DATA[ndas];
+  if (!rec || !rec.months || rec.months.length < 2) return { status: 'too_new', months: 0, seq: [] };
+  var months = rec.months.slice().sort(function(a, b){ return a.m < b.m ? -1 : (a.m > b.m ? 1 : 0); });
+  var ANOMALY_THRESHOLD = 25;
+  var bw = (typeof attrBenchWeights === 'function') ? attrBenchWeights(benchmarkName) : [0.5, 0.5];
+  var seq = []; // [{m, out:true/false}] chronological, anomalous months dropped
+  months.forEach(function(mo){
+    var ret = (mo.rows || []).reduce(function(a, r){ return a + (r.c || 0); }, 0);
+    if (Math.abs(ret) > ANOMALY_THRESHOLD) return;
+    var benchRet = bw[0] * (mo.n500Ret || 0) + bw[1] * (mo.arbRet || 0);
+    seq.push({ m: mo.m, out: ret > benchRet });
+  });
+  if (seq.length < 3) return { status: 'too_new', months: seq.length, seq: seq };
+  var last3 = seq.slice(-3);
+  var allOut = seq.every(function(x){ return x.out; });
+  var allUnder = seq.every(function(x){ return !x.out; });
+  var status;
+  if (allOut) status = 'consistent_out';
+  else if (allUnder) status = 'consistent_under';
+  else if (last3[1].out && last3[2].out && !last3[0].out) status = 'improving';
+  else if (!last3[1].out && !last3[2].out && last3[0].out) status = 'declining';
+  else status = 'mixed';
+  return { status: status, months: seq.length, seq: seq };
+}
+
+var TREND_LABEL = {
+  consistent_out: { label: 'Consistently outperforming', icon: '&#9679;', color: 'var(--green-text)' },
+  consistent_under: { label: 'Consistently underperforming', icon: '&#9679;', color: 'var(--red-text)' },
+  improving: { label: 'Recently turned positive', icon: '&#8599;', color: 'var(--green-text)' },
+  declining: { label: 'Recently turned negative', icon: '&#8600;', color: 'var(--red-text)' },
+  mixed: { label: 'Mixed, no clear trend', icon: '&#8596;', color: 'var(--muted)' },
+  too_new: { label: 'Too little history', icon: '&#8230;', color: 'var(--muted)' }
+};
+
+function trendBadgeHtml(tc) {
+  if (!tc) return '<span class="small" style="color:var(--muted)">—</span>';
+  var t = TREND_LABEL[tc.status] || TREND_LABEL.too_new;
+  var seqTitle = tc.seq.length ? tc.seq.map(function(x){ return x.m + ':' + (x.out ? 'out' : 'under'); }).join(', ') : 'not enough attribution history yet';
+  return '<span title="' + escapeHtml(seqTitle) + '" style="white-space:nowrap;font-size:12.5px;color:' + t.color + '">' + t.icon + ' ' + t.label + '</span>';
+}
+
 function clearCharts(prefix) {
 
   Object.keys(CHART_INSTANCES).forEach(k => {
@@ -1999,6 +2049,8 @@ function renderStrategy(s, i) {
 
 
 
+  const clientTrends = s.clients.map(c => clientTrendClassification(c.ndas, c.benchmark_name));
+
   const clientRows = s.clients.map((c, j) => `
 
     <tr>
@@ -2027,7 +2079,23 @@ function renderStrategy(s, i) {
 
       <td>${statusPill(c.psi, c.bsi, c.inception)}</td>
 
+      <td>${trendBadgeHtml(clientTrends[j])}</td>
+
     </tr>`).join('');
+
+  // "so what" trend summary line, added alongside the Trend column -- the counts a reader actually
+  // asked for ("who's consistently underperforming, who's started becoming positive") without
+  // having to scan every row of the scorecard themselves.
+  const trendCounts = { consistent_out: 0, consistent_under: 0, improving: 0, declining: 0 };
+  clientTrends.forEach(tc => { if (tc && trendCounts[tc.status] !== undefined) trendCounts[tc.status]++; });
+  const trendSummaryParts = [];
+  if (trendCounts.consistent_out) trendSummaryParts.push(`<span style="color:var(--green-text);font-weight:600">${trendCounts.consistent_out} consistently outperforming</span>`);
+  if (trendCounts.improving) trendSummaryParts.push(`<span style="color:var(--green-text);font-weight:600">${trendCounts.improving} recently turned positive</span>`);
+  if (trendCounts.declining) trendSummaryParts.push(`<span style="color:var(--red-text);font-weight:600">${trendCounts.declining} recently turned negative</span>`);
+  if (trendCounts.consistent_under) trendSummaryParts.push(`<span style="color:var(--red-text);font-weight:600">${trendCounts.consistent_under} consistently underperforming</span>`);
+  const trendSummary = trendSummaryParts.length
+    ? `<p style="margin:-4px 0 12px;font-size:13.5px;color:var(--muted)">Based on available monthly attribution history: ${trendSummaryParts.join(', ')}.</p>`
+    : '';
 
 
 
@@ -2105,13 +2173,15 @@ function renderStrategy(s, i) {
 
       <div class="section-title">Client-level Scorecard <span style="font-size:14px;font-weight:400;color:var(--muted)">(click a name to drill in)</span></div>
 
+      ${trendSummary}
+
       <div style="overflow-x:auto"><table style="min-width:900px">
 
         <thead><tr>
 
           <th>Account</th><th>Client</th><th>NDAS</th><th>Inception</th><th>AUM</th>
 
-          <th>1M</th><th>3M</th><th>6M</th>${s.has_12m ? '<th>1Y</th>' : ''}<th>SI</th><th>Benchmark</th><th>Status</th>
+          <th>1M</th><th>3M</th><th>6M</th>${s.has_12m ? '<th>1Y</th>' : ''}<th>SI</th><th>Benchmark</th><th>Status</th><th title="Trend across available monthly attribution history">Trend</th>
 
         </tr></thead>
 
@@ -11717,6 +11787,29 @@ window.DELAY_IMPACT_DATA={"AONDCP0004":{"instructionDate":"2026-08-11","note":"w
     var h='<div class="container">';
     h+='<h2 class="section-title">Attribution &amp; Calls</h2>'
       +'<p style="color:var(--muted);margin:-8px 0 14px;max-width:900px">What drove returns in each strategy, which house calls worked, and where a call did not land — separating <b>our call being wrong</b> from an <b>execution miss</b>, a <b>timing lag</b> or a <b>client-side decision</b>.</p>';
+
+    // Plain-English "so what" summary, added 2026-09-01 -- this view had 11 tables stacked with no
+    // synthesis anywhere above them ("the attributions view is not at all user/reader friendly").
+    // One paragraph up front, in plain language, before any table: this strategy+window's biggest
+    // mover either way, plus a book-wide scoreboard of how many tracked calls have actually worked.
+    (function(){
+      var bits=[];
+      if(W){
+        var top=(W.securities||[])[0], worst=(W.worst||[])[0];
+        if(top) bits.push('<strong>'+esc(top.security)+'</strong> helped most (<span style="color:var(--green-text);font-weight:600">+'+num(top.contribBps/100,2)+'%</span>)');
+        if(worst) bits.push('<strong>'+esc(worst.security)+'</strong> hurt most (<span style="color:var(--red-text);font-weight:600">'+num(worst.contribBps/100,2)+'%</span>)');
+      }
+      var sc=D.scorecard||[], goodCalls=sc.filter(function(x){return x.good>x.bad;}).length, badCalls=sc.filter(function(x){return x.bad>x.good;}).length;
+      var callBit=sc.length?(goodCalls+' of '+sc.length+' tracked house calls have been net positive for clients so far, '+badCalls+' net negative'):null;
+      if(bits.length||callBit){
+        h+='<div style="background:var(--card);border:1px solid var(--border);border-radius:8px;padding:12px 16px;margin:0 0 18px;max-width:900px;font-size:14px;line-height:1.6">'
+          +'<span style="text-transform:uppercase;font-size:.72rem;letter-spacing:.5px;color:var(--muted);display:block;margin-bottom:4px">This window, at a glance</span>'
+          +(bits.length?('In '+esc(strat)+': '+bits.join(', while ')+'. '):'')
+          +(callBit?('Book-wide: '+callBit+'.'):'')
+          +'</div>';
+      }
+    })();
+
     // strategy + window selectors
     h+='<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:16px">'
       +'<span style="font-size:.8rem;color:var(--muted);text-transform:uppercase;letter-spacing:.5px">Strategy</span>';
@@ -11740,7 +11833,7 @@ window.DELAY_IMPACT_DATA={"AONDCP0004":{"instructionDate":"2026-08-11","note":"w
        book-wide, not scoped to one strategy tab. */
     if (typeof buildCallsViewHtml === "function") {
       h += '<div style="margin-bottom:26px;padding-bottom:20px;border-bottom:2px solid var(--border)">'
-        + '<h3 style="margin:0 0 10px">0 &middot; Calls — Registry &amp; Execution, All Clients</h3>'
+        + '<h3 style="margin:0 0 10px">Calls — Registry &amp; Execution <span style="font-weight:400;color:var(--muted);font-size:14px">(book-wide, all clients — not scoped to the strategy/window pickers below)</span></h3>'
         + buildCallsViewHtml() + '</div>';
     }
 
@@ -11768,7 +11861,7 @@ window.DELAY_IMPACT_DATA={"AONDCP0004":{"instructionDate":"2026-08-11","note":"w
         return (ia<0?99:ia)-(ib<0?99:ib); });
       if(ac.length){
         var mx=Math.max.apply(null,ac.map(function(x){return Math.abs(x.contribBps);}))||1;
-        h+='<h4 style="margin:0 0 8px;font-size:.95rem">By asset class</h4><div style="margin-bottom:20px">';
+        h+='<h4 style="margin:0 0 8px;font-size:.95rem;border-left:3px solid var(--primary);padding-left:8px">By asset class <span style="font-weight:400;color:var(--muted);font-size:.78rem">(Equity / Hybrid / Debt / Cash, etc.)</span></h4><div style="margin-bottom:20px">';
         ac.forEach(function(x){
           var w=Math.min(100,Math.abs(x.contribBps)/mx*100);
           h+='<div style="display:flex;align-items:center;gap:10px;margin:3px 0"><div style="width:170px;font-size:.85rem">'+esc(x.assetClass||'')+'</div>'
@@ -11783,7 +11876,7 @@ window.DELAY_IMPACT_DATA={"AONDCP0004":{"instructionDate":"2026-08-11","note":"w
       var instr=computeByInstrumentCategory(strat, win);
       if(instr.length){
         var mxi=Math.max.apply(null,instr.map(function(x){return Math.abs(x.contribBps);}))||1;
-        h+='<h4 style="margin:0 0 8px;font-size:.95rem">By instrument category</h4><div style="margin-bottom:20px">';
+        h+='<h4 style="margin:0 0 8px;font-size:.95rem;border-left:3px solid #8a5cf6;padding-left:8px">By instrument category <span style="font-weight:400;color:var(--muted);font-size:.78rem">(finer cut — e.g. Direct Equity vs Equity Funds vs Sectoral ETFs, all "Equity" above)</span></h4><div style="margin-bottom:20px">';
         instr.forEach(function(x){
           var w=Math.min(100,Math.abs(x.contribBps)/mxi*100);
           h+='<div style="display:flex;align-items:center;gap:10px;margin:3px 0"><div style="width:190px;font-size:.85rem">'+esc(x.label)+'</div>'
@@ -11792,22 +11885,9 @@ window.DELAY_IMPACT_DATA={"AONDCP0004":{"instructionDate":"2026-08-11","note":"w
         });
         h+='</div>';
       }
-      // real GICS-style sectors only -- cash/arbitrage/international/AIF/gold-silver excluded,
-      // per user request 2026-09-01: "sector classification would be helpful if i knew how those
-      // sectors are performing" -- SECTOR_DATA (the Sectors page) only ever had exposure %, never
-      // a return; this is that return, computed the same AUM-weighted way as the two cuts above.
-      var bySector=W.bySector||[];
-      if(bySector.length){
-        var mxs=Math.max.apply(null,bySector.map(function(x){return Math.abs(x.contribBps);}))||1;
-        h+='<h4 style="margin:0 0 8px;font-size:.95rem">By sector <span style="font-weight:400;color:var(--muted);font-size:.78rem">(direct equity + fund look-through; cash, arbitrage, international, AIF and gold/silver are not sectors, see the Sectors page for those)</span></h4><div style="margin-bottom:20px">';
-        bySector.slice(0,12).forEach(function(x){
-          var w=Math.min(100,Math.abs(x.contribBps)/mxs*100);
-          h+='<div style="display:flex;align-items:center;gap:10px;margin:3px 0"><div style="width:170px;font-size:.85rem">'+esc(x.sector||'')+'</div>'
-            +'<div style="flex:1;max-width:340px;height:12px;background:var(--border);border-radius:4px"><div style="width:'+w+'%;height:100%;border-radius:4px;background:'+(x.contribBps>=0?'var(--green)':'var(--red)')+'"></div></div>'
-            +'<div style="width:80px;text-align:right;font-weight:600;color:'+(x.contribBps>=0?'var(--green-text)':'var(--red-text)')+'">'+(x.contribBps>=0?'+':'')+num(x.contribBps/100,2)+'%</div></div>';
-        });
-        h+='</div>';
-      }
+      // Sector performance moved to the dedicated Sectors page (2026-09-01) -- see renderSectors(),
+      // "Performance — what each sector contributed" section, per direct user request: sector work
+      // belongs on the page that already owns sector exposure, not bolted onto this view too.
     }
 
     /* --- B. call scorecard, scoped to this strategy --- */
@@ -11815,6 +11895,7 @@ window.DELAY_IMPACT_DATA={"AONDCP0004":{"instructionDate":"2026-08-11","note":"w
     var sc=(D.scorecard||[]).filter(function(x){ return !x.byStrategy||!x.byStrategy.length||x.byStrategy.indexOf(strat)>=0; });
     if(!sc.length) h+='<p style="color:var(--muted)">No calls with exposure in this strategy.</p>';
     else{
+      h+='<p style="color:var(--muted);font-size:13.5px;margin:0 0 10px;max-width:820px">Every named house call with exposure in '+esc(strat)+' — WORKED/DIDN&rsquo;T WORK/TOO EARLY is the actual outcome so far, weighted by how much money followed the call.</p>';
       var vmap={"WORKED":["var(--green-bg)","var(--green-text)"],"DIDN'T WORK":["var(--red-bg)","var(--red-text)"],"TOO EARLY":["#FFF3CD","#8a6d00"]};
       var b=sc.map(function(x){ var v=vmap[x.verdict]||["#eee","#333"];
         return '<tr><td><b>'+esc(x.label)+'</b></td><td style="color:var(--muted)">'+esc(x.calledDate||'')+'</td>'
@@ -11895,10 +11976,57 @@ window.DELAY_IMPACT_DATA={"AONDCP0004":{"instructionDate":"2026-08-11","note":"w
       return '<tr><td>'+esc(r.name)+'</td><td class="num">'+cr(r.equityAum)+'</td><td class="num">'+num(r.sectorBasePctOfEquity,0)+'%</td><td>'+top3+'</td>'
         +'<td class="num" style="font-weight:700;color:'+(r.sectorConcentrated?'var(--red-text)':'var(--text)')+'">'+esc(r.topSector)+' '+r.topSectorPct+'%'+(r.sectorConcentrated?' ⚠':'')+'</td>'
         +'<td style="font-size:.8rem;color:var(--muted)">'+exc+'</td></tr>'; }).join('');
-    return '<div class="container"><h2 class="section-title">Sector Exposure — with Mutual-Fund Look-Through</h2>'
+
+    // --- Sector Performance (deep-dive, added 2026-09-01 -- moved here from the small "By sector"
+    // bars that were bolted onto Attribution & Calls, per direct user request: "i meant that we hv
+    // a sepcifc vie for ectors already lets deep dive there on sectors". Exposure above is
+    // book-wide (SECTOR_DATA is client-keyed, spans every strategy); to keep this section on the
+    // same book-wide footing rather than showing just one strategy's number, each sector's
+    // per-strategy contribBps (CALL_DIAG_DATA.attribution[strategy][win].bySector) is weighted by
+    // that strategy's share of total book AUM and summed across all strategies -- the contribution
+    // of that sector to the WHOLE BOOK's blended return, not just one strategy's.
+    var win=STATE.win||"si";
+    var D=(typeof CALL_DIAG_DATA!=="undefined")?CALL_DIAG_DATA:null, attr=D&&D.attribution||{};
+    var totalAum=0; strategies().forEach(function(s){ totalAum+=(attr[s]&&attr[s].aum)||0; });
+    var perf={};
+    strategies().forEach(function(s){
+      var A=attr[s]; if(!A) return;
+      var wshare=totalAum>0?(A.aum||0)/totalAum:0;
+      var W=A[win]||A.si; if(!W) return;
+      (W.bySector||[]).forEach(function(x){ perf[x.sector]=(perf[x.sector]||0)+x.contribBps*wshare; });
+    });
+    var sectorSet={}; bookRows.forEach(function(x){sectorSet[x.s]=1;}); Object.keys(perf).forEach(function(s){sectorSet[s]=1;});
+    var merged=Object.keys(sectorSet).map(function(s){
+      var exp=book[s]!=null?book[s]/bookEq*100:null;
+      return {s:s, exp:exp, contribBps:perf[s]||0};
+    }).sort(function(a,b){ return (b.exp||0)-(a.exp||0); });
+    var perfRows=merged.map(function(x){
+      var pct=x.contribBps/100;
+      return '<tr><td>'+esc(x.s)+'</td><td class="num">'+(x.exp!=null?x.exp.toFixed(1)+'%':'—')+'</td>'
+        +'<td class="num" style="font-weight:700;color:'+(pct>=0?'var(--green-text)':'var(--red-text)')+'">'+(pct>=0?'+':'')+num(pct,2)+'%</td></tr>';
+    }).join('');
+    var movers=merged.filter(function(x){return x.contribBps!==0;}).sort(function(a,b){return b.contribBps-a.contribBps;});
+    var top=movers.slice(0,3), bottom=movers.slice(-3).reverse();
+    var moverLine=function(x){ var pct=x.contribBps/100;
+      return '<span style="display:inline-block;margin:2px 10px 2px 0;font-size:.85rem">'+esc(x.s)+' <b style="color:'+(pct>=0?'var(--green-text)':'var(--red-text)')+'">'+(pct>=0?'+':'')+num(pct,2)+'%</b></span>'; };
+    var winLabel=win==="m1"?"last month":(win==="m3"?"last 3 months":"since inception");
+    var winPicker='<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:14px">'
+      +'<span style="font-size:.8rem;color:var(--muted);text-transform:uppercase;letter-spacing:.5px">Window</span>';
+    [["m1","Last month"],["m3","3 months"],["si","Since inception"]].forEach(function(w){
+      var on=(w[0]===win);
+      winPicker+='<a href="#" class="refresh-btn" data-sectorwin="'+w[0]+'" style="'+(on?'background:var(--primary);color:#fff;':'')+'">'+w[1]+'</a>';
+    });
+    winPicker+='</div>';
+    var perfSection=!movers.length?'<p style="color:var(--muted)">No attribution history for this window.</p>':(
+      winPicker
+      +'<p style="margin:0 0 10px">Book-wide, '+winLabel+': <b>'+top.map(moverLine).join('')+'</b> helped most; <b>'+bottom.map(moverLine).join('')+'</b> hurt most.</p>'
+      +tbl('<th>Sector</th><th class="num">Exposure (% of book equity)</th><th class="num">Contribution, '+esc(winLabel)+'</th>',perfRows,620));
+
+    return '<div class="container"><h2 class="section-title">Sectors — Exposure &amp; Performance</h2>'
       +'<p style="color:var(--muted);margin:-8px 0 16px;max-width:880px">Real sectors only. Fund holdings are decomposed to their underlying sector weights (V2 data); direct stocks use their own sector. '
-      +'<b>International equity, AIF/alternatives and unclassified equity are not sectors</b> — they are excluded from the mix and reported in the last column. Percentages are of sector-classified equity. ⚠ flags a single sector above 35%.</p>'
-      +'<h3 style="margin:0 0 8px">Book-wide</h3><div style="margin-bottom:24px">'+bars+'</div>'
+      +'<b>International equity, AIF/alternatives and unclassified equity are not sectors</b> — they are excluded from the mix and reported in the last column of the client table below. Percentages are of sector-classified equity. ⚠ flags a single sector above 35%.</p>'
+      +'<h3 style="margin:0 0 8px">Exposure — Book-wide</h3><div style="margin-bottom:24px">'+bars+'</div>'
+      +'<h3 style="margin:0 0 10px">Performance — what each sector contributed</h3><div style="margin-bottom:24px">'+perfSection+'</div>'
       +'<h3 style="margin:0 0 10px">By client</h3>'
       +tbl('<th>Client</th><th class="num">Equity (Cr)</th><th class="num">Sector-classified</th><th>Top sectors</th><th class="num">Largest sector</th><th>Excluded (of equity)</th>',body,860)+'</div>';
   }
@@ -11959,6 +12087,7 @@ window.DELAY_IMPACT_DATA={"AONDCP0004":{"instructionDate":"2026-08-11","note":"w
     var v=document.getElementById(id); if(v) v.style.display='block'; window.scrollTo(0,0);
   }
   function rerenderDiag(){ makeView('ndpms-diag-view',renderDiag()); showFeatureView('ndpms-diag-view'); }
+  function rerenderSectors(){ makeView('ndpms-sector-view',renderSectors()); showFeatureView('ndpms-sector-view'); }
   // selector clicks inside the consolidated view
   document.addEventListener('click',function(ev){
     var a=ev.target.closest?ev.target.closest('[data-diagstrat],[data-diagwin]'):null;
@@ -11967,6 +12096,15 @@ window.DELAY_IMPACT_DATA={"AONDCP0004":{"instructionDate":"2026-08-11","note":"w
     if(a.getAttribute('data-diagstrat')) STATE.strategy=a.getAttribute('data-diagstrat');
     if(a.getAttribute('data-diagwin')) STATE.win=a.getAttribute('data-diagwin');
     rerenderDiag();
+  },true);
+  // window-picker clicks inside the Sectors view's own Performance section (shares STATE.win with
+  // Attribution & Calls, but re-renders only the Sectors view -- rerenderDiag() would be wrong here)
+  document.addEventListener('click',function(ev){
+    var a=ev.target.closest?ev.target.closest('[data-sectorwin]'):null;
+    if(!a) return;
+    ev.preventDefault();
+    STATE.win=a.getAttribute('data-sectorwin');
+    rerenderSectors();
   },true);
   function ensureButtons(){ var ta=document.getElementById('topbar-actions'); if(!ta) return;
     VIEWS.forEach(function(v){ if(document.getElementById(v[0])) return;
