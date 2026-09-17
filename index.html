@@ -2644,6 +2644,13 @@ function renderMainView() {
 // there is no "last cycle" to compare against yet; this activates on its own once a second
 // refresh cycle exists.
 function renderDriftTrendSection() {
+  // Local escape helper: the shared esc() lives in the separate <script id="ndpms-features">
+  // block, which loads AFTER this main script and only becomes available once it runs. This
+  // function is called eagerly during initial page setup (renderMainView -> renderDriftTrendSection),
+  // long before that script executes -- calling the shared esc() here threw "esc is not defined"
+  // and aborted the rest of THIS script's top-level execution, which is why the entire dashboard
+  // (scorecard, nav buttons, everything after this call) went blank. Self-contained, no external dep.
+  var _esc = function(s){ return String(s==null?'':s).replace(/[&<>]/g,function(m){return {'&':'&amp;','<':'&lt;','>':'&gt;'}[m];}); };
   var el = document.getElementById('drift-trend-section');
   if (!el) return;
   if (typeof BREACH_HISTORY_DATA === 'undefined') { el.innerHTML = ''; return; }
@@ -2705,15 +2712,15 @@ function renderDriftTrendSection() {
       + '<span style="color:var(--green)">' + clearedClient.length + ' fully cleared</span>, ' + stillInClient.length + ' still in breach).</div>'
       + ((nAddedClients||nClearedClients) ? ('<div class="footer-note" style="margin-top:6px">'
         + (nAddedClients ? ('<span style="color:var(--red)">New deviation this cycle</span>: ' + Object.keys(addedClients).map(function(nd){
-            return esc(nameFor(nd)||nd) + ' (' + addedClients[nd].map(function(t){return TYPE_LABEL[t]||t;}).join(', ') + ')';
+            return _esc(nameFor(nd)||nd) + ' (' + addedClients[nd].map(function(t){return TYPE_LABEL[t]||t;}).join(', ') + ')';
           }).join('; ') + '. ') : '')
         + (nClearedClients ? ('<span style="color:var(--green)">Cleared this cycle</span>: ' + Object.keys(clearedClients).map(function(nd){
-            return esc(nameFor(nd)||nd) + ' (' + clearedClients[nd].map(function(t){return TYPE_LABEL[t]||t;}).join(', ') + ')';
+            return _esc(nameFor(nd)||nd) + ' (' + clearedClients[nd].map(function(t){return TYPE_LABEL[t]||t;}).join(', ') + ')';
           }).join('; ') + '.') : '')
         + '</div>') : '')
       + '<div class="footer-note" style="margin-top:10px"><b>Biggest deviations</b> (by AUM currently affected):<br>'
       + typeRows.slice(0,6).map(function(r){
-          return '&bull; <b>' + esc(r.label) + '</b> &mdash; ' + r.clients + ' client(s), Rs ' + r.aumCr.toFixed(1) + ' Cr'
+          return '&bull; <b>' + _esc(r.label) + '</b> &mdash; ' + r.clients + ' client(s), Rs ' + r.aumCr.toFixed(1) + ' Cr'
             + (r.persisted ? (', ' + r.persisted + ' persisting since the prior cycle') : ' (all new this cycle)');
         }).join('<br>')
       + '</div>';
