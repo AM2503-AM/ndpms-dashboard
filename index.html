@@ -2648,10 +2648,13 @@ function renderDriftTrendSection() {
   var ndasList = Object.keys(BREACH_HISTORY_DATA);
   if (!ndasList.length) { el.innerHTML = ''; return; }
   var cyclesAvailable = Math.max.apply(null, ndasList.map(function(nd){ return (BREACH_HISTORY_DATA[nd]||[]).length; }));
-  var body, sub;
+  var TYPE_LABEL = {equity:'Equity Allocation', debt_alt:'Debt+Alt Allocation', amc:'AMC Concentration',
+    scheme:'Scheme Concentration', lc:'Large Cap', mc:'Mid Cap', sc:'Small Cap', intl_eq:'Intl Equity',
+    commodity:'Commodity', lockin:'Lock-in', cash:'Cash & Equivalents'};
   var currentlyIn = ndasList.filter(function(nd){
     var h = BREACH_HISTORY_DATA[nd]; return h.length && h[h.length-1].types && h[h.length-1].types.length;
   });
+  var body, sub;
   if (cyclesAvailable < 2) {
     body = '<div class="footer-note">'
       + '<b>' + currentlyIn.length + ' of ' + ndasList.length + '</b> tracked clients currently show at least one IPS deviation. '
@@ -2659,19 +2662,60 @@ function renderDriftTrendSection() {
       + 'becomes available from the next refresh onward.</div>';
     sub = currentlyIn.length + ' in breach now &middot; trend starts next cycle';
   } else {
-    var newlyIn = [], cleared = [], stillIn = [];
+    // Client-level (any breach at all) is too coarse to answer "who improved" -- a client who
+    // clears ONE real problem while others remain looked identical to "no change" before this fix
+    // (found 2026-09-17: Siddhant Jain and Rakesh Kumar Jain both cleared an LC breach this cycle,
+    // but the old logic called them "unchanged" since they still carry other breach types). Track
+    // both: client-level for the top-line count, type-level for what actually changed and why.
+    var newlyInClient = [], clearedClient = [], stillInClient = [];
+    var addedByType = {}, clearedByType = {};
     ndasList.forEach(function(nd){
       var h = BREACH_HISTORY_DATA[nd]; if (h.length < 2) return;
       var prev = h[h.length-2].types||[], cur = h[h.length-1].types||[];
-      if (cur.length && !prev.length) newlyIn.push(nd);
-      else if (!cur.length && prev.length) cleared.push(nd);
-      else if (cur.length && prev.length) stillIn.push(nd);
+      if (cur.length && !prev.length) newlyInClient.push(nd);
+      else if (!cur.length && prev.length) clearedClient.push(nd);
+      else if (cur.length && prev.length) stillInClient.push(nd);
+      cur.forEach(function(t){ if (prev.indexOf(t)<0) (addedByType[t]=addedByType[t]||[]).push(nd); });
+      prev.forEach(function(t){ if (cur.indexOf(t)<0) (clearedByType[t]=clearedByType[t]||[]).push(nd); });
     });
+    var addedClients = {}, clearedClients = {};
+    Object.keys(addedByType).forEach(function(t){ addedByType[t].forEach(function(nd){ (addedClients[nd]=addedClients[nd]||[]).push(t); }); });
+    Object.keys(clearedByType).forEach(function(t){ clearedByType[t].forEach(function(nd){ (clearedClients[nd]=clearedClients[nd]||[]).push(t); }); });
+    var nAddedClients = Object.keys(addedClients).length, nClearedClients = Object.keys(clearedClients).length;
+
+    // "Biggest" = which breach TYPE currently affects the most AUM right now. "Consistent" (given
+    // only 2 tracked cycles so far) = present in both, i.e. not newly added this cycle.
+    var byType = {};
+    ndasList.forEach(function(nd){
+      var h = BREACH_HISTORY_DATA[nd]; var cur = (h[h.length-1].types)||[];
+      cur.forEach(function(t){ (byType[t]=byType[t]||[]).push(nd); });
+    });
+    var typeRows = Object.keys(byType).map(function(t){
+      var aum = 0; byType[t].forEach(function(nd){ var f=findClientByNdas(nd); if (f) aum += (f.client.aum||0); });
+      var justAdded = addedByType[t]||[];
+      var persisted = byType[t].filter(function(nd){ return justAdded.indexOf(nd)<0; }).length;
+      return {type:t, label: TYPE_LABEL[t]||t, clients: byType[t].length, aumCr: aum/1e7, persisted: persisted};
+    }).sort(function(a,b){ return b.aumCr - a.aumCr; });
+
     body = '<div class="footer-note">'
       + '<b>' + currentlyIn.length + ' of ' + ndasList.length + '</b> tracked clients currently show at least one IPS deviation '
-      + '(<span style="color:var(--red)">' + newlyIn.length + ' newly this cycle</span>, '
-      + '<span style="color:var(--green)">' + cleared.length + ' cleared</span>, ' + stillIn.length + ' unchanged).</div>';
-    sub = currentlyIn.length + ' in breach &middot; ' + newlyIn.length + ' new &middot; ' + cleared.length + ' cleared';
+      + '(<span style="color:var(--red)">' + newlyInClient.length + ' newly this cycle</span>, '
+      + '<span style="color:var(--green)">' + clearedClient.length + ' fully cleared</span>, ' + stillInClient.length + ' still in breach).</div>'
+      + ((nAddedClients||nClearedClients) ? ('<div class="footer-note" style="margin-top:6px">'
+        + (nAddedClients ? ('<span style="color:var(--red)">New deviation this cycle</span>: ' + Object.keys(addedClients).map(function(nd){
+            return esc(nameFor(nd)||nd) + ' (' + addedClients[nd].map(function(t){return TYPE_LABEL[t]||t;}).join(', ') + ')';
+          }).join('; ') + '. ') : '')
+        + (nClearedClients ? ('<span style="color:var(--green)">Cleared this cycle</span>: ' + Object.keys(clearedClients).map(function(nd){
+            return esc(nameFor(nd)||nd) + ' (' + clearedClients[nd].map(function(t){return TYPE_LABEL[t]||t;}).join(', ') + ')';
+          }).join('; ') + '.') : '')
+        + '</div>') : '')
+      + '<div class="footer-note" style="margin-top:10px"><b>Biggest deviations</b> (by AUM currently affected):<br>'
+      + typeRows.slice(0,6).map(function(r){
+          return '&bull; <b>' + esc(r.label) + '</b> &mdash; ' + r.clients + ' client(s), Rs ' + r.aumCr.toFixed(1) + ' Cr'
+            + (r.persisted ? (', ' + r.persisted + ' persisting since the prior cycle') : ' (all new this cycle)');
+        }).join('<br>')
+      + '</div>';
+    sub = currentlyIn.length + ' in breach &middot; ' + nAddedClients + ' new &middot; ' + nClearedClients + ' cleared';
   }
   el.innerHTML = collapseSection('&#128200; Deviation Trend', body, { open: false, sub: sub });
 }
