@@ -2645,11 +2645,14 @@ function renderMainView() {
 // refresh cycle exists.
 function renderDriftTrendSection() {
   // Self-contained on purpose: this function is called eagerly during initial page setup
-  // (renderMainView -> renderDriftTrendSection), before the separate <script id="ndpms-features">
-  // block has run and before whatever closure nameFor()/findClientByNdas()/esc() live in has been
-  // reached at this point in THIS script's own execution. Calling any of those threw a
-  // ReferenceError here and aborted the rest of the main script's top-level execution -- which is
-  // why the entire dashboard (scorecard, nav buttons, everything after this call) went blank.
+  // (renderMainView -> renderDriftTrendSection), before the separate features script block
+  // (id ndpms-features, appended near the end of body) has run, and before whatever closure
+  // nameFor()/findClientByNdas()/esc() live in has been reached at this point in THIS script's
+  // own execution. Calling any of those threw a ReferenceError here and aborted the rest of the
+  // main script's top-level execution -- which is why the entire dashboard (scorecard, nav
+  // buttons, everything after this call) went blank. (Deliberately not spelling out that other
+  // script tag's opening HTML literally in this comment -- doing so once made a naive text search
+  // elsewhere in the build tooling mistake this comment for a second copy of that real tag.)
   // STRATEGY_DATA and collapseSection() are the only two externals the ORIGINAL (working) version
   // of this function ever used, so only those two are trusted here too.
   var _esc = function(s){ return String(s==null?'':s).replace(/[&<>]/g,function(m){return {'&':'&amp;','<':'&lt;','>':'&gt;'}[m];}); };
