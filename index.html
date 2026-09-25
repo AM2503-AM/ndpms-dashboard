@@ -1256,7 +1256,15 @@ function isReviewExempt(holdings) {
 
 // still deploying capital; revisit once fully invested.
 
-const MANUAL_REVIEW_EXEMPT_NDAS = ['NDAS0010', 'AONDCP0001', 'AONDCP0009', 'AONDCP0012'];
+// 2026-09-17 additions: Jerai Fitness Limited (NDAS0016) and Infinity Ocean Line LLP
+// (NDAS0017) confirmed by the user as not needing reviews -- added explicitly rather than
+// relying on their PASSIVE_NDAS membership alone.
+const MANUAL_REVIEW_EXEMPT_NDAS = ['NDAS0010', 'AONDCP0001', 'AONDCP0009', 'AONDCP0012', 'NDAS0016', 'NDAS0017'];
+// Advisor-based exemption: these advisors handle their own clients' reviews outside this
+// system entirely, so a blank/stale Last Review Date here is not a real gap. "Abhinandan"
+// confirmed 2026-09-17 (all of his clients, not just any specific subset). "DE Team"
+// confirmed 2026-09-17 -- reviews the book every Monday, so never overdue/not-reviewed here.
+const ADVISOR_REVIEW_EXEMPT = ['Abhinandan', 'DE Team'];
 
 // Account successions -- old (closed) code -> new (active) code for the SAME real client, so
 // both sides of a re-onboarding show a cross-reference instead of reading as two unrelated
@@ -1369,7 +1377,7 @@ function getAllClientsFlat() {
 
         // sync, they must always agree on membership.
 
-        reviewExempt: isReviewExempt(c.holdings) || MANUAL_REVIEW_EXEMPT_NDAS.includes(c.ndas) || (typeof PASSIVE_NDAS !== "undefined" && PASSIVE_NDAS.has(c.ndas)),
+        reviewExempt: isReviewExempt(c.holdings) || MANUAL_REVIEW_EXEMPT_NDAS.includes(c.ndas) || (typeof PASSIVE_NDAS !== "undefined" && PASSIVE_NDAS.has(c.ndas)) || ADVISOR_REVIEW_EXEMPT.includes(mis.advisor),
 
         isNewThisMonth: isNewThisReportingMonth(c.inception)
 
