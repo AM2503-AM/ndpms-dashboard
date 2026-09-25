@@ -6171,7 +6171,7 @@ function renderCallExecutionLogHtml(){
 
     <h4 style="margin:16px 0 8px">By Client</h4>
 
-    <table style="table-layout:fixed;width:100%">
+    <div style="max-height:360px;overflow-y:auto"><table style="table-layout:fixed;width:100%">
 
       <colgroup><col style="width:28%"><col style="width:12%"><col style="width:12%"><col style="width:12%"><col style="width:18%"><col style="width:18%"></colgroup>
 
@@ -6179,11 +6179,11 @@ function renderCallExecutionLogHtml(){
 
       <tbody>${clientTableRows}</tbody>
 
-    </table>
+    </table></div>
 
     <h4 style="margin:24px 0 8px">By Security</h4>
 
-    ${callLevel.length ? `<table style="table-layout:fixed;width:100%">
+    ${callLevel.length ? `<div style="max-height:420px;overflow-y:auto"><table style="table-layout:fixed;width:100%">
 
       <colgroup><col style="width:32%"><col style="width:10%"><col style="width:12%"><col style="width:12%"><col style="width:12%"><col style="width:11%"><col style="width:11%"></colgroup>
 
@@ -6191,7 +6191,7 @@ function renderCallExecutionLogHtml(){
 
       <tbody>${callLevelRows}</tbody>
 
-    </table>` : `<div class="attr-empty">Not available — the automated builder (build_call_execution_auto.py) produces per-client totals only (see "By Client" above), not a by-security breakdown.</div>`}
+    </table></div>` : `<div class="attr-empty">Not available — the automated builder (build_call_execution_auto.py) produces per-client totals only (see "By Client" above), not a by-security breakdown.</div>`}
 
   </div>`;
 
@@ -12047,11 +12047,7 @@ window.DELAY_IMPACT_DATA={"AONDCP0004":{"instructionDate":"2026-08-11","note":"w
 
     if (typeof buildCallsViewHtml === "function") {
 
-      h += '<div style="margin-bottom:26px;padding-bottom:20px;border-bottom:2px solid var(--border)">'
-
-        + '<h3 style="margin:0 0 10px">Calls — Registry &amp; Execution <span style="font-weight:400;color:var(--muted);font-size:14px">(book-wide, all clients — not scoped to the strategy/window pickers below)</span></h3>'
-
-        + buildCallsViewHtml() + '</div>';
+      h += '<div style="margin-bottom:26px">' + collapseSection('Calls — Registry &amp; Execution', buildCallsViewHtml(), { open:false, sub:'book-wide, all clients — call registry, execution log, instrument categories, direct equity' }) + '</div>';
 
     }
 
@@ -12273,7 +12269,7 @@ window.DELAY_IMPACT_DATA={"AONDCP0004":{"instructionDate":"2026-08-11","note":"w
 
           +'<div style="font-size:.78rem;color:var(--muted);margin-bottom:6px">'+m[3]+'</div>'
 
-          +tbl('<th>Client</th><th>Call</th><th>Called</th><th class="num">Exposure</th><th class="num">Alpha</th><th>Note</th>',b,720)+'</div>';
+          +collapseSection('View '+list.length+' client'+(list.length===1?'':'s'), tbl('<th>Client</th><th>Call</th><th>Called</th><th class="num">Exposure</th><th class="num">Alpha</th><th>Note</th>',b,720), {open:false})+'</div>';
 
       });
 
