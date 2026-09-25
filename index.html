@@ -1267,7 +1267,9 @@ const MANUAL_REVIEW_EXEMPT_NDAS = ['NDAS0010', 'AONDCP0001', 'AONDCP0009', 'AOND
 // system entirely, so a blank/stale Last Review Date here is not a real gap. "Abhinandan"
 // confirmed 2026-09-17 (all of his clients, not just any specific subset). "DE Team"
 // confirmed 2026-09-17 -- reviews the book every Monday, so never overdue/not-reviewed here.
-const ADVISOR_REVIEW_EXEMPT = ['Abhinandan', 'DE Team'];
+// 2026-09-25: "Muskaan Kedia" confirmed -- reviews her own clients (Amit Kumar,
+// AONDLV0013) outside this system, same treatment as Abhinandan/DE Team.
+const ADVISOR_REVIEW_EXEMPT = ['Abhinandan', 'DE Team', 'Muskaan Kedia'];
 
 // Account successions -- old (closed) code -> new (active) code for the SAME real client, so
 // both sides of a re-onboarding show a cross-reference instead of reading as two unrelated
