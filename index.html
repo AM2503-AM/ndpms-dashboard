@@ -2477,7 +2477,7 @@ function renderPendingTasksPanel() {
 
   const all = getAllClientsFlat();
 
-  const reviewPending = all.filter(c => c.reviewStatus.code !== 'ok' && !c.reviewExempt)
+  const reviewPending = all.filter(c => c.reviewStatus.code !== 'ok' && c.reviewStatus.code !== 'not_reviewed' && !c.reviewExempt)
 
     .sort((a,b) => (b.reviewStatus.daysSince||0) - (a.reviewStatus.daysSince||0));
 
@@ -4272,7 +4272,7 @@ function downloadDeviationsExcel() {
 
     const bridge = getClientAumBridge(c);
 
-    const pendingReview = c.reviewExempt ? 'Exempt' : (c.reviewStatus.code === 'ok' ? 'No' : 'Yes');
+    const pendingReview = c.reviewExempt ? 'Exempt' : ((c.reviewStatus.code === 'ok' || c.reviewStatus.code === 'not_reviewed') ? 'No' : 'Yes');
 
     const pendingActions = c.action_items ? 'Yes' : 'No';
 
@@ -4349,14 +4349,6 @@ function downloadDeviationsExcel() {
       tasks.push({priority:1, type:'Review Overdue', client:c.name, code:c.ndas||c.account, strategy:c.strategyName, rm:c.rm||'—', aumCr,
 
         detail:`Review overdue by ${c.reviewStatus.daysSince} days (last reviewed ${c.last_review||'—'})`, daysOutstanding:c.reviewStatus.daysSince});
-
-    }
-
-    if (c.reviewStatus.code === 'not_reviewed' && !c.reviewExempt) {
-
-      tasks.push({priority:1, type:'Review Never Done', client:c.name, code:c.ndas||c.account, strategy:c.strategyName, rm:c.rm||'—', aumCr,
-
-        detail:'No review on record for this account and it is not marked exempt', daysOutstanding:0});
 
     }
 
