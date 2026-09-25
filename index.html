@@ -1975,6 +1975,39 @@ function computeManagementSplit(clients) {
 
 
 
+
+function renderCompositionDiagnosis(strategyName) {
+  if (typeof COMPOSITION_DIAG_DATA === "undefined") return "";
+  var d = COMPOSITION_DIAG_DATA[strategyName];
+  if (!d) return "";
+  var fmtCr2 = function(v) { return "\u20b9" + v.toFixed(2) + " Cr"; };
+  var originLabel = {deployed: "House-deployed", transferred_in: "Transferred-in / legacy", mixed: "Mixed", unknown: "Unclassified"};
+  var originColor = {deployed: "var(--primary)", transferred_in: "var(--gold)", mixed: "var(--muted)", unknown: "var(--muted)"};
+  var compRows = d.composition.map(function(c) {
+    return '<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border)">' +
+      '<span style="color:' + (originColor[c.origin] || "var(--muted)") + ';font-weight:600">' + (originLabel[c.origin] || c.origin) + '</span>' +
+      '<span>' + c.pct + '% &middot; ' + fmtCr2(c.mvCr) + '</span></div>';
+  }).join("");
+  var assetRows = d.houseDeployedAssetReturns.map(function(a) {
+    var col = a.unrealizedPct >= 0 ? "var(--green)" : "var(--red)";
+    var sign = a.unrealizedPct >= 0 ? "+" : "";
+    return '<div style="display:flex;justify-content:space-between;padding:3px 0;font-size:13.5px">' +
+      '<span>' + a.assetClass + '</span>' +
+      '<span style="color:' + col + ';font-weight:600">' + sign + a.unrealizedPct + '%</span></div>';
+  }).join("");
+  var top = d.composition[0];
+  var flag = (top && top.origin === "transferred_in" && top.pct > 50)
+    ? '<div style="margin-top:10px;padding:8px 10px;background:#FFF6E0;border-left:3px solid var(--gold);font-size:13px;color:#7a5a00">Majority of this strategy\'s AUM is transferred-in/legacy holdings \u2014 the benchmark-relative scorecard above is shaped more by what clients arrived with than by our own calls.</div>'
+    : "";
+  return '<div class="chart-card" style="grid-column:1/-1;margin-top:14px">' +
+    '<h3>Composition &amp; Attribution Diagnosis</h3>' +
+    '<p style="color:var(--muted);font-size:13px;margin:-6px 0 10px">Where this strategy\'s AUM sits (house-deployed vs inherited), and how house-deployed capital is doing by asset class. See Attribution &amp; Calls for which house calls worked.</p>' +
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:24px">' +
+    '<div><div style="font-weight:600;font-size:13px;color:var(--muted);margin-bottom:6px">HOLDING ORIGIN (% of AUM)</div>' + compRows + '</div>' +
+    '<div><div style="font-weight:600;font-size:13px;color:var(--muted);margin-bottom:6px">UNREALIZED RETURN BY ASSET CLASS (house-deployed only)</div>' + assetRows + '</div>' +
+    '</div>' + flag + '</div>';
+}
+
 function renderStrategy(s, i) {
 
   const aumTotCr = s.total_aum / 1e7;
@@ -13527,6 +13560,24 @@ window.DELAY_IMPACT_DATA={"AONDCP0004":{"instructionDate":"2026-08-11","note":"w
 })();
 
 
+
+window.COMPOSITION_DIAG_DATA={"CoPilot":{"totalMvCr":113.71,"composition":[{"origin":"transferred_in","mvCr":81.27,"pct":71.5},{"origin":"deployed","mvCr":31.38,"pct":27.6},{"origin":"mixed","mvCr":0.81,"pct":0.7},{"origin":"unknown","mvCr":0.26,"pct":0.2}],"houseDeployedAssetReturns":[{"assetClass":"Equity","unrealizedPct":-0.15,"mvCr":12.78},{"assetClass":"Fixed Income","unrealizedPct":0.32,"mvCr":2.22},{"assetClass":"Alternative Assets","unrealizedPct":1.24,"mvCr":15.83},{"assetClass":"Hybrid","unrealizedPct":6.99,"mvCr":0.52}]},"Allocate Select":{"totalMvCr":82.25,"composition":[{"origin":"deployed","mvCr":59.8,"pct":72.7},{"origin":"mixed","mvCr":13.19,"pct":16.0},{"origin":"transferred_in","mvCr":8.88,"pct":10.8},{"origin":"unknown","mvCr":0.38,"pct":0.5}],"houseDeployedAssetReturns":[{"assetClass":"Alternative Assets","unrealizedPct":-2.0,"mvCr":12.1},{"assetClass":"Equity","unrealizedPct":-0.56,"mvCr":35.39},{"assetClass":"Cash and Equivalent","unrealizedPct":0.41,"mvCr":0.31},{"assetClass":"Hybrid","unrealizedPct":0.54,"mvCr":4.12},{"assetClass":"Fixed Income","unrealizedPct":2.64,"mvCr":7.87}]},"LVPMS":{"totalMvCr":270.61,"composition":[{"origin":"deployed","mvCr":205.01,"pct":75.8},{"origin":"transferred_in","mvCr":48.71,"pct":18.0},{"origin":"unknown","mvCr":12.99,"pct":4.8},{"origin":"mixed","mvCr":3.9,"pct":1.4}],"houseDeployedAssetReturns":[{"assetClass":"Fixed Income","unrealizedPct":-0.14,"mvCr":28.99},{"assetClass":"Cash and Equivalent","unrealizedPct":0.48,"mvCr":17.34},{"assetClass":"Alternative Assets","unrealizedPct":1.03,"mvCr":78.9},{"assetClass":"Equity","unrealizedPct":1.38,"mvCr":57.29},{"assetClass":"Hybrid","unrealizedPct":1.58,"mvCr":22.49}]}};
+
+// Appends the Composition & Attribution Diagnosis card into each already-rendered
+// .strategy-section -- see patch_add_composition_diag.py for why this runs from here
+// (post-load, from the features script) rather than from inside renderStrategy() itself.
+(function() {
+  if (typeof COMPOSITION_DIAG_DATA === "undefined" || typeof STRATEGY_DATA === "undefined") return;
+  document.querySelectorAll(".strategy-section").forEach(function(sec) {
+    var idx = +sec.getAttribute("data-idx");
+    var s = STRATEGY_DATA[idx];
+    if (!s) return;
+    var html = renderCompositionDiagnosis(s.name);
+    if (!html) return;
+    var chartsGrid = sec.querySelector(".charts-grid");
+    if (chartsGrid) chartsGrid.insertAdjacentHTML("beforebegin", html);
+  });
+})();
 
 </script>
 </body>
