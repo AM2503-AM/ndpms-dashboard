@@ -20,6 +20,8 @@
 
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
+<script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
+
 <script src="https://cdn.jsdelivr.net/npm/pptxgenjs@4.0.1/dist/pptxgen.bundle.js"></script>
 
 <style>
@@ -4231,7 +4233,7 @@ const DEPLOYMENT_IN_PROGRESS_NDAS = [
 
 // one information architecture across both versions, not two.
 
-function downloadDeviationsExcel() {
+async function downloadDeviationsExcel() {
 
   const getBreaches = computeIpsBreaches;
 
@@ -4277,7 +4279,9 @@ function downloadDeviationsExcel() {
 
     const pendingActions = c.action_items ? 'Yes' : 'No';
 
-    return { c, riskProfile, deviations, bridge, pendingReview, pendingActions,
+    const reviewStatusText = c.reviewExempt ? ('Exempt — ' + (c.reviewStatus.code === 'not_reviewed' ? 'no review on file' : c.reviewStatus.label)) : c.reviewStatus.label;
+
+    return { c, riskProfile, deviations, bridge, pendingReview, pendingActions, reviewStatusText,
 
       aumCr: +((c.aum || 0) / 1e7).toFixed(2),
 
@@ -4293,13 +4297,13 @@ function downloadDeviationsExcel() {
 
   const deviationsRows = [['Client', 'Account Code', 'Strategy', 'RM', 'Advisor', 'AUM (Cr)', 'Risk Profile',
 
-    'Last Review', 'Review Status', 'Pending Review', 'Days Since Review', 'Pending Actions', 'Action Detail', 'IPS Deviations']];
+    'Last Review', 'Review Status', 'Action Needed', 'Days Since Review', 'Pending Actions', 'Action Detail', 'IPS Deviations']];
 
-  enriched.forEach(({c, riskProfile, deviations, aumCr, pendingReview, pendingActions, daysSince}) => {
+  enriched.forEach(({c, riskProfile, deviations, aumCr, pendingReview, pendingActions, daysSince, reviewStatusText}) => {
 
     deviationsRows.push([c.name, c.ndas || c.account, c.strategyName, c.rm || '—', advisorLabel(c.advisor), aumCr,
 
-      riskProfile, c.last_review || '—', c.reviewStatus.label, pendingReview, daysSince != null ? daysSince : '—',
+      riskProfile, c.last_review || '—', reviewStatusText, pendingReview, daysSince != null ? daysSince : '—',
 
       pendingActions, c.action_items ? c.action_items.replace(/\n/g, '; ') : '—', deviations]);
 
@@ -4519,58 +4523,69 @@ function downloadDeviationsExcel() {
 
 
 
-  // SheetJS's free/client-side build has no font/fill/colour API — column widths (!cols) are the
+  // Switched from SheetJS (free build has no font/fill API -- column widths were the only real
+  // formatting it could do, per the comment this replaced) to ExcelJS 2026-09-25, so this can
+  // actually be downloaded and sent as-is: styled header row per sheet, frozen header row,
+  // autofilter, and conditional row tint on Deviations (red=action needed, amber=has a
+  // deviation but not actionable) and Pending Reviews & Tasks (red=priority 1, amber=2-3).
+  const HEADER_FILL = 'FF242BA1', HEADER_FONT = 'FFFFFFFF';
+  const TINT_RED = 'FFFFC7CE', TINT_AMBER = 'FFFFF3CD';
 
-  // one piece of real formatting it CAN do, so at least make every sheet legible without a manual
+  function styledSheet(wb, name, rows, widths, rowFill) {
+    const ws = wb.addWorksheet(name, { views: [{ state: 'frozen', ySplit: 1 }] });
+    const header = rows[0] || [];
+    ws.columns = header.map((h, idx) => ({ header: h, width: widths[idx] || 16 }));
+    rows.slice(1).forEach(r => ws.addRow(r));
+    const hRow = ws.getRow(1);
+    hRow.eachCell(cell => {
+      cell.font = { bold: true, color: { argb: HEADER_FONT } };
+      cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: HEADER_FILL } };
+      cell.alignment = { vertical: 'middle', wrapText: true };
+    });
+    hRow.height = 24;
+    if (header.length) ws.autoFilter = { from: { row: 1, column: 1 }, to: { row: 1, column: header.length } };
+    if (rowFill) {
+      rows.slice(1).forEach((r, idx) => {
+        const argb = rowFill(r, idx);
+        if (!argb) return;
+        ws.getRow(idx + 2).eachCell(cell => { cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb } }; });
+      });
+    }
+    return ws;
+  }
 
-  // resize.
+  const wb = new ExcelJS.Workbook();
+  wb.creator = 'NDPMS Dashboard';
+  wb.created = new Date();
 
-  const setColWidths = (ws, widths) => { ws['!cols'] = widths.map(w => ({ wch: w })); };
+  styledSheet(wb, 'Deviations', deviationsRows, [28, 13, 15, 17, 15, 10, 12, 13, 20, 13, 11, 12, 32, 44], (r) => {
+    if (r[9] === 'Yes') return TINT_RED;
+    const dev = r[13];
+    if (dev && dev !== 'No deviations' && String(dev).indexOf('No IPS') !== 0) return TINT_AMBER;
+    return null;
+  });
 
+  styledSheet(wb, 'Returns', returnsRows, [28, 13, 15, 17, 15, 10, 13, 12, 9, 9, 10, 9, 9, 10, 9, 9, 10]);
 
+  styledSheet(wb, 'Pending Reviews & Tasks', taskRows, [15, 20, 28, 13, 15, 17, 10, 55], (r) => {
+    const p = r[0] || '';
+    if (p.indexOf('1') === 0) return TINT_RED;
+    if (p.indexOf('2') === 0 || p.indexOf('3') === 0) return TINT_AMBER;
+    return null;
+  });
 
-  const wb = XLSX.utils.book_new();
+  styledSheet(wb, 'Strategy Summary', summaryRows, [16, 10, 14, 16, 14, 12, 20]);
+  styledSheet(wb, 'New Clients Onboarded', newClientRows, [28, 16, 15, 12, 15, 17, 14]);
+  styledSheet(wb, 'Onboarding In Progress', onboardingRows, [28, 14, 20, 15, 15]);
+  styledSheet(wb, 'Deployment In Progress', deploymentRows, [28, 16, 15, 12, 15, 40]);
 
-  const wsDev = XLSX.utils.aoa_to_sheet(deviationsRows);
-
-  setColWidths(wsDev, [28, 13, 15, 17, 15, 10, 12, 13, 14, 12, 11, 12, 32, 44]);
-
-  XLSX.utils.book_append_sheet(wb, wsDev, 'Deviations');
-
-
-
-  const wsRet = XLSX.utils.aoa_to_sheet(returnsRows);
-
-  setColWidths(wsRet, [28, 13, 15, 17, 15, 10, 13, 12, 9, 9, 10, 9, 9, 10, 9, 9, 10]);
-
-  XLSX.utils.book_append_sheet(wb, wsRet, 'Returns');
-
-
-
-  const wsTasks = XLSX.utils.aoa_to_sheet(taskRows);
-
-  setColWidths(wsTasks, [15, 20, 28, 13, 15, 17, 10, 55]);
-
-  XLSX.utils.book_append_sheet(wb, wsTasks, 'Pending Reviews & Tasks');
-
-
-
-  const wsSummary = XLSX.utils.aoa_to_sheet(summaryRows);
-
-  setColWidths(wsSummary, [16, 10, 14, 16, 14, 12, 20]);
-
-  XLSX.utils.book_append_sheet(wb, wsSummary, 'Strategy Summary');
-
-
-
-  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(newClientRows), 'New Clients Onboarded');
-
-  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(onboardingRows), 'Onboarding In Progress');
-
-  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(deploymentRows), 'Deployment In Progress');
-
-  XLSX.writeFile(wb, `NDPMS_Deviations_${dstr}.xlsx`);
-
+  const buf = await wb.xlsx.writeBuffer();
+  const blob = new Blob([buf], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = `NDPMS_Deviations_${dstr}.xlsx`;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 4000);
 }
 
 
